@@ -1,0 +1,16 @@
+language: bash
+sudo: false
+
+script: ./ci.sh
+
+matrix:
+  fast_finish: true
+  include:
+  - env: SUITE="js"
+  - env: SUITE="ruby" RUBY_VERSION="2.4.0"
+  - env: SUITE="ruby" RUBY_VERSION="2.3.3"
+  - env: SUITE="ruby" RUBY_VERSION="2.2.2"
+
+branches:
+  only:
+    - master
