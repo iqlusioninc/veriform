@@ -1,0 +1,12 @@
+[package]
+name        = "zser"
+description = "A protobuf-inspired minimalistic serialization format with cryptographic authentication"
+version     = "0.0.0"
+authors     = ["Tony Arcieri <bascule@gmail.com>"]
+homepage    = "https://www.zcred.org"
+repository  = "https://github.com/zcred/zser"
+readme      = "README.md"
+categories  = ["authentication","cryptography"]
+keywords    = ["authentication", "cryptography", "security", "serialization", "merkle"]
+
+[dependencies]

@@ -10,6 +10,8 @@ matrix:
   - env: SUITE="ruby" RUBY_VERSION="2.4.0"
   - env: SUITE="ruby" RUBY_VERSION="2.3.3"
   - env: SUITE="ruby" RUBY_VERSION="2.2.2"
+  - env: SUITE="rust" RUST_VERSION="stable"
+  - env: SUITE="rust" RUST_VERSION="nightly"
 
 branches:
   only:

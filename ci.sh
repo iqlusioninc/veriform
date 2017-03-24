@@ -1,18 +1,16 @@
 #!/bin/bash --login
 
-set -e
+set -e -x
 
 case $SUITE in
 js)
-    echo "Running JavaScript test suite..."
-    echo "node version: $(node --version)"
-    echo "npm version: $(npm --version)"
+    node --version
+    npm --version
     cd js
     npm install
     npm test
     ;;
 ruby)
-    echo "Running Ruby ($RUBY_VERSION) test suite..."
     rvm use $RUBY_VERSION --install --binary --fuzzy
     ruby -v
     gem install bundler --version 1.14.5 --no-rdoc --no-ri
@@ -20,6 +18,13 @@ ruby)
     cd ruby
     bundle
     bundle exec rake
+    ;;
+rust)
+    curl https://sh.rustup.rs -sSf | sh -s -- -y
+    source ~/.cargo/env
+    rustup default $RUST_VERSION
+    cd rust
+    cargo test
     ;;
 *)
     echo "*** ERROR: Unknown test suite: '$SUITE'"
