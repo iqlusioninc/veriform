@@ -3,6 +3,11 @@
 set -e
 
 case $SUITE in
+go)
+    go version
+    cd go
+    go test -v ./...
+    ;;
 js)
     node --version
     npm --version
