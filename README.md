@@ -21,7 +21,7 @@ Protobufs good enough?
 The answer is no. The original work on zcreds began using a
 [protobuf based format]. Unfortunately, one of the new features added
 in zser (Merkleized content authentication) does not play nicely with
-Protobufs due to a []limitation in the protobufs design].
+Protobufs due to a [limitation in the protobufs design].
 
 However, that does not mean there is anything inherently wrong with these
 other serialization formats. The intent of zser is *not* to design a
