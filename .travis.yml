@@ -17,10 +17,12 @@ matrix:
   - env: SUITE="ruby"
     language: ruby
     rvm: 2.2.2
-  - env: SUITE="rust" RUST_VERSION="stable"
+  - env: SUITE="rust"
     language: rust
-  - env: SUITE="rust" RUST_VERSION="nightly"
+    rust: stable
+  - env: SUITE="rust"
     language: rust
+    rust: nightly
 
 branches:
   only:
