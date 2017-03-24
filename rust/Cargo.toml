@@ -2,6 +2,7 @@
 name        = "zser"
 description = "A protobuf-inspired minimalistic serialization format with cryptographic authentication"
 version     = "0.0.0"
+license     = "MIT"
 authors     = ["Tony Arcieri <bascule@gmail.com>"]
 homepage    = "https://www.zcred.org"
 repository  = "https://github.com/zcred/zser"
