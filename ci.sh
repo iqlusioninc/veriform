@@ -1,6 +1,6 @@
 #!/bin/bash --login
 
-set -e -x
+set -e
 
 case $SUITE in
 js)
@@ -11,18 +11,14 @@ js)
     npm test
     ;;
 ruby)
-    rvm use $RUBY_VERSION --install --binary --fuzzy
     ruby -v
-    gem install bundler --version 1.14.5 --no-rdoc --no-ri
     bundle --version
     cd ruby
     bundle
     bundle exec rake
     ;;
 rust)
-    curl https://sh.rustup.rs -sSf | sh -s -- -y
-    source ~/.cargo/env
-    rustup default $RUST_VERSION
+    rustc --version
     cd rust
     cargo test
     ;;
