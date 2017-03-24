@@ -2,6 +2,8 @@
 
 set -e
 
+env
+
 case $SUITE in
 go)
     go version
