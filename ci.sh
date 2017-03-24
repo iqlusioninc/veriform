@@ -1,6 +1,6 @@
 #!/bin/bash --login
 
-set -e -x
+set -e
 
 case $SUITE in
 js)
@@ -11,7 +11,6 @@ js)
     npm test
     ;;
 ruby)
-    rvm use $RUBY_VERSION --install --binary --fuzzy
     ruby -v
     gem install bundler --version 1.14.5 --no-rdoc --no-ri
     bundle --version
