@@ -19,9 +19,6 @@ ruby)
     bundle exec rake
     ;;
 rust)
-    curl https://sh.rustup.rs -sSf | sh -s -- -y
-    source ~/.cargo/env
-    rustup default $RUST_VERSION
     cd rust
     cargo test
     ;;
