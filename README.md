@@ -42,3 +42,36 @@ authentication scheme.
 [protobuf based format]: https://github.com/protocreds/
 [limitation in the protobufs design]: https://github.com/google/protobuf/issues/2629
 [Cap'n Proto]: https://capnproto.org/
+
+## Language Support
+
+Packages implementing zser are available for the following languages:
+
+| Language               | Version                              | Status         |
+|------------------------|--------------------------------------|----------------|
+| [JavaScript][npm-link] | [![npm][npm-shield]][npm-link]       | :broken_heart: |
+| [Ruby][gem-link]       | [![gem][gem-shield]][gem-link]       | :broken_heart: |
+| [Rust][crate-link]     | [![crate][crate-shield]][crate-link] | :broken_heart: |
+
+**Status Legend**
+
+| Heart          | Description              |
+|----------------|--------------------------|
+| :green_heart:  | Stable and full-featured |
+| :yellow_heart: | Working with some issues |
+| :broken_heart: | Not yet usable           |
+
+[npm-shield]: https://img.shields.io/npm/v/zser.svg
+[npm-link]: https://www.npmjs.com/package/zser
+[gem-shield]: https://badge.fury.io/rb/zser.svg
+[gem-link]: https://rubygems.org/gems/zser
+[crate-shield]: https://img.shields.io/crates/v/zser.svg
+[crate-link]: https://crates.io/crates/zser
+
+## Copyright
+
+Copyright (c) 2017 [The Zcred Developers][AUTHORS].
+See [LICENSE.txt] for further details.
+
+[AUTHORS]: https://github.com/zcred/zcred/blob/master/AUTHORS.md
+[LICENSE.txt]: https://github.com/zcred/zser/blob/master/LICENSE.txt
