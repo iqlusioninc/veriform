@@ -1,7 +1,10 @@
-language: bash
 sudo: false
 
 script: ./ci.sh
+
+branches:
+  only:
+    - master
 
 matrix:
   fast_finish: true
@@ -23,7 +26,3 @@ matrix:
   - env: SUITE="rust"
     language: rust
     rust: nightly
-
-branches:
-  only:
-    - master
