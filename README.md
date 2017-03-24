@@ -49,6 +49,7 @@ Packages implementing zser are available for the following languages:
 
 | Language               | Version                              | Status         |
 |------------------------|--------------------------------------|----------------|
+| [Go][go-link]          | N/A                                  | :broken_heart: |
 | [JavaScript][npm-link] | [![npm][npm-shield]][npm-link]       | :broken_heart: |
 | [Ruby][gem-link]       | [![gem][gem-shield]][gem-link]       | :broken_heart: |
 | [Rust][crate-link]     | [![crate][crate-shield]][crate-link] | :broken_heart: |
@@ -61,6 +62,7 @@ Packages implementing zser are available for the following languages:
 | :yellow_heart: | Working with some issues |
 | :broken_heart: | Not yet usable           |
 
+[go-link]: https://github.com/zcred/zser/tree/master/go
 [npm-shield]: https://img.shields.io/npm/v/zser.svg
 [npm-link]: https://www.npmjs.com/package/zser
 [gem-shield]: https://badge.fury.io/rb/zser.svg
