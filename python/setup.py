@@ -13,7 +13,7 @@ setup(
     long_description="A protobuf-inspired minimalistic serialization format with cryptographic authentication",
     author="Tony Arcieri",
     author_email="bascule@gmail.com",
-    url="https://github.com/anupsv/zser",
+    url="https://github.com/zcred/zser",
     packages=["zser"],
     package_dir={"zser": "zser"},
     include_package_data=True,
