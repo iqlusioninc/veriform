@@ -20,7 +20,7 @@ python)
     pip --version
     cd python
     export PATH=$HOME/.local/bin:$PATH
-    pip install -r requirements.txt --user `whoami`
+    pip install -r requirements.txt --user
     pytest
     ;;
 ruby)
