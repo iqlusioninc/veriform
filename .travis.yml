@@ -1,5 +1,3 @@
-sudo: false
-
 script: ./ci.sh
 
 branches:
@@ -11,8 +9,11 @@ matrix:
   include:
   - env: SUITE="go"
     language: go
+    go: 1.8
   - env: SUITE="js"
     language: node_js
+    node_js: 7
+    sudo: true
   - env: SUITE="python"
     language: python
     python: 3.6

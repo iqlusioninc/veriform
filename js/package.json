@@ -2,10 +2,10 @@
   "name": "zser",
   "version": "0.0.0",
   "description": "zcred serialization format",
+  "homepage": "https://github.com/zcred/zser#readme",
   "main": "index.js",
-  "scripts": {
-    "test": "./node_modules/.bin/mocha --reporter spec"
-  },
+  "author": "Tony Arcieri",
+  "license": "MIT",
   "repository": {
     "type": "git",
     "url": "git+https://github.com/zcred/zser.git"
@@ -16,13 +16,20 @@
     "token",
     "authentication"
   ],
-  "author": "Tony Arcieri",
-  "license": "MIT",
   "bugs": {
     "url": "https://github.com/zcred/zser/issues"
   },
-  "homepage": "https://github.com/zcred/zser#readme",
-  "dependencies": {
-    "mocha": "^3.1.2"
+  "directories": {
+      "test": "test"
+  },
+  "scripts": {
+    "test": "mocha --require ts-node/register test/**/*.spec.ts"
+  },
+  "devDependencies": {
+    "chai": "^3.5.0",
+    "mocha": "^3.2.0",
+    "mocha-typescript": "^1.0.23",
+    "ts-node": "^3.0.2",
+    "typescript": "^2.2.1"
   }
 }
