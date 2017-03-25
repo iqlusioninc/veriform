@@ -51,7 +51,7 @@ Packages implementing zser are available for the following languages:
 |------------------------|--------------------------------------|
 | [Go][go-link]          | N/A                                  |
 | [JavaScript][npm-link] | [![npm][npm-shield]][npm-link]       |
-| [Python][pypi-link]    | [![pypi][pypi-shield][pypi-link]     |
+| [Python][pypi-link]    | [![pypi][pypi-shield]][pypi-link]    |
 | [Ruby][gem-link]       | [![gem][gem-shield]][gem-link]       |
 | [Rust][crate-link]     | [![crate][crate-shield]][crate-link] |
 
