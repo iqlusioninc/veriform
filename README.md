@@ -47,24 +47,20 @@ authentication scheme.
 
 Packages implementing zser are available for the following languages:
 
-| Language               | Version                              | Status         |
-|------------------------|--------------------------------------|----------------|
-| [Go][go-link]          | N/A                                  | :broken_heart: |
-| [JavaScript][npm-link] | [![npm][npm-shield]][npm-link]       | :broken_heart: |
-| [Ruby][gem-link]       | [![gem][gem-shield]][gem-link]       | :broken_heart: |
-| [Rust][crate-link]     | [![crate][crate-shield]][crate-link] | :broken_heart: |
+| Language               | Version                              |
+|------------------------|--------------------------------------|
+| [Go][go-link]          | N/A                                  |
+| [JavaScript][npm-link] | [![npm][npm-shield]][npm-link]       |
+| [Python][pypi-link]    | [![pypi][pypi-shield][pypi-link]     |
+| [Ruby][gem-link]       | [![gem][gem-shield]][gem-link]       |
+| [Rust][crate-link]     | [![crate][crate-shield]][crate-link] |
 
-**Status Legend**
-
-| Heart          | Description              |
-|----------------|--------------------------|
-| :green_heart:  | Stable and full-featured |
-| :yellow_heart: | Working with some issues |
-| :broken_heart: | Not yet usable           |
 
 [go-link]: https://github.com/zcred/zser/tree/master/go
 [npm-shield]: https://img.shields.io/npm/v/zser.svg
 [npm-link]: https://www.npmjs.com/package/zser
+[pypi-shield]: https://img.shields.io/pypi/v/zser.svg
+[pypi-link]: https://pypi.python.org/pypi/zser/
 [gem-shield]: https://badge.fury.io/rb/zser.svg
 [gem-link]: https://rubygems.org/gems/zser
 [crate-shield]: https://img.shields.io/crates/v/zser.svg
