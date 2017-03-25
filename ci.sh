@@ -9,11 +9,19 @@ go)
     go test -v ./...
     ;;
 js)
-    node --version
-    npm --version
     cd js
-    npm install
-    npm test
+    nvm install stable
+
+    # Install Yarn (TODO: use native Travis CI support when available)
+    curl -sS https://dl.yarnpkg.com/debian/pubkey.gpg | sudo apt-key add -
+    echo "deb https://dl.yarnpkg.com/debian/ stable main" | sudo tee /etc/apt/sources.list.d/yarn.list
+    sudo apt-get -qq update && sudo apt-get -qq install yarn
+
+    yarn global add typescript typescript-formatter typings mocha
+    yarn install
+    typings install
+    yarn test
+    tsfmt --verify $(find {src,test} -name "*.ts")
     ;;
 python)
     python --version
