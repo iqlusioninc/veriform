@@ -15,6 +15,14 @@ js)
     npm install
     npm test
     ;;
+python)
+    python --version
+    pip --version
+    cd python
+    export PATH=$HOME/.local/bin:$PATH
+    pip install -r requirements.txt --user `whoami`
+    pytest
+    ;;
 ruby)
     ruby -v
     bundle --version
