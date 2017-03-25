@@ -13,6 +13,9 @@ matrix:
     language: go
   - env: SUITE="js"
     language: node_js
+  - env: SUITE="python"
+    language: python
+    python: 3.6
   - env: SUITE="ruby"
     language: ruby
     rvm: 2.4.0
