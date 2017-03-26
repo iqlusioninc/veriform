@@ -20,7 +20,7 @@
     "url": "https://github.com/zcred/zser/issues"
   },
   "directories": {
-      "test": "test"
+    "test": "test"
   },
   "scripts": {
     "test": "mocha --require ts-node/register test/**/*.spec.ts"
@@ -31,5 +31,9 @@
     "mocha-typescript": "^1.0.23",
     "ts-node": "^3.0.2",
     "typescript": "^2.2.1"
+  },
+  "dependencies": {
+    "@types/chai": "^3.4.35",
+    "@types/mocha": "^2.2.40"
   }
 }
