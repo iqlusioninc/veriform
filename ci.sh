@@ -17,9 +17,8 @@ js)
     echo "deb https://dl.yarnpkg.com/debian/ stable main" | sudo tee /etc/apt/sources.list.d/yarn.list
     sudo apt-get -qq update && sudo apt-get -qq install yarn
 
-    yarn global add typescript typescript-formatter typings mocha
+    yarn global add typescript typescript-formatter mocha
     yarn install
-    typings install
     yarn test
     tsfmt --verify $(find {src,test} -name "*.ts")
     ;;
