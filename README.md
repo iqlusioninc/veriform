@@ -38,6 +38,7 @@ meaning signatures for one encoding will validate in the other.
 [protocreds]: https://github.com/protocreds/
 [protobuf limitations]: https://github.com/google/protobuf/issues/2629
 [Cap'n Proto]: https://capnproto.org/
+[TJSON]: https://www.tjson.org/
 
 ## Comparison with other serialization formats
 
