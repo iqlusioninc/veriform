@@ -10,4 +10,13 @@ readme      = "README.md"
 categories  = ["authentication","cryptography"]
 keywords    = ["authentication", "cryptography", "security", "serialization", "merkle"]
 
-[dependencies]
+[dependencies.byteorder]
+version = "^0.5"
+default-features = false
+
+[dev-dependencies]
+leb128 = "^0"
+
+[features]
+default = []
+bench = []
