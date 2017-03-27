@@ -45,14 +45,14 @@ meaning signatures for one encoding will validate in the other.
 The table below compares zser to the other formats considered
 (and rejected) for the zcred use case:
 
-| Name          | Schema Support | Self-Describing | RPC            | Integers        | Authentication   | Standardization |
+| Name          | Schemas        | Self-Describing | RPC            | Integers        | Authentication   | Standardization |
 |---------------|----------------|-----------------|----------------|-----------------|------------------|-----------------|
-| [zser]        | :green_heart:  | :green_heart:   | :broken_heart: | Prefix Varint   | Merkleized       | None            |
+| [zser]        | :green_heart:  | :green_heart:   | :broken_heart: | Prefix-Varint   | Merkleized       | None            |
 | [Protobuf]    | :green_heart:  | :broken_heart:  | :green_heart:  | [LEB128]        | Canonicalization | None            |
-| [Cap'n Proto] | :green_heart:  | :green_heart:   | :green_heart:  | Fixed Width     | Canonicalization | None            |
-| [CBOR]        | :broken_heart: | :green_heart:   | :broken_heart: | Fixed Width     | Canonicalization | IETF            |
-| [ASN.1 DER]   | :broken_heart: | :broken_heart:  | :broken_heart: | Fixed Width     | Canonicalization | ITU/IETF        |
-| [MessagePack] | :broken_heart: | :green_heart:   | :broken_heart: | Fixed Width     | None             | None            |
+| [Cap'n Proto] | :green_heart:  | :green_heart:   | :green_heart:  | Fixed-Width     | Canonicalization | None            |
+| [CBOR]        | :broken_heart: | :green_heart:   | :broken_heart: | Fixed-Width     | Canonicalization | IETF            |
+| [ASN.1 DER]   | :broken_heart: | :broken_heart:  | :broken_heart: | Fixed-Width     | Canonicalization | ITU/IETF        |
+| [MessagePack] | :broken_heart: | :green_heart:   | :broken_heart: | Fixed-Width     | None             | None            |
 
 [zser]: https://github.com/zcred/zser
 [Protobuf]: https://developers.google.com/protocol-buffers/
