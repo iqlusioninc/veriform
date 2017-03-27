@@ -9,39 +9,56 @@
 [license-image]: https://img.shields.io/badge/license-MIT-blue.svg
 [license-link]: https://github.com/zcred/zser/blob/master/LICENSE.txt
 
-A security-oriented serialization format with novel authentication properties.
+A security-oriented serialization format with novel authentication properties
+based on "Merkleized" data structures.
 
 ## Oh no! Not another serialization format!
 
-Surely by now there's not a need to create a new serialization format,
-painstakingly describing its properties in minute detail and tediously
-implementing it in every programming language under the sun. Aren't
-Protobufs good enough?
+*[Obligatory xkcd](https://xkcd.com/927/)*
 
-The answer is no. The original work on zcreds began using a
-[protobuf based format]. Unfortunately, one of the new features added
-in zser (Merkleized content authentication) does not play nicely with
-Protobufs due to a [limitation in the protobufs design].
+The decision to create a new serialization format was not undertaken lightly.
+This format was created as a prerequisite of the [zcred] project, which
+originally started as a Protobuf-based format ([protocreds]). Unfortunately
+[protobuf limitations] made it difficult to implement zser's distinguishing
+feature: Merkleized content authentication, while still supporting schema
+evolution.
 
-However, that does not mean there is anything inherently wrong with these
-other serialization formats. The intent of zser is *not* to design a
-Protobuf-killer. If that's what you're looking for, we recommend you check out
-[Cap'n Proto], an advanced, general-purpose serialization format which
-corrects many design mistakes in Protobufs.
+zser is not intended to be a general purpose serialization format: for that
+we recommend [Cap'n Proto]. For example zser does not have an associated RPC
+protocol, but rather zser is the sort of thing you might use for the
+credentials passed as part of your RPC protocol.
 
-The zser format is specifically designed for compactly representing richly
-structured, cryptographically authenticated data, with a flexible credential
-format as the primary intended use case.
+zser's data model is isomorphic with [TJSON], a microformat for extending
+JSON with richer types. All zser documents can be bidirectionally
+transcoded to/from TJSON with no data loss. Furthermore, TJSON documents
+can be authenticated with the same Merkleized hashing scheme as zser,
+meaning signatures for one encoding will validate in the other.
 
-For security purposes, zser is much more constrainted than a richer format
-like [Cap'n Proto]. Instead, zser is designed to be relatively simple,
-schema-friendly yet still self-describing, well-typed, and designed in service
-of an advanced and highly expressive "format independent" content
-authentication scheme.
-
-[protobuf based format]: https://github.com/protocreds/
-[limitation in the protobufs design]: https://github.com/google/protobuf/issues/2629
+[zcred]: https://github.com/zcred/zcred
+[protocreds]: https://github.com/protocreds/
+[protobuf limitations]: https://github.com/google/protobuf/issues/2629
 [Cap'n Proto]: https://capnproto.org/
+
+## Comparison with other serialization formats
+
+The table below compares zser to the other formats considered
+(and rejected) for the zcred use case:
+
+| Name          | Schema Support | Self-Describing | RPC            | Integers        | Authentication   | Standardization |
+|---------------|----------------|-----------------|----------------|-----------------|------------------|-----------------|
+| [zser]        | :green_heart:  | :green_heart:   | :broken_heart: | Prefix Varint   | Merkleized       | None            |
+| [Protobuf]    | :green_heart:  | :broken_heart:  | :green_heart:  | [LEB128]        | Canonicalization | None            |
+| [Cap'n Proto] | :green_heart:  | :green_heart:   | :green_heart:  | Fixed Width     | Canonicalization | None            |
+| [CBOR]        | :broken_heart: | :green_heart:   | :broken_heart: | Fixed Width     | Canonicalization | IETF            |
+| [ASN.1 DER]   | :broken_heart: | :broken_heart:  | :broken_heart: | Fixed Width     | Canonicalization | ITU/IETF        |
+| [MessagePack] | :broken_heart: | :green_heart:   | :broken_heart: | Fixed Width     | None             | None            |
+
+[zser]: https://github.com/zcred/zser
+[Protobuf]: https://developers.google.com/protocol-buffers/
+[CBOR]: https://tools.ietf.org/html/rfc7049
+[ASN.1 DER]: https://www.itu.int/rec/T-REC-X.690-201508-I/en
+[MessagePack]: https://msgpack.org/
+[LEB128]: https://en.wikipedia.org/wiki/LEB128
 
 ## Language Support
 
