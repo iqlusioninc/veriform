@@ -23,6 +23,10 @@ originally started as a Protobuf-based format ([protocreds]). Unfortunately
 feature: Merkleized content authentication, while still supporting schema
 evolution.
 
+The wire representation of zser largely resembles protobufs, but with an
+number of improvements including a self-describing structure, a UTF-8 inspired
+prefix varint structure, and a richer set of wire types.
+
 zser is not intended to be a general purpose serialization format: for that
 we recommend [Cap'n Proto]. For example zser does not have an associated RPC
 protocol, but rather zser is the sort of thing you might use for the
