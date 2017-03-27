@@ -1,0 +1,7 @@
+zsints: Little Endian Prefix Varints
+
+Specification and implementation of "zsint": a little endian prefix varint
+format. Presently targeting 64-bit unsigned integers only.
+
+This encoding was chosen over LEB128 (as used in protobufs) for compactness,
+performance, and simplicity.

@@ -2,6 +2,14 @@
 # yarn lockfile v1
 
 
+"@types/chai@^3.4.35":
+  version "3.4.35"
+  resolved "https://registry.yarnpkg.com/@types/chai/-/chai-3.4.35.tgz#e8d65f83492d2944f816fc620741821c28a8c900"
+
+"@types/mocha@^2.2.40":
+  version "2.2.40"
+  resolved "https://registry.yarnpkg.com/@types/mocha/-/mocha-2.2.40.tgz#9811dd800ece544cd84b5b859917bf584a150c4c"
+
 ansi-regex@^2.0.0:
   version "2.1.1"
   resolved "https://registry.yarnpkg.com/ansi-regex/-/ansi-regex-2.1.1.tgz#c3b33ab5ee360d86e0e628f0468ae7ef27d654df"
