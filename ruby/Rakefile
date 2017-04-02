@@ -10,7 +10,7 @@ RuboCop::RakeTask.new
 
 task default: %w(spec rubocop)
 
-task :benchmark do
+task :bench do
   require "benchmark/ips"
   require "zser"
 

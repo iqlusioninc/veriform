@@ -7,7 +7,7 @@ module Zser
     # Maximum value we can encode as a zsuint64
     MAX = (2**64) - 1
 
-    # :nodoc:
+    # :nodoc: Lookup table for the number of trailing zeroes in a byte
     CTZ_TABLE = [8, 0, 1, 0, 2, 0, 1, 0, 3, 0, 1, 0, 2, 0, 1, 0,
                  4, 0, 1, 0, 2, 0, 1, 0, 3, 0, 1, 0, 2, 0, 1, 0,
                  5, 0, 1, 0, 2, 0, 1, 0, 3, 0, 1, 0, 2, 0, 1, 0,
@@ -51,14 +51,17 @@ module Zser
     def self.decode(input)
       raise TypeError, "input must be a String" unless input.is_a?(String)
       raise ArgumentError, "input cannot be empty" if input.empty?
+
       prefix = input.getbyte(0)
 
-      # 9-byte special case
-      return read_le64(input[1, 8]) if prefix.zero?
-
-      # Count trailing zeroes
-      count = CTZ_TABLE[prefix] + 1
-      read_le64(input[0, count]) >> count
+      if prefix.zero?
+        # 9-byte special case
+        read_le64(input[1, 8])
+      else
+        # Count trailing zeroes
+        count = CTZ_TABLE[prefix] + 1
+        read_le64(input[0, count]) >> count
+      end
     end
 
     # Decode a little endian integer (without allocating memory, unlike pack)
