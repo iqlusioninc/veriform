@@ -72,3 +72,9 @@ class TestDecode(unittest.TestCase):
     def test_bad_type(self):
         with self.assertRaises(TypeError):
             varint.decode(42)
+
+def test_encode_benchmark(benchmark):
+    benchmark(varint.encode, 281474976741993)
+
+def test_decode_benchmark(benchmark):
+    benchmark(varint.decode, b"\xE9\xF4\x81\x80\x80\x80@")
