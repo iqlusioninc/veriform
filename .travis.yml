@@ -13,10 +13,10 @@ matrix:
   - env: SUITE="js"
     language: node_js
     node_js: 7
-  - env: SUITE="python" PYTEST="py.test"
+  - env: SUITE="python"
     language: python
     python: 2.7
-  - env: SUITE="python" PYTEST="pytest"
+  - env: SUITE="python"
     language: python
     python: 3.6
   - env: SUITE="ruby"

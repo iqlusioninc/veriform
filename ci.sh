@@ -4,7 +4,6 @@ set -e
 
 case $SUITE in
 go)
-    go version
     cd go
     go test -v ./...
     ;;
@@ -17,22 +16,17 @@ js)
     tsfmt --verify $(find {src,test} -name "*.ts")
     ;;
 python)
-    python --version
-    pip --version
     cd python
     export PATH=$HOME/.local/bin:$PATH
     pip install -r requirements.txt --user
-    $PYTEST
+    py.test
     ;;
 ruby)
-    ruby -v
-    bundle --version
     cd ruby
     bundle
     bundle exec rake
     ;;
 rust)
-    rustc --version
     cd rust
     cargo test
     ;;

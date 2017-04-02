@@ -4,6 +4,24 @@ import struct
 # Maximum value we can encode as a zsuint64
 MAX = (2**64) - 1
 
+# Lookup table for the number of trailing zeroes in a byte
+CTZ_TABLE = [8, 0, 1, 0, 2, 0, 1, 0, 3, 0, 1, 0, 2, 0, 1, 0,
+             4, 0, 1, 0, 2, 0, 1, 0, 3, 0, 1, 0, 2, 0, 1, 0,
+             5, 0, 1, 0, 2, 0, 1, 0, 3, 0, 1, 0, 2, 0, 1, 0,
+             4, 0, 1, 0, 2, 0, 1, 0, 3, 0, 1, 0, 2, 0, 1, 0,
+             6, 0, 1, 0, 2, 0, 1, 0, 3, 0, 1, 0, 2, 0, 1, 0,
+             4, 0, 1, 0, 2, 0, 1, 0, 3, 0, 1, 0, 2, 0, 1, 0,
+             5, 0, 1, 0, 2, 0, 1, 0, 3, 0, 1, 0, 2, 0, 1, 0,
+             4, 0, 1, 0, 2, 0, 1, 0, 3, 0, 1, 0, 2, 0, 1, 0,
+             7, 0, 1, 0, 2, 0, 1, 0, 3, 0, 1, 0, 2, 0, 1, 0,
+             4, 0, 1, 0, 2, 0, 1, 0, 3, 0, 1, 0, 2, 0, 1, 0,
+             5, 0, 1, 0, 2, 0, 1, 0, 3, 0, 1, 0, 2, 0, 1, 0,
+             4, 0, 1, 0, 2, 0, 1, 0, 3, 0, 1, 0, 2, 0, 1, 0,
+             6, 0, 1, 0, 2, 0, 1, 0, 3, 0, 1, 0, 2, 0, 1, 0,
+             4, 0, 1, 0, 2, 0, 1, 0, 3, 0, 1, 0, 2, 0, 1, 0,
+             5, 0, 1, 0, 2, 0, 1, 0, 3, 0, 1, 0, 2, 0, 1, 0,
+             4, 0, 1, 0, 2, 0, 1, 0, 3, 0, 1, 0, 2, 0, 1, 0]
+
 def encode(value):
     """Encode the given integer value as a zsuint64"""
     if not isinstance(value, numbers.Integral):
@@ -44,12 +62,6 @@ def decode(input):
 
     if prefix == 0:
         return struct.unpack("<Q", input[1:9])[0]
-
-    count = 1
-
-    # Count trailing zeroes
-    while prefix & 1 == 0:
-        count += 1
-        prefix >>= 1
-
-    return struct.unpack("<Q", input + b"\0" * (8 - len(input)))[0] >> count
+    else:
+        count = CTZ_TABLE[prefix] + 1
+        return struct.unpack("<Q", input + b"\0" * (8 - len(input)))[0] >> count
