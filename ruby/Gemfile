@@ -8,4 +8,5 @@ group :development, :test do
   gem "rake"
   gem "rspec", "~> 3.5"
   gem "rubocop", "0.44.1"
+  gem "benchmark-ips"
 end
