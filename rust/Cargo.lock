@@ -1,0 +1,21 @@
+[root]
+name = "zser"
+version = "0.0.0"
+dependencies = [
+ "byteorder 0.5.3 (registry+https://github.com/rust-lang/crates.io-index)",
+ "leb128 0.2.1 (registry+https://github.com/rust-lang/crates.io-index)",
+]
+
+[[package]]
+name = "byteorder"
+version = "0.5.3"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+
+[[package]]
+name = "leb128"
+version = "0.2.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+
+[metadata]
+"checksum byteorder 0.5.3 (registry+https://github.com/rust-lang/crates.io-index)" = "0fc10e8cc6b2580fda3f36eb6dc5316657f812a3df879a44a66fc9f0fdbc4855"
+"checksum leb128 0.2.1 (registry+https://github.com/rust-lang/crates.io-index)" = "792224a73787e4b0f59e387e4f53d23dfc1d72e3c82fcbf6d3e14de6aabad212"
