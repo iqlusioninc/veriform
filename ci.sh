@@ -28,7 +28,7 @@ python)
     cd python
     export PATH=$HOME/.local/bin:$PATH
     pip install -r requirements.txt --user
-    pytest
+    $PYTEST
     ;;
 ruby)
     ruby -v
