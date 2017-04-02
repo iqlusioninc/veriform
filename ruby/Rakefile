@@ -9,3 +9,17 @@ require "rubocop/rake_task"
 RuboCop::RakeTask.new
 
 task default: %w(spec rubocop)
+
+task :benchmark do
+  require "benchmark/ips"
+  require "zser"
+
+  Benchmark.ips do |b|
+    input = "\xE9\xF4\x81\x80\x80\x80@".dup.force_encoding("BINARY").freeze
+
+    b.report("zsint encode") { Zser::Varint.encode(281_474_976_741_993) }
+    b.report("zsint decode") { Zser::Varint.decode(input) }
+
+    b.compare!
+  end
+end
