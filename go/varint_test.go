@@ -1,6 +1,7 @@
 package zser
 
 import (
+	"bytes"
 	"reflect"
 	"testing"
 )
@@ -19,9 +20,15 @@ func TestEncode(t *testing.T) {
 	}
 
 	for _, c := range cases {
-		actual := EncodeVarint(c.num)
-		if !reflect.DeepEqual(c.expected, actual) {
-			t.Errorf("EncodeVarint(%q) == %q, want %q", c.num, actual, c.expected)
+		output := make([]byte, 9)
+		length := EncodeVarint(output, c.num)
+
+		if length != len(c.expected) {
+			t.Errorf("EncodeVarint(%q) len: %q, want %q", c.num, length, len(c.expected))
+		}
+
+		if !reflect.DeepEqual(c.expected, output[:length]) {
+			t.Errorf("EncodeVarint(%q) buf: %q, want %q", c.num, output[:length], c.expected)
 		}
 	}
 }
@@ -49,9 +56,25 @@ func TestDecode(t *testing.T) {
 	}
 
 	for _, c := range cases {
-		actual, _ := DecodeVarint(c.input)
+		actual, _ := DecodeVarint(bytes.NewReader(c.input))
 		if c.expected != actual {
 			t.Errorf("DecodeVarint(%v) == %q, want %q", c.input, actual, c.expected)
 		}
+	}
+}
+
+func BenchmarkEncode(b *testing.B) {
+	output := make([]byte, 9)
+
+	for n := 0; n < b.N; n++ {
+		EncodeVarint(output, 281474976741993)
+	}
+}
+
+func BenchmarkDecode(b *testing.B) {
+	input := []byte("\xE9\xF4\x81\x80\x80\x80@")
+
+	for n := 0; n < b.N; n++ {
+		DecodeVarint(bytes.NewReader(input))
 	}
 }

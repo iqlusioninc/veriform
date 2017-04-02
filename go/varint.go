@@ -3,10 +3,12 @@ package zser
 import (
 	"bytes"
 	"encoding/binary"
-	"errors"
+	"io"
 )
 
-func EncodeVarint(input uint64) []byte {
+// EncodeVarint encodes a uint64 into buf and returns the number of bytes written.
+// If the buffer is too small, EncodeVarint will panic.
+func EncodeVarint(buf []byte, input uint64) int {
 	output := new(bytes.Buffer)
 	length := 1
 	result := (input << 1) | 1
@@ -17,7 +19,9 @@ func EncodeVarint(input uint64) []byte {
 		if max == 1<<63 {
 			output.WriteByte(0)
 			binary.Write(output, binary.LittleEndian, input)
-			return output.Bytes()
+			copy(buf, output.Bytes())
+
+			return 9
 		}
 
 		result <<= 1
@@ -26,43 +30,45 @@ func EncodeVarint(input uint64) []byte {
 	}
 
 	binary.Write(output, binary.LittleEndian, result)
-	return output.Bytes()[0:length]
+	copy(buf, output.Bytes()[0:length])
+
+	return length
 }
 
-func DecodeVarint(input []byte) (uint64, error) {
+func DecodeVarint(r io.Reader) (uint64, error) {
 	var result uint64
+	var buf [8]byte
 
-	if len(input) == 0 {
-		return 0, errors.New("cannot decode empty data")
+	_, err := io.ReadFull(r, buf[:1])
+	if err != nil {
+		return result, err
 	}
 
-	prefix := input[0]
+	prefix := buf[0]
 
 	if prefix == 0 {
-		if len(input) >= 9 {
-			buf := bytes.NewReader(input)
-			binary.Read(buf, binary.LittleEndian, result)
-			return result, nil
-		} else {
-			return 0, errors.New("not enough data remaining")
-		}
+		err := binary.Read(r, binary.LittleEndian, result)
+		return result, err
 	}
 
 	count := uint(1)
 
+	// TODO: use math/bits TrailingZeros() if/when it becomes available
+	// See: https://github.com/golang/go/issues/18616
 	for prefix&1 == 0 {
 		count += 1
 		prefix >>= 1
 	}
 
-	if uint(len(input)) < count {
-		return 0, errors.New("not enough data remaining")
+	_, err = io.ReadFull(r, buf[1:count])
+	if err != nil {
+		return result, err
 	}
 
-	slice := make([]byte, 8)
-	copy(slice, input)
-	buf := bytes.NewReader(slice)
-	binary.Read(buf, binary.LittleEndian, result)
+	err = binary.Read(bytes.NewReader(buf[:]), binary.LittleEndian, result)
+	if err != nil {
+		return result, err
+	}
 
 	return result >> count, nil
 }
