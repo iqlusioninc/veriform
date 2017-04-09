@@ -1,52 +1,30 @@
 // zsint: Little Endian 64-bit Unsigned Prefix Varints
 
 export class Varint {
-  // Maximum value we can represent with a varint before overflowing Math.pow
-  // TODO: allow full 64-bit range when ECMAScript adds integers
-  public static readonly MAX = Math.pow(2, 30) - 1;
+  // Maximum value we can represent with a varint
+  // TODO: allow full 64-bit range when ECMAScript adds integers/bignums
+  public static readonly MAX = Math.pow(2, 53) - 1;
 
   // Encode a number as a zsint
-  public static encode(value: number): Uint8Array {
-    if (typeof value !== "number" || (value % 1) !== 0) {
-      throw new TypeError(`value ${value} is not an integer`);
+  public static encode(n: number): Uint8Array {
+    if (typeof n !== "number" || (n % 1) !== 0) {
+      throw new TypeError(`value ${n} is not an integer`);
     }
 
-    if (value < 0) {
-      throw new RangeError("value must be positive or zero");
-    }
-
-    if (value > Varint.MAX) {
-      throw new RangeError(`value ${value} is too large (maximum ${Varint.MAX})`);
-    }
-
+    let result = Uint64.fromNumber(n).lshift(1).bw_or(1);
+    let max = Uint64.fromNumber(1 << 7);
     let length = 1;
-    let result = (value << 1) | 1;
-    let max = 1 << 7;
 
-    while (value >= max) {
-      // Shouldn't be possible, but included as a precaution
-      if (max === 0 || max >= Varint.MAX) {
-        throw new RangeError(`maximum range overflow: ${max}`);
-      }
-
-      // Bitwise shifts are capped at 32-bits
-      max *= Math.pow(2, 7);
-      result *= Math.pow(2, 1);
+    while (max.lt_eq(n)) {
+      result.lshift(1);
+      max.lshift(7);
       length += 1;
     }
 
-    // Shouldn't be possible, but included as a precaution
-    if (result < 0) {
-      throw new RangeError(`result overflow: ${result}`);
-    }
-
-    let left_half = result % Math.pow(2, 32);
-    let right_half = (result - left_half) / Math.pow(2, 32);
-
     let buffer = new ArrayBuffer(8);
     let view = new DataView(buffer);
-    view.setUint32(0, left_half, true);
-    view.setUint32(4, right_half, true);
+    view.setUint32(0, result.lower(), true);
+    view.setUint32(4, result.upper(), true);
 
     return new Uint8Array(buffer, 0, length)
   }
@@ -61,9 +39,9 @@ export class Varint {
       throw new Error("cannot decode empty array");
     }
 
-    // TODO: allow full 64-bit range when ECMAScript adds integers
-    if (bytes.length > 5) {
-      throw new Error("array must be 5 bytes or fewer (due to JS limitations)");
+    // TODO: allow full 64-bit range when ECMAScript adds integers/bignums
+    if (bytes.length > 8) {
+      throw new RangeError("array must be 8 bytes or fewer (due to JS limitations)");
     }
 
     let prefix = bytes[0];
@@ -83,16 +61,128 @@ export class Varint {
     new Uint8Array(buffer).set(bytes);
     let view = new DataView(buffer);
 
-    let left_half = view.getUint32(0, true);
-    let right_half = view.getUint32(4, true);
+    let values = new Uint32Array(2);
+    values[0] = view.getUint32(0, true);
+    values[1] = view.getUint32(4, true);
 
-    let unshifted_value = right_half * Math.pow(2, 32) + left_half;
-    let result = (unshifted_value - (1 << (count - 1))) / Math.pow(2, count);
+    return new Uint64(values).rshift(count).toNumber();
+  }
+}
 
-    if (result > Varint.MAX) {
-      throw new RangeError("decoded value is too large (due to JS limitations)");
+// A Uint64 represented as two 32-bit integers, with the bitwise ops we need
+// to implement zsints. This allows us to do bitwise arithmetic that is
+// outside the MAX_SAFE_INTEGER range
+export class Uint64 {
+  values: Uint32Array;
+
+  public static readonly MAX_SAFE_INTEGER = Math.pow(2, 53) - 1;
+
+  public static fromNumber(n: number): Uint64 {
+    Uint64.checkInteger(n);
+
+    let values = new Uint32Array(2);
+    values[0] = n & 0xFFFFFFFF;
+    values[1] = (n - values[0]) / Math.pow(2, 32);
+    return new Uint64(values);
+  }
+
+  // Is this number an integer in the safe range?
+  static checkInteger(n: number) {
+    if (n < 0) {
+      throw new RangeError("number must be positive");
     }
 
-    return result;
+    if (n > Uint64.MAX_SAFE_INTEGER) {
+      throw new RangeError("number is outside the safe integer range");
+    }
+  }
+
+  constructor(values: Uint32Array) {
+    if (values.length !== 2) {
+      throw new TypeError("argument must be a Uint32Array(2)");
+    }
+
+    this.values = values;
+  }
+
+  // Bitwise left shift. Overflows are silently ignored.
+  public lshift(n: number): Uint64 {
+    if (n < 0) {
+      throw new RangeError("number must be positive");
+    }
+
+    if (n > 32) {
+      throw new RangeError("can only shift 32-bits at a time");
+    }
+
+    let carry = this.values[0] >> (32 - n) & ((1 << n) - 1);
+    this.values[1] = (this.values[1] << n | carry) & 0xFFFFFFFF;
+    this.values[0] = (this.values[0] << n) & 0xFFFFFFFF;
+
+    return this;
+  }
+
+  // Bitwise shift right
+  public rshift(n: number): Uint64 {
+    if (n < 0) {
+      throw new RangeError("number must be positive");
+    }
+
+    if (n > 32) {
+      throw new RangeError("can only shift 32-bits at a time");
+    }
+
+    let carry = this.values[1] & ((1 << n) - 1);
+    this.values[1] >>= n;
+    this.values[0] = (this.values[0] >> n) | (carry << (32 - n));
+
+    return this;
+  }
+
+  // Bitwise OR. Value must be in the 32-bit range
+  public bw_or(n: number): Uint64 {
+    Uint64.checkInteger(n);
+
+    if (n > 0xFFFFFFFF) {
+      throw new RangeError("value must be in the 32-bit range");
+    }
+
+    this.values[0] |= n;
+
+    return this;
+  }
+
+  // Is this value less than or equal to the given integer?
+  public lt_eq(n: number) {
+    Uint64.checkInteger(n);
+
+    let nLower = n & 0xFFFFFFFF;
+    let nUpper = (n - nLower) / Math.pow(2, 32);
+
+    if (this.values[1] < nUpper) {
+      return true;
+    } else if (this.values[1] == nUpper) {
+      return this.values[0] <= nLower;
+    } else {
+      return false;
+    }
+  }
+
+  // Upper 32-bits
+  public upper(): number {
+    return this.values[1];
+  }
+
+  // Lower 32-bits
+  public lower(): number {
+    return this.values[0];
+  }
+
+  public toNumber(): number {
+    if (this.values[1] > 2097151) {
+      throw new RangeError("value is outside MAX_SAFE_INTEGER range");
+    }
+
+    return (this.values[1] * Math.pow(2, 32)) + this.values[0];
   }
 }
