@@ -76,23 +76,23 @@ import { Varint, Uint64 } from "../src/varint";
 
   @test "left bitwise shift"() {
     /// Low-value example
-    expect(Uint64.fromNumber(128).lshift(1).toNumber()).to.eql(256);
+    expect(Uint64.fromNumber(128).lshift(1).toInteger()).to.eql(256);
 
     /// this.exampleNumber >> 1
-    expect(Uint64.fromNumber(264140488932).lshift(1).toNumber()).to.eql(this.exampleNumber);
+    expect(Uint64.fromNumber(264140488932).lshift(1).toInteger()).to.eql(this.exampleNumber);
 
     // this.exampleNumber >> 2
-    expect(Uint64.fromNumber(132070244466).lshift(2).toNumber()).to.eql(this.exampleNumber);
+    expect(Uint64.fromNumber(132070244466).lshift(2).toInteger()).to.eql(this.exampleNumber);
   }
 
   @test "right bitwise shift"() {
-    expect(Uint64.fromNumber(this.exampleNumber).rshift(1).toNumber()).to.eql(264140488932);
-    expect(Uint64.fromNumber(this.exampleNumber).rshift(2).toNumber()).to.eql(132070244466);
+    expect(Uint64.fromNumber(this.exampleNumber).rshift(1).toInteger()).to.eql(264140488932);
+    expect(Uint64.fromNumber(this.exampleNumber).rshift(2).toInteger()).to.eql(132070244466);
   }
 
   @test "bitwise OR"() {
-    expect(Uint64.fromNumber(256).bw_or(1).toNumber()).to.eql(257);
-    expect(Uint64.fromNumber(this.exampleNumber).bw_or(7).toNumber()).to.eql(528280977871);
+    expect(Uint64.fromNumber(256).bw_or(1).toInteger()).to.eql(257);
+    expect(Uint64.fromNumber(this.exampleNumber).bw_or(7).toInteger()).to.eql(528280977871);
   }
 
   @test "less than or equal"() {

@@ -1,11 +1,11 @@
 // zsint: Little Endian 64-bit Unsigned Prefix Varints
 
 export class Varint {
-  // Maximum value we can represent with a varint
+  // Maximum allowed integer value
   // TODO: allow full 64-bit range when ECMAScript adds integers/bignums
   public static readonly MAX = Math.pow(2, 53) - 1;
 
-  // Encode a number as a zsint
+  // Encode a safe JavaScript integer as a zsint
   public static encode(n: number): Uint8Array {
     if (typeof n !== "number" || (n % 1) !== 0) {
       throw new TypeError(`value ${n} is not an integer`);
@@ -65,7 +65,7 @@ export class Varint {
     values[0] = view.getUint32(0, true);
     values[1] = view.getUint32(4, true);
 
-    return new Uint64(values).rshift(count).toNumber();
+    return new Uint64(values).rshift(count).toInteger();
   }
 }
 
@@ -141,7 +141,9 @@ export class Uint64 {
 
   // Bitwise OR. Value must be in the 32-bit range
   public bw_or(n: number): Uint64 {
-    Uint64.checkInteger(n);
+    if (n < 0) {
+      throw new RangeError("number must be positive");
+    }
 
     if (n > 0xFFFFFFFF) {
       throw new RangeError("value must be in the 32-bit range");
@@ -161,7 +163,7 @@ export class Uint64 {
 
     if (this.values[1] < nUpper) {
       return true;
-    } else if (this.values[1] == nUpper) {
+    } else if (this.values[1] === nUpper) {
       return this.values[0] <= nLower;
     } else {
       return false;
@@ -178,7 +180,8 @@ export class Uint64 {
     return this.values[0];
   }
 
-  public toNumber(): number {
+  // Convert to a safe JavaScript integer (or throw RangeError if not possible)
+  public toInteger(): number {
     if (this.values[1] > 2097151) {
       throw new RangeError("value is outside MAX_SAFE_INTEGER range");
     }
