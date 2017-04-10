@@ -50,14 +50,16 @@ meaning signatures for one encoding will validate in the other.
 The table below compares zser to the other formats considered
 (and rejected) for the zcred use case:
 
-| Name          | Schemas        | Self-Describing  | Integers        | Authentication   | Standardization |
-|---------------|----------------|------------------|-----------------|------------------|-----------------|
-| [zser]        | :green_heart:  | :green_heart:    | Prefix-Varint   | Merkleized       | None            |
-| [Protobuf]    | :green_heart:  | :broken_heart:   | [LEB128]        | Canonicalization | None            |
-| [Cap'n Proto] | :green_heart:  | :green_heart:    | Fixed-Width     | Canonicalization | None            |
-| [CBOR]        | :broken_heart: | :green_heart:    | Fixed-Width     | Canonicalization | IETF            |
-| [ASN.1 DER]   | :broken_heart: | :yellow_heart:   | Fixed-Width     | Canonicalization | ITU/IETF        |
-| [MessagePack] | :broken_heart: | :green_heart:    | Fixed-Width     | None             | None            |
+| Name          | Schemas                    | Self-Describing  | Integers        | Authentication   | Standardization |
+|---------------|----------------------------|------------------|-----------------|------------------|-----------------|
+| [zser]        | :green_heart: <sup>†</sup> | :green_heart:    | Prefix-Varint   | Merkleized       | None            |
+| [Protobuf]    | :green_heart:              | :broken_heart:   | [LEB128]        | Canonicalization | None            |
+| [Cap'n Proto] | :green_heart:              | :green_heart:    | Fixed-Width     | Canonicalization | None            |
+| [CBOR]        | :broken_heart:             | :green_heart:    | Fixed-Width     | Canonicalization | IETF            |
+| [ASN.1 DER]   | :broken_heart:             | :yellow_heart:   | Fixed-Width     | Canonicalization | ITU/IETF        |
+| [MessagePack] | :broken_heart:             | :green_heart:    | Fixed-Width     | None             | None            |
+
+*<sup>†</sup>NOTE: Coming soon!*
 
 [zser]: https://github.com/zcred/zser
 [Protobuf]: https://developers.google.com/protocol-buffers/
@@ -65,6 +67,22 @@ The table below compares zser to the other formats considered
 [ASN.1 DER]: https://www.itu.int/rec/T-REC-X.690-201508-I/en
 [MessagePack]: https://msgpack.org/
 [LEB128]: https://en.wikipedia.org/wiki/LEB128
+
+## Status
+
+| Status             | Feature               | Notes             |
+|--------------------|-----------------------|-------------------|
+| :white_check_mark: | Prefix Varints        | Fully implemented |
+| :construction:     | Message Decoding      | In progress       |
+| :no_entry:         | Message Encoding      |                   |
+| :no_entry:         | Merkle Authentication |                   |
+| :no_entry:         | Schemas               |                   |
+| :no_entry:         | [TJSON] Transcoding   |                   |
+
+NOTE: zser is a multi-language monorepo: all implementations in all languages
+within the repo are intended to implement the spec in its current state and
+share a consistent feature set. The progress above applies equally to all
+language implementations currently within the repo.
 
 ## Language Support
 
