@@ -13,7 +13,9 @@
 format with novel authentication properties based on "Merkleized" data
 structures.
 
-## Oh no! Not another serialization format!
+## [Oh no!] Not another serialization format!
+
+[Oh no!]: https://scottlocklin.wordpress.com/2017/04/02/please-stop-writing-new-serialization-protocols/
 
 *[Obligatory xkcd](https://xkcd.com/927/)*
 
