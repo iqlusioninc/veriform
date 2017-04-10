@@ -5,6 +5,26 @@ export class Varint {
   // TODO: allow full 64-bit range when ECMAScript adds integers/bignums
   public static readonly MAX = Math.pow(2, 53) - 1;
 
+  // Number of trailing zeros in a given byte value
+  static readonly CTZ_TABLE = new Uint8Array([
+    8, 0, 1, 0, 2, 0, 1, 0, 3, 0, 1, 0, 2, 0, 1, 0,
+    4, 0, 1, 0, 2, 0, 1, 0, 3, 0, 1, 0, 2, 0, 1, 0,
+    5, 0, 1, 0, 2, 0, 1, 0, 3, 0, 1, 0, 2, 0, 1, 0,
+    4, 0, 1, 0, 2, 0, 1, 0, 3, 0, 1, 0, 2, 0, 1, 0,
+    6, 0, 1, 0, 2, 0, 1, 0, 3, 0, 1, 0, 2, 0, 1, 0,
+    4, 0, 1, 0, 2, 0, 1, 0, 3, 0, 1, 0, 2, 0, 1, 0,
+    5, 0, 1, 0, 2, 0, 1, 0, 3, 0, 1, 0, 2, 0, 1, 0,
+    4, 0, 1, 0, 2, 0, 1, 0, 3, 0, 1, 0, 2, 0, 1, 0,
+    7, 0, 1, 0, 2, 0, 1, 0, 3, 0, 1, 0, 2, 0, 1, 0,
+    4, 0, 1, 0, 2, 0, 1, 0, 3, 0, 1, 0, 2, 0, 1, 0,
+    5, 0, 1, 0, 2, 0, 1, 0, 3, 0, 1, 0, 2, 0, 1, 0,
+    4, 0, 1, 0, 2, 0, 1, 0, 3, 0, 1, 0, 2, 0, 1, 0,
+    6, 0, 1, 0, 2, 0, 1, 0, 3, 0, 1, 0, 2, 0, 1, 0,
+    4, 0, 1, 0, 2, 0, 1, 0, 3, 0, 1, 0, 2, 0, 1, 0,
+    5, 0, 1, 0, 2, 0, 1, 0, 3, 0, 1, 0, 2, 0, 1, 0,
+    4, 0, 1, 0, 2, 0, 1, 0, 3, 0, 1, 0, 2, 0, 1, 0
+  ]);
+
   // Encode a safe JavaScript integer as a zsint
   public static encode(n: number): Uint8Array {
     if (typeof n !== "number" || (n % 1) !== 0) {
@@ -45,13 +65,9 @@ export class Varint {
     }
 
     let prefix = bytes[0];
-    let count = 1;
 
-    // Count trailing zeroes
-    while ((prefix & 1) === 0) {
-      count++;
-      prefix >>= 1;
-    }
+    // Determine number of trailing zeroes using CTZ_TABLE
+    let count = Varint.CTZ_TABLE[prefix] + 1;
 
     if (bytes.length != count) {
       throw new Error(`expected ${count} bytes of data, got ${bytes.length}`);
@@ -69,7 +85,7 @@ export class Varint {
   }
 }
 
-// A Uint64 represented as two 32-bit integers, with the bitwise ops we need
+// A Uint64 represented as two 32-bit uints, with the bitwise ops we need
 // to implement zsints. This allows us to do bitwise arithmetic that is
 // outside the MAX_SAFE_INTEGER range
 export class Uint64 {
