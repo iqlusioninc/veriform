@@ -1,6 +1,6 @@
 %%%
 
-    Title = "Zcred Serialization (Zser) Data Interchange Format"
+    Title = "Zcred Serialization Data Interchange Format (a.k.a. zser)"
     abbrev = "Zser Data Interchange Format"
     category = "info"
     docName = "draft-zser-spec"
@@ -55,7 +55,7 @@ The key words "MUST", "MUST NOT", "REQUIRED", "SHALL", "SHALL NOT", "SHOULD",
 "SHOULD NOT", "RECOMMENDED", "MAY", and "OPTIONAL" in this document are to be
 interpreted as described in [@!RFC2119].
 
-# Wire Encoding
+# Encoding
 
 This section describes the on-the-wire representations of the various types
 provided by zser.
@@ -104,3 +104,33 @@ All arithmetic needed to serialize and deserialize `zsuint64` can be performed
 using only 64-bit integers. The case of the prefix byte being all-zero is
 a special case, and any remaining arithmetic is performed on the remaining
 bytes.
+
+## Message Format
+
+The zser message format builds upon zsuint64 integers, using them to encode
+key/value pairs (called message entries) where the key is a zsuint64 and the
+value is one of a set of different wire types with different encoding
+properties.
+
+Every entry in a message begins with a zsuint64 which encodes both an integer
+field identifier (the "key" of the key/value pair) along witha wire type
+identifier. The lower 3 bits of this initial varint contain the wire type
+value, so the entire integer is encoded as follows:
+
+    (field_number << 3) | wire_type
+
+The following wire types are supported by zser:
+
+| ID | Type                    | Encoding        |
+|----|-------------------------|-----------------|
+| 0  | Unsigned 64-bit Integer | zsuint64        |
+| 1  | Reserved                | N/A             |
+| 2  | Nested Message          | Length Prefixed |
+| 3  | Binary Data             | Length Prefixed |
+| 4  | Reserved                | N/A             |
+| 5  | Reserved                | N/A             |
+| 6  | Reserved                | N/A             |
+| 7  | Reserved                | N/A             |
+
+The "Length Prefixed" encoding consists of a single zsuint64 which indicates
+the number of bytes in the subsequent value, followed by the value.
