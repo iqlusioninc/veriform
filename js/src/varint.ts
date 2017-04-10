@@ -2,7 +2,9 @@
 
 export class Varint {
   // Maximum allowed integer value
-  // TODO: allow full 64-bit range when ECMAScript adds integers/bignums
+  //
+  // TODO: allow full 64-bit range when TC39 integers are available:
+  // https://github.com/tc39/proposal-integer
   public static readonly MAX = Math.pow(2, 53) - 1;
 
   // Number of trailing zeros in a given byte value
@@ -87,7 +89,9 @@ export class Varint {
 
 // A Uint64 represented as two 32-bit uints, with the bitwise ops we need
 // to implement zsints. This allows us to do bitwise arithmetic that is
-// outside the MAX_SAFE_INTEGER range
+// outside the MAX_SAFE_INTEGER range.
+//
+// TODO: remove when we can use TC39 integers: https://github.com/tc39/proposal-integer
 export class Uint64 {
   values: Uint32Array;
 
