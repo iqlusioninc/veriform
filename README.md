@@ -70,6 +70,11 @@ The table below compares zser to the other formats considered
 
 ## Status
 
+![DANGER: EXPERIMENTAL](https://raw.github.com/cryptosphere/cryptosphere/master/images/experimental.png)
+
+zser does not yet provide the minimum viable functionality it needs to be
+useful. The table below covers the current implementation state:
+
 | Status             | Feature               | Notes             |
 |--------------------|-----------------------|-------------------|
 | :white_check_mark: | Prefix Varints        | Fully implemented |
