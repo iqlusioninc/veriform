@@ -52,7 +52,7 @@ The table below compares zser to the other formats considered
 
 | Name          | Schemas         | Self-Describing  | Integers        | Authentication   | Standardization |
 |---------------|-----------------|------------------|-----------------|------------------|-----------------|
-| [zser]        | :green_heart:†  | :green_heart:    | Prefix-Varint   | Merkleized       | None            |
+| [zser]        | :green_heart:†  | :green_heart:    | Prefix-Varint   | Merkleized†      | None            |
 | [Protobuf]    | :green_heart:   | :broken_heart:   | [LEB128]        | Canonicalization | None            |
 | [Cap'n Proto] | :green_heart:   | :green_heart:    | Fixed-Width     | Canonicalization | None            |
 | [CBOR]        | :broken_heart:  | :green_heart:    | Fixed-Width     | Canonicalization | IETF            |
