@@ -159,13 +159,14 @@ Using trailing zeroes means we can take advantage of CPU instructions such as
 of zeroes in the prefix byte.
 
 This approach also provides a natural way to encode a 64-bit integer, since
-8 * 8 = 64. Eight leading 0s in the first byte indicate the next 8 bytes form
-a 64-bit little endian integer value.
+8 * 8 = 64. Eight zeroes in the first byte (i.e. if the first byte is `0`)
+indicates the next 8 bytes form a 64-bit little endian integer value,
+allowing the full 64-bit range to be naturally expressed in 9-bytes at most.
 
 Anything smaller is still encoded as little endian, but shifted over by the
 number of bits in the length prefix. Once we've decoded the bytes as little
 endian, all we have to do to finish decoding is a right bitwise shift to
-remove the prefix bytes.
+remove the prefix bits.
 
 This means the decoder can be implemented completely free of loops and
 optimized implementations can decode varints in around *15 nanoseconds*.
