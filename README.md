@@ -9,7 +9,7 @@
 [license-image]: https://img.shields.io/badge/license-MIT-blue.svg
 [license-link]: https://github.com/zcred/zser/blob/master/LICENSE.txt
 
-**zser** (pronounced zɛzir like "Weezer") is a security-oriented serialization
+**zser** (pronounced zē′zər like "Caesar") is a security-oriented serialization
 format with novel authentication properties based on "Merkleized" data
 structures.
 
