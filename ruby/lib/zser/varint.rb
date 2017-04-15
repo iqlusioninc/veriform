@@ -26,6 +26,13 @@ module Zser
                  4, 0, 1, 0, 2, 0, 1, 0, 3, 0, 1, 0, 2, 0, 1, 0].freeze
 
     # Encode the given integer value as a zsuint64
+    #
+    # @param value [Integer] unsigned integer value to encode as a zsuint64
+    #
+    # @raise [TypeError] non-integer value given
+    # @raise [ArgumentError] value outside the unsigned 64-bit integer range
+    #
+    # @return [String] serialized zsuint64 value
     def self.encode(value)
       raise TypeError, "value must be an Integer" unless value.is_a?(Integer)
       raise ArgumentError, "value must be zero or greater" if value < 0
@@ -44,35 +51,49 @@ module Zser
         length += 1
       end
 
-      [result].pack("Q<")[0, length]
+      [result].pack("Q<")[0, length].force_encoding(Encoding::BINARY)
     end
 
     # Decode a zsuint64-serialized value into an integer
+    #
+    # @param input [String] serialized zsuint64 to decode
+    #
+    # @raise [TypeError] non-String input given
+    # @raise [ArgumentError] empty input given
+    #
+    # @return [Array<Integer, String>] decoded integer and remaining data
     def self.decode(input)
       raise TypeError, "input must be a String" unless input.is_a?(String)
       raise ArgumentError, "input cannot be empty" if input.empty?
 
       prefix = input.getbyte(0)
+      input_len = input.bytesize
 
+      # 9-byte special case
       if prefix.zero?
-        # 9-byte special case
-        read_le64(input[1, 8])
+        raise EOFError, "not enough bytes to decode varint" if input_len < 9
+        [read_le64(input[1, 8]), input.byteslice(9, input_len - 9)]
       else
         # Count trailing zeroes
         count = CTZ_TABLE[prefix] + 1
-        read_le64(input[0, count]) >> count
+        raise EOFError, "not enough bytes to decode varint" if input_len < count
+        [read_le64(input[0, count]) >> count, input.byteslice(count, input_len - count)]
       end
     end
 
-    # Decode a little endian integer (without allocating memory, unlike pack)
-    def self.read_le64(bytes)
-      result = 0
+    class << self
+      private
 
-      (bytes.length - 1).downto(0) do |i|
-        result = (result << 8) | bytes.getbyte(i)
+      # Decode a little endian integer (without allocating memory, unlike pack)
+      def read_le64(bytes)
+        result = 0
+
+        (bytes.bytesize - 1).downto(0) do |i|
+          result = (result << 8) | bytes.getbyte(i)
+        end
+
+        result
       end
-
-      result
     end
   end
 end
