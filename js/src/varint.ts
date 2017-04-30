@@ -1,4 +1,11 @@
-// zsint: Little Endian 64-bit Unsigned Prefix Varints
+// varint.ts: Little Endian 64-bit Unsigned Prefix Varints
+//
+// Variable-width integers (varints) provide a compact wire representation
+// of an integer with a relatively simple encoding.
+//
+// "Prefix Varints" are a different encoding than the one used in
+// Protocol Buffers (LEB128) which provides a simple, loop-free decode step
+// and a natural way to represent 64-bit integers in a max of 9-bytes.
 
 export class Varint {
   // Maximum allowed integer value
@@ -33,13 +40,13 @@ export class Varint {
       throw new TypeError(`value ${n} is not an integer`);
     }
 
-    let result = Uint64.fromNumber(n).lshift(1).bw_or(1);
+    let result = Uint64.fromNumber(n).bitwiseLeftShift(1).bitwiseOr(1);
     let max = Uint64.fromNumber(1 << 7);
     let length = 1;
 
-    while (max.lt_eq(n)) {
-      result.lshift(1);
-      max.lshift(7);
+    while (max.lessThanOrEqual(n)) {
+      result.bitwiseLeftShift(1);
+      max.bitwiseLeftShift(7);
       length += 1;
     }
 
@@ -51,8 +58,8 @@ export class Varint {
     return new Uint8Array(buffer, 0, length)
   }
 
-  // Decode a serialized zsint
-  public static decode(bytes: Uint8Array): number {
+  // Decode a serialized zsint, returning its value and any remaining data
+  public static decode(bytes: Uint8Array): [number, Uint8Array] {
     if (!(bytes instanceof Uint8Array)) {
       throw new TypeError("expected a Uint8Array parameter");
     }
@@ -61,29 +68,28 @@ export class Varint {
       throw new Error("cannot decode empty array");
     }
 
-    // TODO: allow full 64-bit range when ECMAScript adds integers/bignums
-    if (bytes.length > 8) {
-      throw new RangeError("array must be 8 bytes or fewer (due to JS limitations)");
-    }
-
     let prefix = bytes[0];
 
     // Determine number of trailing zeroes using CTZ_TABLE
-    let count = Varint.CTZ_TABLE[prefix] + 1;
+    let length = Varint.CTZ_TABLE[prefix] + 1;
 
-    if (bytes.length != count) {
-      throw new Error(`expected ${count} bytes of data, got ${bytes.length}`);
+    if (bytes.length < length) {
+      throw new Error(`not enough bytes in buffer (expected ${length}, got ${bytes.length}`);
     }
 
     let buffer = new ArrayBuffer(8);
-    new Uint8Array(buffer).set(bytes);
+    new Uint8Array(buffer).set(bytes.subarray(0, length));
     let view = new DataView(buffer);
 
     let values = new Uint32Array(2);
     values[0] = view.getUint32(0, true);
     values[1] = view.getUint32(4, true);
 
-    return new Uint64(values).rshift(count).toInteger();
+    // This will throw an exception if we're outside the safe integer range
+    let result = new Uint64(values).bitwiseRightShift(length).toInteger();
+    let remaining = bytes.subarray(length);
+
+    return [result, remaining];
   }
 }
 
@@ -126,7 +132,7 @@ export class Uint64 {
   }
 
   // Bitwise left shift. Overflows are silently ignored.
-  public lshift(n: number): Uint64 {
+  public bitwiseLeftShift(n: number): Uint64 {
     if (n < 0) {
       throw new RangeError("number must be positive");
     }
@@ -143,7 +149,7 @@ export class Uint64 {
   }
 
   // Bitwise shift right
-  public rshift(n: number): Uint64 {
+  public bitwiseRightShift(n: number): Uint64 {
     if (n < 0) {
       throw new RangeError("number must be positive");
     }
@@ -160,7 +166,7 @@ export class Uint64 {
   }
 
   // Bitwise OR. Value must be in the 32-bit range
-  public bw_or(n: number): Uint64 {
+  public bitwiseOr(n: number): Uint64 {
     if (n < 0) {
       throw new RangeError("number must be positive");
     }
@@ -175,7 +181,7 @@ export class Uint64 {
   }
 
   // Is this value less than or equal to the given integer?
-  public lt_eq(n: number) {
+  public lessThanOrEqual(n: number) {
     Uint64.checkInteger(n);
 
     let nLower = n & 0xFFFFFFFF;

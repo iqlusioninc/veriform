@@ -26,14 +26,15 @@
     "test": "mocha --require ts-node/register test/**/*.spec.ts"
   },
   "devDependencies": {
+    "async-file": "*",
     "chai": "^3.5.0",
     "mocha": "^3.2.0",
     "mocha-typescript": "^1.0.23",
+    "tjson-js": "^0.1.2",
     "ts-node": "^3.0.2",
-    "typescript": "^2.2.1"
-  },
-  "dependencies": {
+    "typescript": "^2.2.1",
     "@types/chai": "^3.4.35",
-    "@types/mocha": "^2.2.40"
+    "@types/mocha": "^2.2.40",
+    "@types/node": "^7.0.13"
   }
 }
