@@ -41,27 +41,27 @@ RSpec.describe Zser::Varint do
   describe ".decode" do
     it "decodes valid examples" do
       # 0 with nothing trailing
-      expect(described_class.decode("\x01")).to eq 0
+      expect(described_class.decode("\x01")).to eq [0, ""]
 
       # 0 with trailing 0
-      expect(described_class.decode("\x01\0")).to eq 0
+      expect(described_class.decode("\x01\0")).to eq [0, "\0"]
 
       # 42 with trailing 0
-      expect(described_class.decode("U\0")).to eq 42
+      expect(described_class.decode("U\0")).to eq [42, "\0"]
 
       # 127 with trailing 0
-      expect(described_class.decode("\xFF\0")).to eq 127
+      expect(described_class.decode("\xFF\0")).to eq [127, "\0"]
 
       # 128 with trailing 0
-      expect(described_class.decode("\x02\x02")).to eq 128
+      expect(described_class.decode("\x02\x02\0")).to eq [128, "\0"]
 
       # 2**64-2 with trailing 0
       expect(described_class.decode("\x00\xFE\xFF\xFF\xFF\xFF\xFF\xFF\xFF\0"))
-        .to eq 18_446_744_073_709_551_614
+        .to eq [18_446_744_073_709_551_614, "\0"]
 
       # 2**64-1 with trailing 0
       expect(described_class.decode("\x00\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\0"))
-        .to eq 18_446_744_073_709_551_615
+        .to eq [18_446_744_073_709_551_615, "\0"]
     end
 
     it "raises ArgumentError on an empty string" do
@@ -70,6 +70,11 @@ RSpec.describe Zser::Varint do
 
     it "raises TypeError if given a non-string type" do
       expect { described_class.decode(42) }.to raise_error TypeError
+    end
+
+    it "raises Zser::EOFError if input is truncated" do
+      expect { described_class.decode("\x02") }.to raise_error Zser::EOFError
+      expect { described_class.decode("\x00\xFF") }.to raise_error Zser::EOFError
     end
   end
 end
