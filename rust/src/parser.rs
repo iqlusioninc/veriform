@@ -118,10 +118,8 @@ impl<'m, H: Handler> Parser<'m, H> {
         let length = varint::decode(&mut slice_ref)? as usize;
 
         if slice_ref.len() < length {
-            return Err(ErrorKind::TruncatedMessage(format!("want {} bytes, have {}",
-                                                           length,
-                                                           slice_ref.len()))
-                               .into());
+            let message = format!("want {} bytes, have {}", length, slice_ref.len());
+            return Err(ErrorKind::TruncatedMessage(message).into());
         }
 
         let result = &slice_ref[..length];
