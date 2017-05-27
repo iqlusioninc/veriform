@@ -1,7 +1,5 @@
-# zser.rb [![Latest Version][gem-shield]][gem-link] [![Build Status][build-image]][build-link] [![MIT licensed][license-image]][license-link]
+# zser.go [![Build Status][build-image]][build-link] [![MIT licensed][license-image]][license-link]
 
-[gem-shield]: https://badge.fury.io/rb/zser.svg
-[gem-link]: https://rubygems.org/gems/zser
 [build-image]: https://secure.travis-ci.org/zcred/zser.svg?branch=master
 [build-link]: http://travis-ci.org/zcred/zser
 [license-image]: https://img.shields.io/badge/license-MIT-blue.svg
