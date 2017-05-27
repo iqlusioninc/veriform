@@ -16,10 +16,8 @@ import { Parser } from "../src/parser";
       let parser = new Parser(new Decoder);
 
       if (example.success) {
-        expect(parser.parse(example.encoded)).to.be.true;
-
-        let result = parser.finish();
-        expect(result).to.eql(example.decoded);
+        parser.parse(example.encoded);
+        expect(parser.finish()).to.eql(example.decoded);
       } else {
         expect(() => parser.parse(example.encoded)).to.throw;
       }
