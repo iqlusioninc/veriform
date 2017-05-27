@@ -7,16 +7,22 @@ authors     = ["Tony Arcieri <bascule@gmail.com>"]
 homepage    = "https://www.zcred.org"
 repository  = "https://github.com/zcred/zser"
 readme      = "README.md"
-categories  = ["authentication","cryptography"]
+categories  = ["authentication", "cryptography", "encoding"]
 keywords    = ["authentication", "cryptography", "security", "serialization", "merkle"]
 
+[dependencies]
+error-chain = "0.10"
+
 [dependencies.byteorder]
-version = "^0.5"
+version = "0.5"
 default-features = false
 
 [dev-dependencies]
-leb128 = "^0"
+data-encoding = "2.0.0-rc.1"
+leb128 = "0"
+serde_json = "1"
 
 [features]
-default = []
+default = ["std"]
+std = []
 bench = []
