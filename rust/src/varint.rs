@@ -1,6 +1,7 @@
 //! Variable-width 64-bit little endian integers
 
 use byteorder::{ByteOrder, LittleEndian};
+use errors::*;
 
 /// Encode a 64-bit unsigned integer in zsuint64 form
 pub fn encode(value: u64, out: &mut [u8]) -> usize {
@@ -26,10 +27,13 @@ pub fn encode(value: u64, out: &mut [u8]) -> usize {
 }
 
 /// Decode a zsuint64-encoded unsigned 64-bit integer
-pub fn decode(input: &mut &[u8]) -> Result<u64, ()> {
+pub fn decode(input: &mut &[u8]) -> Result<u64> {
     let bytes = *input;
 
-    let prefix = *bytes.first().ok_or(())?;
+    let prefix =
+        *bytes
+             .first()
+             .ok_or_else(|| ErrorKind::TruncatedMessage("missing varint prefix".to_owned()))?;
 
     if prefix == 0 {
         if bytes.len() >= 9 {
@@ -37,14 +41,14 @@ pub fn decode(input: &mut &[u8]) -> Result<u64, ()> {
             *input = &bytes[9..];
             return Ok(result);
         } else {
-            return Err(());
+            return Err(ErrorKind::TruncatedMessage("truncated varint".to_owned()).into());
         }
     }
 
     let count = prefix.trailing_zeros() as usize + 1;
 
     if bytes.len() < count {
-        return Err(());
+        return Err(ErrorKind::TruncatedMessage("truncated varint".to_owned()).into());
     }
 
     let result = LittleEndian::read_uint(bytes, count) >> count;
@@ -134,13 +138,15 @@ mod tests {
         // 2**64-2 with trailing 0
         let maxint_minus_one_trailing_zero = b"\x00\xFE\xFF\xFF\xFF\xFF\xFF\xFF\xFF\0";
         remaining = &maxint_minus_one_trailing_zero[..];
-        assert_eq!(varint::decode(&mut remaining).unwrap(), 18446744073709551614);
+        assert_eq!(varint::decode(&mut remaining).unwrap(),
+                   18446744073709551614);
         assert_eq!(remaining, b"\0");
 
         // 2**64-1 with trailing 0
         let maxint_trailing_zero = b"\x00\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\0";
         remaining = &maxint_trailing_zero[..];
-        assert_eq!(varint::decode(&mut remaining).unwrap(), 18446744073709551615);
+        assert_eq!(varint::decode(&mut remaining).unwrap(),
+                   18446744073709551615);
         assert_eq!(remaining, b"\0");
     }
 
@@ -160,9 +166,9 @@ mod tests {
 
         // 2**48 + 31337
         b.iter(|| {
-            let mut readable = &input[..];
-            varint::decode(&mut readable).unwrap()
-        });
+                   let mut readable = &input[..];
+                   varint::decode(&mut readable).unwrap()
+               });
     }
 
     #[cfg(feature = "bench")]
@@ -172,9 +178,9 @@ mod tests {
 
         // 2**48 + 31337
         b.iter(|| {
-            let mut writable = &mut output[..];
-            leb128::write::unsigned(&mut writable, 281474976741993).unwrap()
-        });
+                   let mut writable = &mut output[..];
+                   leb128::write::unsigned(&mut writable, 281474976741993).unwrap()
+               });
     }
 
     #[cfg(feature = "bench")]
@@ -184,8 +190,8 @@ mod tests {
 
         // 2**48 + 31337
         b.iter(|| {
-            let mut readable = &input[..];
-            leb128::read::unsigned(&mut readable).unwrap()
-        });
+                   let mut readable = &input[..];
+                   leb128::read::unsigned(&mut readable).unwrap()
+               });
     }
 }
