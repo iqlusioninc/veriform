@@ -54,8 +54,6 @@ export class Parser<T> {
     }
 
     this.remaining.pop();
-
-    return true;
   }
 
   // Finish parsing, returning the resulting object produced by the builder
