@@ -72,12 +72,12 @@ module Zser
       # 9-byte special case
       if prefix.zero?
         raise EOFError, "not enough bytes to decode varint" if input_len < 9
-        [read_le64(input[1, 8]), input.byteslice(9, input_len - 9)]
+        [decode_le64(input[1, 8]), input.byteslice(9, input_len - 9)]
       else
         # Count trailing zeroes
         length = CTZ_TABLE[prefix] + 1
         raise EOFError, "not enough bytes to decode varint" if input_len < length
-        [read_le64(input[0, length]) >> length, input.byteslice(length, input_len - length)]
+        [decode_le64(input[0, length]) >> length, input.byteslice(length, input_len - length)]
       end
     end
 
@@ -85,7 +85,7 @@ module Zser
       private
 
       # Decode a little endian integer (without allocating memory, unlike pack)
-      def read_le64(bytes)
+      def decode_le64(bytes)
         result = 0
 
         (bytes.bytesize - 1).downto(0) do |i|
