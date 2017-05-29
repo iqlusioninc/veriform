@@ -1,5 +1,9 @@
+"""varint.py: Little Endian 64-bit Unsigned Prefix Varints"""
+
+from .exceptions import TruncatedMessageError
 import numbers
 import struct
+import sys
 
 # Maximum value we can encode as a zsuint64
 MAX = (2**64) - 1
@@ -21,6 +25,7 @@ CTZ_TABLE = [8, 0, 1, 0, 2, 0, 1, 0, 3, 0, 1, 0, 2, 0, 1, 0,
              4, 0, 1, 0, 2, 0, 1, 0, 3, 0, 1, 0, 2, 0, 1, 0,
              5, 0, 1, 0, 2, 0, 1, 0, 3, 0, 1, 0, 2, 0, 1, 0,
              4, 0, 1, 0, 2, 0, 1, 0, 3, 0, 1, 0, 2, 0, 1, 0]
+
 
 def encode(value):
     """Encode the given integer value as a zsuint64"""
@@ -47,21 +52,31 @@ def encode(value):
 
     return struct.pack("<Q", result)[:length]
 
-def decode(input):
+
+def decode(encoded):
     """Decode a zsuint64-serialized value into an integer"""
-    if not isinstance(input, bytes):
+    if not isinstance(encoded, bytes):
         raise TypeError("input must be a byte array")
 
-    if not input:
-        raise ValueError("input cannot be empty")
+    if not encoded:
+        raise TruncatedMessageError("not enough bytes to decode varint")
 
-    prefix = input[0]
-
-    if not isinstance(prefix, int):
-        prefix = ord(prefix)
+    if sys.version_info >= (3, 0):
+        prefix = encoded[0]
+    else:
+        prefix = ord(encoded[0])
 
     if prefix == 0:
-        return struct.unpack("<Q", input[1:9])[0]
+        length = 9
     else:
-        count = CTZ_TABLE[prefix] + 1
-        return struct.unpack("<Q", input + b"\0" * (8 - len(input)))[0] >> count
+        length = CTZ_TABLE[prefix] + 1
+
+    if len(encoded) < length:
+        raise TruncatedMessageError("not enough bytes to decode varint")
+
+    if prefix == 0:
+        decoded = struct.unpack("<Q", encoded[1:9])[0]
+    else:
+        decoded = struct.unpack("<Q", encoded[:length] + b"\0" * (8 - length))[0] >> length
+
+    return decoded, encoded[length:]
