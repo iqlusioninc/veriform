@@ -13,7 +13,7 @@ use zser::value::Value as ZserValue;
 /// Message examples (with messages.tjson structure)
 // TODO: switch to the tjson crate (based on serde)
 #[derive(Debug)]
-pub struct Example {
+pub struct MessageExample {
     pub name: String,
     pub description: String,
     pub success: bool,
@@ -22,12 +22,12 @@ pub struct Example {
 }
 
 /// Load examples from messages.tjson
-pub fn load() -> Vec<Example> {
+pub fn load() -> Vec<MessageExample> {
     load_from_file(Path::new("../vectors/messages.tjson"))
 }
 
 /// Load examples from a file at the given path
-pub fn load_from_file(path: &Path) -> Vec<Example> {
+pub fn load_from_file(path: &Path) -> Vec<MessageExample> {
     let mut file = File::open(&path).expect("valid messages.tjson");
     let mut tjson_string = String::new();
     file.read_to_string(&mut tjson_string)
@@ -42,7 +42,7 @@ pub fn load_from_file(path: &Path) -> Vec<Example> {
     examples
         .into_iter()
         .map(|ex| {
-            Example {
+            MessageExample {
                 name: ex["name:s"].as_str().expect("example name").to_owned(),
                 description: ex["description:s"]
                     .as_str()

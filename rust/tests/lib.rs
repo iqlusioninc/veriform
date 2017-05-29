@@ -3,11 +3,11 @@ extern crate zser;
 use zser::decoder::Decoder;
 use zser::parser::Parser;
 
-mod examples;
+mod message_examples;
 
 #[test]
 fn message_examples() {
-    let examples = examples::load();
+    let examples = message_examples::load();
 
     for example in examples {
         let mut parser = Parser::new(Decoder::new());
@@ -20,8 +20,8 @@ fn message_examples() {
             }
 
             let value = parser.finish().expect("finished");
-            assert_eq!(value,
-                       examples::decode_value(&example.decoded.expect("decoded")));
+            let expected = message_examples::decode_value(&example.decoded.expect("decoded"));
+            assert_eq!(value, expected);
         } else if parser.parse(&example.encoded).is_ok() {
             panic!("{}: expected error but example parsed successfully",
                    example.name);
