@@ -44,19 +44,13 @@ impl<'m, H: Handler> Parser<'m, H> {
             return Err(ErrorKind::OversizedMessage(message.len(), self.max_length).into());
         }
 
-        self.remaining.push(message);
-
-        if self.remaining.len() > self.max_depth {
+        if self.remaining.len() >= self.max_depth {
             return Err(ErrorKind::MaxDepthExceeded(self.max_depth).into());
         }
 
-        loop {
-            let current_len = self.remaining.len() - 1;
+        self.remaining.push(message);
 
-            if self.remaining[current_len].is_empty() {
-                break;
-            }
-
+        while !self.remaining.last().expect("remaining").is_empty() {
             let (id, wiretype) = self.parse_field_prefix()?;
 
             match wiretype {
@@ -113,18 +107,16 @@ impl<'m, H: Handler> Parser<'m, H> {
 
     /// Parse a blob of data that begins with a length prefix
     pub fn parse_length_prefixed_data(&mut self) -> Result<&'m [u8]> {
-        let slice = self.remaining.pop().expect("remaining slice");
-        let mut slice_ref = &slice[..];
-        let length = varint::decode(&mut slice_ref)? as usize;
+        let (length_u64, remaining) = self.parse_varint()?;
+        let length = length_u64 as usize;
 
-        if slice_ref.len() < length {
-            let message = format!("want {} bytes, have {}", length, slice_ref.len());
+        if remaining.len() < length {
+            let message = format!("want {} bytes, have {}", length, remaining.len());
             return Err(ErrorKind::TruncatedMessage(message).into());
         }
 
-        let result = &slice_ref[..length];
-        let remaining = &slice_ref[length..];
-        self.remaining.push(remaining);
+        let result = &remaining[..length];
+        self.remaining.push(&remaining[length..]);
 
         Ok(result)
     }

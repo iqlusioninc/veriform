@@ -32,7 +32,7 @@ class Parser(object):
         self.remaining.append(msg)
 
         if len(self.remaining) > self.max_depth:
-            raise DepthError("exceeded max depth of " + str(self.max_depth))
+            raise DepthError("max depth of {0} nested messages exceeded".format(self.max_depth))
 
         while self.remaining[-1]:
             field_id, wiretype = self.__parse_field_prefix()
