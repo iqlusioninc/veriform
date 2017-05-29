@@ -13,12 +13,12 @@
 format with novel authentication properties based on "Merkleized" data
 structures.
 
-## Rationale (a.k.a. [Oh no!] Not another serialization format!)
+## Rationale (a.k.a. "[Oh no!] Not another serialization format!")
 
 [Oh no!]: https://scottlocklin.wordpress.com/2017/04/02/please-stop-writing-new-serialization-protocols/
 
 > If you look at another engineer's work and think, "That's dumb. Why don't you just..."
-> Take a breath. Find out why the problem is hard. _--[Adrienne Porter Felt]_
+> Take a breath. Find out why the problem is hard. _—[Adrienne Porter Felt]_
 
 [Adrienne Porter Felt]: https://twitter.com/__apf__/status/867751153026482177
 
