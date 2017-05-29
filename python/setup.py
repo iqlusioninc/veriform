@@ -3,9 +3,6 @@
 
 from setuptools import setup
 
-requirements = []
-test_requirements = []
-
 setup(
     name="zser",
     version="0.0.0",
