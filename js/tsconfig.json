@@ -16,5 +16,8 @@
         "noUnusedParameters": true,
         "strictNullChecks": true,
         "newLine": "LF"
-    }
+    },
+    "files": [
+        "index.ts"
+    ]
 }

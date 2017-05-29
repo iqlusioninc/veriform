@@ -4,6 +4,7 @@
   "description": "zcred serialization format",
   "homepage": "https://github.com/zcred/zser#readme",
   "main": "index.js",
+  "types":"index.d.ts",
   "author": "Tony Arcieri",
   "license": "MIT",
   "repository": {
