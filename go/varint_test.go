@@ -6,7 +6,7 @@ import (
 	"testing"
 )
 
-func TestEncode(t *testing.T) {
+func TestEncodeVarint(t *testing.T) {
 	cases := []struct {
 		num      uint64
 		expected []byte
@@ -33,7 +33,7 @@ func TestEncode(t *testing.T) {
 	}
 }
 
-func TestDecode(t *testing.T) {
+func TestDecodeVarint(t *testing.T) {
 	cases := []struct {
 		input    []byte
 		trailing []byte
@@ -69,7 +69,7 @@ func TestDecode(t *testing.T) {
 	}
 }
 
-func BenchmarkEncode(b *testing.B) {
+func BenchmarkEncodeVarint(b *testing.B) {
 	output := make([]byte, 9)
 
 	for n := 0; n < b.N; n++ {
@@ -77,7 +77,7 @@ func BenchmarkEncode(b *testing.B) {
 	}
 }
 
-func BenchmarkDecode(b *testing.B) {
+func BenchmarkDecodeVarint(b *testing.B) {
 	input := []byte("\xE9\xF4\x81\x80\x80\x80@")
 
 	for n := 0; n < b.N; n++ {
