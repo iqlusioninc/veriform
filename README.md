@@ -13,6 +13,8 @@
 format with novel authentication properties based on "Merkleized" data
 structures.
 
+[Specification](https://github.com/zcred/zser/blob/master/spec/draft-zser-spec.md)
+
 ## Rationale (a.k.a. "[Oh no!] Not another serialization format!")
 
 [Oh no!]: https://scottlocklin.wordpress.com/2017/04/02/please-stop-writing-new-serialization-protocols/
