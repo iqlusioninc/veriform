@@ -34,7 +34,7 @@ class Decoder(object):
         value = self.stack.pop()
 
         if not self.stack:
-            raise StateError("not insfield_ide a nested message")
+            raise StateError("not inside a nested message")
 
         self.stack[-1][field_id] = value
 
