@@ -39,15 +39,14 @@ func DecodeVarint(r io.Reader) (uint64, error) {
 	var result uint64
 	var buf [8]byte
 
-	_, err := io.ReadFull(r, buf[:1])
+	_, err := r.Read(buf[:1])
 	if err != nil {
 		return result, err
 	}
 
 	prefix := buf[0]
-
 	if prefix == 0 {
-		err := binary.Read(r, binary.LittleEndian, result)
+		err := binary.Read(r, binary.LittleEndian, &result)
 		return result, err
 	}
 
@@ -65,7 +64,7 @@ func DecodeVarint(r io.Reader) (uint64, error) {
 		return result, err
 	}
 
-	err = binary.Read(bytes.NewReader(buf[:]), binary.LittleEndian, result)
+	err = binary.Read(bytes.NewReader(buf[:]), binary.LittleEndian, &result)
 	if err != nil {
 		return result, err
 	}
