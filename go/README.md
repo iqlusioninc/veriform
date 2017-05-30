@@ -5,4 +5,4 @@
 [license-image]: https://img.shields.io/badge/license-MIT-blue.svg
 [license-link]: https://github.com/zcred/zser/blob/master/LICENSE.txt
 
-Ruby implementation of the zser serialization format
+Go implementation of the zser message serialization format.
