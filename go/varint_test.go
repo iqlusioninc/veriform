@@ -46,19 +46,25 @@ func TestDecode(t *testing.T) {
 		{[]byte("\x01\x00"), []byte{0}, 0},
 
 		// 42 with trailing 0
-		{[]byte("U\x00"), []byte{0}, 0},
+		{[]byte("U\x00"), []byte{0}, 42},
 
 		// 127 with trailing 0
-		{[]byte("\xFF\x00"), []byte{0}, 0},
+		{[]byte("\xFF\x00"), []byte{0}, 127},
 
 		// 128 with trailing 0
-		{[]byte("\x02\x02\x00"), []byte{0}, 0},
+		{[]byte("\x02\x02\x00"), []byte{0}, 128},
+
+		// 2**64-2 with trailing 0
+		{[]byte("\x00\xFE\xFF\xFF\xFF\xFF\xFF\xFF\xFF\x00"), []byte{0}, 18446744073709551614},
+
+		// 2**64-1 with trailing 0
+		{[]byte("\x00\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\x00"), []byte{0}, 18446744073709551615},
 	}
 
 	for _, c := range cases {
 		actual, _ := DecodeVarint(bytes.NewReader(c.input))
 		if c.expected != actual {
-			t.Errorf("DecodeVarint(%v) == %q, want %q", c.input, actual, c.expected)
+			t.Errorf("DecodeVarint(%v) == %v, want %v", c.input, actual, c.expected)
 		}
 	}
 }
