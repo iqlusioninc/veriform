@@ -52,10 +52,10 @@ Via [Yarn](https://yarnpkg.com/):
 yarn install zser
 ```
 
-Import TJSON into your project with:
+Import **zser** into your project with:
 
 ```js
-import zser from "zser";
+import Zser from "zser";
 ```
 
 ## API
