@@ -5,7 +5,7 @@ from setuptools import setup
 
 setup(
     name="zser",
-    version="0.0.0",
+    version="0.0.1",
     description="zcred serialization format",
     long_description="A protobuf-inspired minimalistic serialization format with cryptographic authentication",
     author="Tony Arcieri",

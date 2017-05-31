@@ -1,6 +1,6 @@
 [root]
 name = "zser"
-version = "0.0.0"
+version = "0.0.1"
 dependencies = [
  "byteorder 0.5.3 (registry+https://github.com/rust-lang/crates.io-index)",
  "data-encoding 2.0.0-rc.1 (registry+https://github.com/rust-lang/crates.io-index)",
