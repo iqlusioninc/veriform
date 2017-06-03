@@ -13,11 +13,12 @@
 #![cfg_attr(feature = "bench", feature(test))]
 
 extern crate byteorder;
-#[macro_use]
-extern crate error_chain;
 
 #[cfg(not(feature = "std"))]
-extern crate collections;
+#[macro_use] extern crate collections;
+
+#[cfg(feature = "std")]
+extern crate core;
 
 #[cfg(all(feature = "bench", test))]
 extern crate test;
