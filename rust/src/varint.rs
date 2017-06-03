@@ -3,6 +3,9 @@
 use byteorder::{ByteOrder, LittleEndian};
 use errors::*;
 
+#[cfg(not(feature = "std"))]
+use collections::string::ToString;
+
 /// Encode a 64-bit unsigned integer in zsuint64 form
 pub fn encode(value: u64, out: &mut [u8]) -> usize {
     let mut length = 1;
@@ -33,7 +36,7 @@ pub fn decode(input: &mut &[u8]) -> Result<u64> {
     let prefix =
         *bytes
              .first()
-             .ok_or_else(|| ErrorKind::TruncatedMessage("missing varint prefix".to_owned()))?;
+             .ok_or_else(|| ErrorKind::TruncatedMessage("missing varint prefix".to_string()))?;
 
     if prefix == 0 {
         if bytes.len() >= 9 {
@@ -41,14 +44,14 @@ pub fn decode(input: &mut &[u8]) -> Result<u64> {
             *input = &bytes[9..];
             return Ok(result);
         } else {
-            return Err(ErrorKind::TruncatedMessage("truncated varint".to_owned()).into());
+            return Err(ErrorKind::TruncatedMessage("truncated varint".to_string()).into());
         }
     }
 
     let count = prefix.trailing_zeros() as usize + 1;
 
     if bytes.len() < count {
-        return Err(ErrorKind::TruncatedMessage("truncated varint".to_owned()).into());
+        return Err(ErrorKind::TruncatedMessage("truncated varint".to_string()).into());
     }
 
     let result = LittleEndian::read_uint(bytes, count) >> count;

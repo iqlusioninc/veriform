@@ -41,7 +41,7 @@ impl<'m, H: Handler> Parser<'m, H> {
     /// Parse the given zser message, invoking callbacks as necessary
     pub fn parse(&mut self, message: &'m [u8]) -> Result<()> {
         if message.len() > self.max_length {
-            return Err(ErrorKind::OversizedMessage(message.len(), self.max_length).into());
+            return Err(ErrorKind::OversizedMessage(self.max_length).into());
         }
 
         if self.remaining.len() >= self.max_depth {

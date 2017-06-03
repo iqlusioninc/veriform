@@ -29,6 +29,7 @@ ruby)
 rust)
     cd rust
     cargo test
+    cargo build $RUST_FEATURES
     ;;
 *)
     echo "*** ERROR: Unknown test suite: '$SUITE'"

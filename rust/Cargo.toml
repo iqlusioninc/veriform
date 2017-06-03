@@ -10,9 +10,6 @@ readme      = "README.md"
 categories  = ["authentication", "cryptography", "encoding"]
 keywords    = ["authentication", "cryptography", "security", "serialization", "merkle"]
 
-[dependencies]
-error-chain = "0.10"
-
 [dependencies.byteorder]
 version = "0.5"
 default-features = false
