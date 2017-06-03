@@ -3,5 +3,6 @@
 require "bundler/setup"
 require "zser"
 require "support/message_examples"
+require "support/varint_examples"
 
 RSpec.configure(&:disable_monkey_patching!)

@@ -56,99 +56,13 @@ pub fn decode(input: &mut &[u8]) -> Result<u64> {
     Ok(result)
 }
 
-#[cfg(test)]
-mod tests {
+#[cfg(feature = "bench")]
+mod bench {
     #[cfg(feature = "bench")]
     use leb128;
     #[cfg(feature = "bench")]
     use test::Bencher;
     use varint;
-
-    #[test]
-    fn encode() {
-        let mut output = [0u8; 9];
-
-        // 0
-        assert_eq!(varint::encode(0, &mut output), 1);
-        assert_eq!(output, *b"\x01\0\0\0\0\0\0\0\0");
-
-        // 42
-        assert_eq!(varint::encode(42, &mut output), 1);
-        assert_eq!(output, *b"U\0\0\0\0\0\0\0\0");
-
-        // 127
-        assert_eq!(varint::encode(127, &mut output), 1);
-        assert_eq!(output, *b"\xFF\0\0\0\0\0\0\0\0");
-
-        // 128
-        assert_eq!(varint::encode(128, &mut output), 2);
-        assert_eq!(output, *b"\x02\x02\0\0\0\0\0\0\0");
-
-        // 2**42 - 1
-        assert_eq!(varint::encode(4398046511103, &mut output), 6);
-        assert_eq!(output, *b"\xE0\xFF\xFF\xFF\xFF\xFF\0\0\0");
-
-        // 2**42
-        assert_eq!(varint::encode(4398046511104, &mut output), 7);
-        assert_eq!(output, *b"@\x00\x00\x00\x00\x00\x02\0\0");
-
-        // 2**64-2
-        assert_eq!(varint::encode(18446744073709551614, &mut output), 9);
-        assert_eq!(output, *b"\x00\xFE\xFF\xFF\xFF\xFF\xFF\xFF\xFF");
-
-        // 2**64-1
-        assert_eq!(varint::encode(18446744073709551615, &mut output), 9);
-        assert_eq!(output, *b"\x00\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF");
-    }
-
-    #[test]
-    fn decode() {
-        let mut remaining;
-
-        // 0 with nothing trailing
-        let zero_nothing = b"\x01";
-        remaining = &zero_nothing[..];
-        assert_eq!(varint::decode(&mut remaining).unwrap(), 0);
-        assert_eq!(remaining, b"");
-
-        // 0 with trailing 0
-        let zero_trailing_zero = b"\x01\0";
-        remaining = &zero_trailing_zero[..];
-        assert_eq!(varint::decode(&mut remaining).unwrap(), 0);
-        assert_eq!(remaining, b"\0");
-
-        // 42 with trailing 0
-        let forty_two_trailing_zero = b"U\0";
-        remaining = &forty_two_trailing_zero[..];
-        assert_eq!(varint::decode(&mut remaining).unwrap(), 42);
-        assert_eq!(remaining, b"\0");
-
-        // 127 with trailing 0
-        let one_twenty_seven_trailing_zero = b"\xFF\0";
-        remaining = &one_twenty_seven_trailing_zero[..];
-        assert_eq!(varint::decode(&mut remaining).unwrap(), 127);
-        assert_eq!(remaining, b"\0");
-
-        // 128 with trailing 0
-        let one_twenty_eight_trailing_zero = b"\x02\x02\0";
-        remaining = &one_twenty_eight_trailing_zero[..];
-        assert_eq!(varint::decode(&mut remaining).unwrap(), 128);
-        assert_eq!(remaining, b"\0");
-
-        // 2**64-2 with trailing 0
-        let maxint_minus_one_trailing_zero = b"\x00\xFE\xFF\xFF\xFF\xFF\xFF\xFF\xFF\0";
-        remaining = &maxint_minus_one_trailing_zero[..];
-        assert_eq!(varint::decode(&mut remaining).unwrap(),
-                   18446744073709551614);
-        assert_eq!(remaining, b"\0");
-
-        // 2**64-1 with trailing 0
-        let maxint_trailing_zero = b"\x00\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\0";
-        remaining = &maxint_trailing_zero[..];
-        assert_eq!(varint::decode(&mut remaining).unwrap(),
-                   18446744073709551615);
-        assert_eq!(remaining, b"\0");
-    }
 
     #[cfg(feature = "bench")]
     #[bench]
