@@ -1,0 +1,76 @@
+{
+    "examples:A<O>": [
+        {
+            "value:u": "0",
+            "encoded:d16": "01"
+        },
+        {
+            "value:u": "1",
+            "encoded:d16": "03"
+        },
+        {
+            "value:u": "127",
+            "encoded:d16": "ff"
+        },
+        {
+            "value:u": "128",
+            "encoded:d16": "0202"
+        },
+        {
+            "value:u": "16383",
+            "encoded:d16": "feff"
+        },
+        {
+            "value:u": "16384",
+            "encoded:d16": "040002"
+        },
+        {
+            "value:u": "2097151",
+            "encoded:d16": "fcffff"
+        },
+        {
+            "value:u": "2097152",
+            "encoded:d16": "08000002"
+        },
+        {
+            "value:u": "268435455",
+            "encoded:d16": "f8ffffff"
+        },
+        {
+            "value:u": "268435456",
+            "encoded:d16": "1000000002"
+        },
+        {
+            "value:u": "34359738367",
+            "encoded:d16": "f0ffffffff"
+        },
+        {
+            "value:u": "34359738368",
+            "encoded:d16": "200000000002"
+        },
+        {
+            "value:u": "4398046511103",
+            "encoded:d16": "e0ffffffffff"
+        },
+        {
+            "value:u": "4398046511104",
+            "encoded:d16": "40000000000002"
+        },
+        {
+            "value:u": "562949953421311",
+            "encoded:d16": "c0ffffffffffff"
+        },
+        {
+            "value:u": "562949953421312",
+            "encoded:d16": "8000000000000002"
+        },
+        {
+            "value:u": "18446744073709551614",
+            "encoded:d16": "00feffffffffffffff"
+        },
+        {
+            "value:u": "18446744073709551615",
+            "encoded:d16": "00ffffffffffffffff"
+        }
+    ]
+}

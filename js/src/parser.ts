@@ -128,7 +128,7 @@ export class Parser<T> {
 // Callback API used by the parser to process parsed data
 export interface Handler<T> {
   // Called when a uint64 value with the given field ID is parsed
-  // TODO: switch to TC39 integers when available: https://tc39.github.io/proposal-integer/
+  // TODO: switch to TC39 BigInt when available: https://tc39.github.io/proposal-bigint/
   uint64(id: number, value: number): void;
 
   // Called when we've received binary data with the given ID
