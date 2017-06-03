@@ -13,7 +13,7 @@ from zser.decoder import Decoder
 from zser.exceptions import ParseError
 from zser.parser import Parser
 
-from . import message_examples
+from .support import message_examples
 
 class TestParser(unittest.TestCase):
     def test_messages_tjson(self):

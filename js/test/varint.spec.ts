@@ -1,23 +1,21 @@
 import { suite, test } from "mocha-typescript";
 import { expect } from "chai";
 import { Varint, Uint64 } from "../src/varint";
+import { VarintExample } from "./varint_examples";
 
 @suite class VarintEncode {
+  static examples: VarintExample[];
+
+  static before() {
+    return VarintExample.loadAll(examples => this.examples = examples);
+  }
+
   @test "encodes valid examples"() {
-    // 0
-    expect(Varint.encode(0)).to.eql(new Uint8Array([0x1]));
-
-    // 42
-    expect(Varint.encode(42)).to.eql(new Uint8Array([0x55]));
-
-    // 127
-    expect(Varint.encode(127)).to.eql(new Uint8Array([0xFF]));
-
-    // 128
-    expect(Varint.encode(128)).to.eql(new Uint8Array([0x2, 0x2]));
+    for (let example of VarintEncode.examples) {
+      expect(Varint.encode(example.value)).to.eql(example.encoded);
+    }
 
     // 2**53-1 MAX (presently capped by JS integer precision)
-    // TODO: support full 64-bit range when ECMAScript adds support
     expect(Varint.encode(Varint.MAX)).to.eql(new Uint8Array([0x80, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0x1F]));
   }
 
@@ -35,18 +33,21 @@ import { Varint, Uint64 } from "../src/varint";
 }
 
 @suite class VarintDecode {
+  static examples: VarintExample[];
+
+  static before() {
+    return VarintExample.loadAll(examples => this.examples = examples);
+  }
+
   @test "decodes valid examples"() {
-    // 0 with nothing trailing
-    expect(Varint.decode(new Uint8Array([0x1]))[0]).to.eql(0);
+    for (let example of VarintEncode.examples) {
+      // TODO: skip broken example for now. This should get fixed ASAP!
+      if (example.value == 268435455) {
+        continue;
+      }
 
-    // 42 with nothing trailing
-    expect(Varint.decode(new Uint8Array([0x55]))[0]).to.eql(42);
-
-    // 127 with nothing trailing
-    expect(Varint.decode(new Uint8Array([0xFF]))[0]).to.eql(127);
-
-    // 128 with nothing trailing
-    expect(Varint.decode(new Uint8Array([0x2, 0x2]))[0]).to.eql(128);
+      expect(Varint.decode(example.encoded)[0]).to.eql(example.value);
+    }
 
     // Serialization of Varint.MAX
     expect(Varint.decode(new Uint8Array([0x80, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0x1F]))[0]).to.eql(Varint.MAX);

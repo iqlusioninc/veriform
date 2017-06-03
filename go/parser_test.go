@@ -21,7 +21,7 @@ type messageExample struct {
 
 // Load common test examples from messages.tjson
 // TODO: switch to a native Go TJSON parser when available
-func loadExamples() []messageExample {
+func loadMessageExamples() []messageExample {
 	var examplesJson map[string]interface{}
 
 	exampleData, err := ioutil.ReadFile("../vectors/messages.tjson")
@@ -75,7 +75,7 @@ func decodeValue(value map[string]interface{}) map[FieldID]interface{} {
 	for key, encodedValue := range value {
 		keyParts := strings.Split(key, ":")
 
-		fieldID, err := strconv.Atoi(keyParts[0])
+		fieldID, err := strconv.ParseUint(keyParts[0], 10, 64)
 		if err != nil {
 			panic(err)
 		}
@@ -94,12 +94,12 @@ func decodeValue(value map[string]interface{}) map[FieldID]interface{} {
 
 			result[FieldID(fieldID)] = bytes
 		} else if tag == "u" {
-			value, err := strconv.Atoi(encodedValue.(string))
+			value, err := strconv.ParseUint(encodedValue.(string), 10, 64)
 			if err != nil {
 				panic(err)
 			}
 
-			result[FieldID(fieldID)] = uint64(value)
+			result[FieldID(fieldID)] = value
 		} else {
 			panic(fmt.Errorf("unknown tag: %v", tag))
 		}
@@ -109,7 +109,7 @@ func decodeValue(value map[string]interface{}) map[FieldID]interface{} {
 }
 
 func TestParsingMessageExamples(t *testing.T) {
-	examples := loadExamples()
+	examples := loadMessageExamples()
 
 	for _, example := range examples {
 		parser := NewParser(NewDecoder())

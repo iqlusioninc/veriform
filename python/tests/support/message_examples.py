@@ -6,10 +6,14 @@ from collections import namedtuple
 
 MessageExample = namedtuple("MessageExample", ["name", "description", "success", "encoded", "decoded"])
 
+
 def load():
+    """Load message examples from vectors/messages.tjson"""
     return load_from_file("../vectors/messages.tjson")
 
+
 def load_from_file(filename):
+    """Load message examples from the specified file"""
     examples_file = open(filename, "r")
     examples_text = examples_file.read()
     examples_file.close()
@@ -28,6 +32,7 @@ def load_from_file(filename):
         ))
 
     return result
+
 
 def __decode_value(input_dict):
     if input_dict == None:
