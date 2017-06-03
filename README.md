@@ -131,65 +131,6 @@ Packages implementing zser are available for the following languages:
 [crate-shield]: https://img.shields.io/crates/v/zser.svg
 [crate-link]: https://crates.io/crates/zser
 
-## Encoding
-
-zser is a binary encoding format similar to [Google Protocol Buffers][Protobuf]
-designed to have a compact, self-describing structure that supports
-"Merkleized" content authentication using a git-like tree hashing algorithm.
-
-### zsint: Prefix Varints with a 64-bit Range
-
-Like [Protocol Buffers][Protobuf], zser uses variable-width integers to
-provide a more compact encoding. Protocol Buffers use a format called
-[LEB128], a Base128 encoding not unlike a 128-bit version of Base64.
-This encoding uses the high bit to signal there are more bytes remaining,
-and serializes values in little endian order. This format can serialize
-integers of arbitrary size.
-
-However, while LEB128 makes it easy to serialize numbers of any size,
-it makes it harder to serialize numbers of a fixed width. There isn't
-a natural way to cap LEB128 to 64-bits. A 64-bit number represented with
-LEB128 requires 10 bytes.
-
-An alternative approach to a variable-width integer encoding is employed
-by formats like [UTF-8]. This format encodes the number of total bytes
-into the prefix byte of the integer: in UTF-8's case, by the number of
-leading `1` digits in the first byte.
-
-zsints use a similar encoding: they include a count of the number of
-bytes in the number using the *trailing zeroes* in the first byte:
-
-| Prefix     | Precision | Total Bytes |
-|------------|-----------|-------------|
-| `xxxxxxx1` | 7 bits    | 1 byte      |
-| `xxxxxx10` | 14 bits   | 2 bytes     |
-| `xxxxx100` | 21 bits   | 3 bytes     |
-| `xxxx1000` | 28 bits   | 4 bytes     |
-| `xxx10000` | 35 bits   | 5 bytes     |
-| `xx100000` | 42 bits   | 6 bytes     |
-| `x1000000` | 49 bits   | 7 bytes     |
-| `10000000` | 56 bits   | 8 bytes     |
-| `00000000` | 64 bits   | 9 bytes     |
-
-Using trailing zeroes means we can take advantage of CPU instructions such as
-`CTZ` (count trailing zeroes) or `BSF` (bit scan forward) to count the number
-of zeroes in the prefix byte.
-
-This approach also provides a natural way to encode a 64-bit integer, since
-8 * 8 = 64. Eight zeroes in the first byte (i.e. if the first byte is `0`)
-indicates the next 8 bytes form a 64-bit little endian integer value,
-allowing the full 64-bit range to be naturally expressed in 9-bytes at most.
-
-Anything smaller is still encoded as little endian, but shifted over by the
-number of bits in the length prefix. Once we've decoded the bytes as little
-endian, all we have to do to finish decoding is a right bitwise shift to
-remove the prefix bits.
-
-This means the decoder can be implemented completely free of loops and
-optimized implementations can decode varints in around *15 nanoseconds*.
-
-[UTF-8]: https://en.wikipedia.org/wiki/UTF-8#Description
-
 ## Copyright
 
 Copyright (c) 2017 [The Zcred Developers][AUTHORS].
