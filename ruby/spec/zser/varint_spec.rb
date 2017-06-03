@@ -3,26 +3,12 @@
 
 RSpec.describe Zser::Varint do
   describe ".encode" do
-    it "encodes valid examples" do
-      # 0
-      expect(described_class.encode(0)).to eq "\x01"
-
-      # 42
-      expect(described_class.encode(42)).to eq "U"
-
-      # 127
-      expect(described_class.encode(127)).to eq "\xFF"
-
-      # 128
-      expect(described_class.encode(128)).to eq "\x02\x02"
-
-      # 2**64-2
-      expect(described_class.encode(18_446_744_073_709_551_614))
-        .to eq "\x00\xFE\xFF\xFF\xFF\xFF\xFF\xFF\xFF"
-
-      # 2**64-1
-      expect(described_class.encode(18_446_744_073_709_551_615))
-        .to eq "\x00\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF"
+    context "varint.tjson examples" do
+      it "encodes examples successfully" do
+        VarintExample.load_file.each do |ex|
+          expect(described_class.encode(ex.value)).to eq ex.encoded
+        end
+      end
     end
 
     it "raises TypeError if given a non-Integer" do
@@ -39,29 +25,10 @@ RSpec.describe Zser::Varint do
   end
 
   describe ".decode" do
-    it "decodes valid examples" do
-      # 0 with nothing trailing
-      expect(described_class.decode("\x01")).to eq [0, ""]
-
-      # 0 with trailing 0
-      expect(described_class.decode("\x01\0")).to eq [0, "\0"]
-
-      # 42 with trailing 0
-      expect(described_class.decode("U\0")).to eq [42, "\0"]
-
-      # 127 with trailing 0
-      expect(described_class.decode("\xFF\0")).to eq [127, "\0"]
-
-      # 128 with trailing 0
-      expect(described_class.decode("\x02\x02\0")).to eq [128, "\0"]
-
-      # 2**64-2 with trailing 0
-      expect(described_class.decode("\x00\xFE\xFF\xFF\xFF\xFF\xFF\xFF\xFF\0"))
-        .to eq [18_446_744_073_709_551_614, "\0"]
-
-      # 2**64-1 with trailing 0
-      expect(described_class.decode("\x00\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\0"))
-        .to eq [18_446_744_073_709_551_615, "\0"]
+    it "decodes examples successfully" do
+      VarintExample.load_file.each do |ex|
+        expect(described_class.decode(ex.encoded)).to eq [ex.value, ""]
+      end
     end
 
     it "raises ArgumentError on an empty string" do

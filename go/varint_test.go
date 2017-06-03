@@ -2,69 +2,81 @@ package zser
 
 import (
 	"bytes"
+	"encoding/hex"
+	"encoding/json"
+	"io/ioutil"
 	"reflect"
+	"strconv"
 	"testing"
 )
 
-func TestEncodeVarint(t *testing.T) {
-	cases := []struct {
-		num      uint64
-		expected []byte
-	}{
-		{0, []byte("\x01")},
-		{42, []byte("U")},
-		{127, []byte("\xFF")},
-		{128, []byte("\x02\x02")},
-		{18446744073709551614, []byte("\x00\xFE\xFF\xFF\xFF\xFF\xFF\xFF\xFF")},
-		{18446744073709551615, []byte("\x00\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF")},
+type varintExample struct {
+	Value   uint64
+	Encoded []byte
+}
+
+// Load common test examples from messages.tjson
+// TODO: switch to a native Go TJSON parser when available
+func loadVarintExamples() []varintExample {
+	var examplesJson map[string]interface{}
+
+	exampleData, err := ioutil.ReadFile("../vectors/varint.tjson")
+	if err != nil {
+		panic(err)
 	}
 
-	for _, c := range cases {
-		output := make([]byte, 9)
-		length := EncodeVarint(output, c.num)
+	if err = json.Unmarshal(exampleData, &examplesJson); err != nil {
+		panic(err)
+	}
 
-		if length != len(c.expected) {
-			t.Errorf("EncodeVarint(%q) len: %q, want %q", c.num, length, len(c.expected))
+	examplesArray := examplesJson["examples:A<O>"].([]interface{})
+
+	if examplesArray == nil {
+		panic("no toplevel 'examples:A<O>' key in varint.tjson")
+	}
+
+	result := make([]varintExample, len(examplesArray))
+
+	for i, exampleJson := range examplesArray {
+		example := exampleJson.(map[string]interface{})
+		encodedHex := example["encoded:d16"].(string)
+		encoded := make([]byte, hex.DecodedLen(len(encodedHex)))
+
+		value, err := strconv.ParseUint(example["value:u"].(string), 10, 64)
+		if err != nil {
+			panic(err)
 		}
 
-		if !reflect.DeepEqual(c.expected, output[:length]) {
-			t.Errorf("EncodeVarint(%q) buf: %q, want %q", c.num, output[:length], c.expected)
+		if _, err := hex.Decode(encoded, []byte(encodedHex)); err != nil {
+			panic(err)
+		}
+
+		result[i] = varintExample{value, encoded}
+	}
+
+	return result
+}
+
+func TestEncodeVarint(t *testing.T) {
+	for _, ex := range loadVarintExamples() {
+		output := make([]byte, 9)
+		length := EncodeVarint(output, ex.Value)
+
+		if length != len(ex.Encoded) {
+			t.Errorf("EncodeVarint(%q) len: %q, want %q", ex.Value, length, len(ex.Encoded))
+		}
+
+		if !reflect.DeepEqual(ex.Encoded, output[:length]) {
+			t.Errorf("EncodeVarint(%q) buf: %q, want %q", ex.Value, output[:length], ex.Encoded)
 		}
 	}
 }
 
 func TestDecodeVarint(t *testing.T) {
-	cases := []struct {
-		input    []byte
-		trailing []byte
-		expected uint64
-	}{
-		// 0 with nothing trailing
-		{[]byte("\x01"), []byte{}, 0},
-
-		// 0 with trailing 0
-		{[]byte("\x01\x00"), []byte{0}, 0},
-
-		// 42 with trailing 0
-		{[]byte("U\x00"), []byte{0}, 42},
-
-		// 127 with trailing 0
-		{[]byte("\xFF\x00"), []byte{0}, 127},
-
-		// 128 with trailing 0
-		{[]byte("\x02\x02\x00"), []byte{0}, 128},
-
-		// 2**64-2 with trailing 0
-		{[]byte("\x00\xFE\xFF\xFF\xFF\xFF\xFF\xFF\xFF\x00"), []byte{0}, 18446744073709551614},
-
-		// 2**64-1 with trailing 0
-		{[]byte("\x00\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\x00"), []byte{0}, 18446744073709551615},
-	}
-
-	for _, c := range cases {
-		actual, _ := DecodeVarint(bytes.NewReader(c.input))
-		if c.expected != actual {
-			t.Errorf("DecodeVarint(%v) == %v, want %v", c.input, actual, c.expected)
+	for _, ex := range loadVarintExamples() {
+		actual, _ := DecodeVarint(bytes.NewReader(ex.Encoded))
+		if ex.Value != actual {
+			t.Errorf("DecodeVarint(%v) == %v, want %v", ex.Encoded, actual, ex.Value)
 		}
 	}
 }

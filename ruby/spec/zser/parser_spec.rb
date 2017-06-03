@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
 RSpec.describe Zser::Parser do
-  context "message examples" do
+  context "message.tjson examples" do
     # Integration test against the decoder
     subject(:parser) { described_class.new(Zser::Decoder.new) }
 

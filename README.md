@@ -1,11 +1,14 @@
 # ![zser][zser-logo-image]
 
 [![Build Status][build-image]][build-link]
+[![Code Climate][codeclimate-image]][codeclimate-link]
 [![MIT licensed][license-image]][license-link]
 
 [zser-logo-image]: https://raw.githubusercontent.com/zcred/logos/master/zser-logo-md.png
 [build-image]: https://secure.travis-ci.org/zcred/zser.svg?branch=master
 [build-link]: http://travis-ci.org/zcred/zser
+[codeclimate-image]: https://codeclimate.com/github/zcred/zser.svg?branch=master
+[codeclimate-link]: https://codeclimate.com/github/zcred/zser
 [license-image]: https://img.shields.io/badge/license-MIT-blue.svg
 [license-link]: https://github.com/zcred/zser/blob/master/LICENSE.txt
 
