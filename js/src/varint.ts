@@ -141,7 +141,7 @@ export class Uint64 {
       throw new RangeError("can only shift 32-bits at a time");
     }
 
-    let carry = this.values[0] >> (32 - n) & ((1 << n) - 1);
+    let carry = this.values[0] >>> (32 - n) & ((1 << n) - 1);
     this.values[1] = (this.values[1] << n | carry) & 0xFFFFFFFF;
     this.values[0] = (this.values[0] << n) & 0xFFFFFFFF;
 
@@ -159,8 +159,8 @@ export class Uint64 {
     }
 
     let carry = this.values[1] & ((1 << n) - 1);
-    this.values[1] >>= n;
-    this.values[0] = (this.values[0] >> n) | (carry << (32 - n));
+    this.values[1] >>>= n;
+    this.values[0] = (this.values[0] >>> n) | (carry << (32 - n));
 
     return this;
   }
