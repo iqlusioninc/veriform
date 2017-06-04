@@ -14,7 +14,7 @@ pub fn encode(value: u64, out: &mut [u8]) -> usize {
 
     while value >= max {
         // 9-byte special case
-        if max == 1 << 63 {
+        if length == 8 {
             out[0] = 0;
             LittleEndian::write_u64(&mut out[1..9], value);
             return 9;
