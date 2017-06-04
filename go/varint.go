@@ -16,7 +16,7 @@ func EncodeVarint(buf []byte, input uint64) int {
 
 	for input >= max {
 		// 9-byte special case
-		if max == 1<<63 {
+		if length == 8 {
 			output.WriteByte(0)
 			binary.Write(output, binary.LittleEndian, input)
 			copy(buf, output.Bytes())

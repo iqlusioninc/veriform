@@ -44,7 +44,7 @@ def encode(value):
 
     while value >= max:
         # 9-byte special case
-        if max == 1 << 63:
+        if length == 8:
             return struct.pack("<BQ", 0, value)
         result <<= 1
         max <<= 7

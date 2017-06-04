@@ -44,7 +44,7 @@ module Zser
 
       while value >= max
         # 9-byte special case
-        return [0, value].pack("CQ<") if max == 1 << 63
+        return [0, value].pack("CQ<") if length == 8
 
         result <<= 1
         max <<= 7

@@ -65,6 +65,14 @@
             "encoded:d16": "8000000000000002"
         },
         {
+            "value:u": "9223372036854775807",
+            "encoded:d16": "00ffffffffffffff7f"
+        },
+        {
+            "value:u": "9223372036854775808",
+            "encoded:d16": "000000000000000080"
+        },
+        {
             "value:u": "18446744073709551614",
             "encoded:d16": "00feffffffffffffff"
         },
