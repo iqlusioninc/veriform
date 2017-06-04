@@ -1,13 +1,13 @@
 //! The Value enum: a loosely typed way of representing zser messages.
 
-#[cfg(feature = "std")]
-pub use std::collections::HashMap;
 
 #[cfg(not(feature = "std"))]
 pub use collections::btree_map::BTreeMap;
 
 #[cfg(not(feature = "std"))]
 use collections::vec::Vec;
+#[cfg(feature = "std")]
+pub use std::collections::HashMap;
 
 /// Integer ID -> Value mapping with `hashDoS`-resistant `HashMap` on std
 #[cfg(feature = "std")]
