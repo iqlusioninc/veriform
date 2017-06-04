@@ -41,11 +41,6 @@ import { VarintExample } from "./varint_examples";
 
   @test "decodes valid examples"() {
     for (let example of VarintEncode.examples) {
-      // TODO: skip broken example for now. This should get fixed ASAP!
-      if (example.value == 268435455) {
-        continue;
-      }
-
       expect(Varint.decode(example.encoded)[0]).to.eql(example.value);
     }
 
@@ -76,19 +71,22 @@ import { VarintExample } from "./varint_examples";
   }
 
   @test "left bitwise shift"() {
-    /// Low-value example
+    // Low-value example
     expect(Uint64.fromNumber(128).bitwiseLeftShift(1).toInteger()).to.eql(256);
 
-    /// this.exampleNumber >> 1
+    // this.exampleNumber >>> 1
     expect(Uint64.fromNumber(264140488932).bitwiseLeftShift(1).toInteger()).to.eql(this.exampleNumber);
 
-    // this.exampleNumber >> 2
+    // this.exampleNumber >>> 2
     expect(Uint64.fromNumber(132070244466).bitwiseLeftShift(2).toInteger()).to.eql(this.exampleNumber);
   }
 
   @test "right bitwise shift"() {
     expect(Uint64.fromNumber(this.exampleNumber).bitwiseRightShift(1).toInteger()).to.eql(264140488932);
     expect(Uint64.fromNumber(this.exampleNumber).bitwiseRightShift(2).toInteger()).to.eql(132070244466);
+
+    // Ensure values that exceed the signed 32-bit range are correctly handled
+    expect(Uint64.fromNumber(4294967288).bitwiseRightShift(4).toInteger()).to.eql(268435455);
   }
 
   @test "bitwise OR"() {
