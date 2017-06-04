@@ -1,12 +1,17 @@
 //! Variable-width 64-bit little endian integers
 
 use byteorder::{ByteOrder, LittleEndian};
-use errors::*;
 
 #[cfg(not(feature = "std"))]
 use collections::string::ToString;
+use errors::*;
 
 /// Encode a 64-bit unsigned integer in zsuint64 form
+///
+/// Panics if the `out` slice is not large enough to store the result.
+///
+/// Recommended size of `out`: minimum of 9 bytes to ensure panic-free
+/// operation for all inputs.
 pub fn encode(value: u64, out: &mut [u8]) -> usize {
     let mut length = 1;
     let mut result = (value << 1) | 1;
@@ -41,6 +46,11 @@ pub fn decode(input: &mut &[u8]) -> Result<u64> {
     if prefix == 0 {
         if bytes.len() >= 9 {
             let result = LittleEndian::read_u64(&bytes[1..9]);
+
+            if result < (1 << 56) {
+                return Err(ErrorKind::CorruptedMessage("malformatted varint".to_string()).into());
+            }
+
             *input = &bytes[9..];
             return Ok(result);
         } else {
@@ -48,14 +58,19 @@ pub fn decode(input: &mut &[u8]) -> Result<u64> {
         }
     }
 
-    let count = prefix.trailing_zeros() as usize + 1;
+    let length = prefix.trailing_zeros() as usize + 1;
 
-    if bytes.len() < count {
+    if bytes.len() < length {
         return Err(ErrorKind::TruncatedMessage("truncated varint".to_string()).into());
     }
 
-    let result = LittleEndian::read_uint(bytes, count) >> count;
-    *input = &bytes[count..];
+    let result = LittleEndian::read_uint(bytes, length) >> length;
+
+    if length > 1 && result < (1 << (7 * (length - 1))) {
+        return Err(ErrorKind::CorruptedMessage("malformatted varint".to_string()).into());
+    }
+
+    *input = &bytes[length..];
     Ok(result)
 }
 
