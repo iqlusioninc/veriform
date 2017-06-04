@@ -37,3 +37,6 @@ matrix:
   - env: SUITE="rust"
     language: rust
     rust: nightly
+  - env: SUITE="rust" RUST_FEATURES="--no-default-features"
+    language: rust
+    rust: nightly

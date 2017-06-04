@@ -1,5 +1,8 @@
 //! Decodes a zser message into `Zser::Value`
 
+#[cfg(not(feature = "std"))]
+use collections::vec::Vec;
+
 use parser::Handler;
 use value::{Map, Value};
 
