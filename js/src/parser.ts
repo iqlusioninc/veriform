@@ -81,7 +81,7 @@ export class Parser<T> {
     let [value, remaining] = this.parseVarint();
     this.remaining.push(remaining);
 
-    let fieldId = value >> 3;
+    let fieldId = value >>> 3;
     let wiretype = value & 0x7;
 
     return [fieldId, wiretype];
