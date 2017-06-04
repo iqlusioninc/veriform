@@ -15,7 +15,8 @@
 extern crate byteorder;
 
 #[cfg(not(feature = "std"))]
-#[macro_use] extern crate collections;
+#[macro_use]
+extern crate collections;
 
 #[cfg(feature = "std")]
 extern crate core;

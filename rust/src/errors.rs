@@ -1,16 +1,16 @@
 //! errors.rs: error types used by this crate
 
-use core::fmt::{self, Debug, Display};
-use core::result;
-
-#[cfg(feature = "std")]
-use std::error;
 
 #[cfg(not(feature = "std"))]
 use collections::boxed::Box;
 
 #[cfg(not(feature = "std"))]
 use collections::string::String;
+use core::fmt::{self, Debug, Display};
+use core::result;
+
+#[cfg(feature = "std")]
+use std::error;
 
 /// Errors which can occur when serializing or deserializing zser messages
 pub struct Error {
@@ -38,6 +38,9 @@ pub enum ErrorKind {
     /// Expected more data in message
     TruncatedMessage(String),
 
+    /// Corruption detected in message
+    CorruptedMessage(String),
+
     /// Message encoded with an unknown wiretype
     UnknownWiretype(u64),
 
@@ -55,6 +58,7 @@ impl Display for ErrorKind {
                 write!(f, "max nested message depth of {} exceeded", max)
             }
             ErrorKind::TruncatedMessage(ref msg) => write!(f, "message truncated: {}", msg),
+            ErrorKind::CorruptedMessage(ref msg) => write!(f, "message corrupted: {}", msg),
             ErrorKind::UnknownWiretype(wiretype) => write!(f, "unknown wiretype: {}", wiretype),
             ErrorKind::UnconsumedMessages(count) => {
                 write!(f, "unconsumed messages in buffer: {} messages", count)
@@ -70,6 +74,7 @@ impl error::Error for Error {
             ErrorKind::OversizedMessage(_) => "message too long",
             ErrorKind::MaxDepthExceeded(_) => "maximum number of nested messages exceeded",
             ErrorKind::TruncatedMessage(_) => "message truncated",
+            ErrorKind::CorruptedMessage(_) => "message corrupted",
             ErrorKind::UnknownWiretype(_) => "unknown wiretype",
             ErrorKind::UnconsumedMessages(_) => "unconsumed messages in buffer",
         }
