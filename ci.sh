@@ -2,6 +2,13 @@
 
 set -e
 
+if [ -z "$SUITE" ]; then
+    for SUITE in go js python ruby rust; do
+        echo "*** Running test suite: $SUITE"
+        SUITE=$SUITE ./$0
+    done
+fi
+
 case $SUITE in
 go)
     cd go
@@ -9,7 +16,11 @@ go)
     ;;
 js)
     cd js
-    nvm install stable
+
+    if [ "$CI" = "true" ]; then
+        nvm install stable
+    fi
+
     yarn global add typescript typescript-formatter mocha
     yarn install
     yarn test
@@ -38,4 +49,3 @@ rust)
 esac
 
 echo "Success!"
-exit 0
