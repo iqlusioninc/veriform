@@ -11,8 +11,9 @@ import (
 )
 
 type varintExample struct {
-	Value   uint64
+	Value   *uint64
 	Encoded []byte
+	Success bool
 }
 
 // Load common test examples from messages.tjson
@@ -42,16 +43,22 @@ func loadVarintExamples() []varintExample {
 		encodedHex := example["encoded:d16"].(string)
 		encoded := make([]byte, hex.DecodedLen(len(encodedHex)))
 
-		value, err := strconv.ParseUint(example["value:u"].(string), 10, 64)
-		if err != nil {
-			panic(err)
+		var value *uint64
+
+		if _, ok := example["value:u"]; ok {
+			v, err := strconv.ParseUint(example["value:u"].(string), 10, 64)
+			if err != nil {
+				panic(err)
+			}
+
+			value = &v
 		}
 
 		if _, err := hex.Decode(encoded, []byte(encodedHex)); err != nil {
 			panic(err)
 		}
 
-		result[i] = varintExample{value, encoded}
+		result[i] = varintExample{value, encoded, example["success:b"].(bool)}
 	}
 
 	return result
@@ -59,8 +66,12 @@ func loadVarintExamples() []varintExample {
 
 func TestEncodeVarint(t *testing.T) {
 	for _, ex := range loadVarintExamples() {
+		if !ex.Success {
+			continue
+		}
+
 		output := make([]byte, 9)
-		length := EncodeVarint(output, ex.Value)
+		length := EncodeVarint(output, *ex.Value)
 
 		if length != len(ex.Encoded) {
 			t.Errorf("EncodeVarint(%q) len: %q, want %q", ex.Value, length, len(ex.Encoded))
@@ -74,9 +85,14 @@ func TestEncodeVarint(t *testing.T) {
 
 func TestDecodeVarint(t *testing.T) {
 	for _, ex := range loadVarintExamples() {
-		actual, _ := DecodeVarint(bytes.NewReader(ex.Encoded))
-		if ex.Value != actual {
-			t.Errorf("DecodeVarint(%v) == %v, want %v", ex.Encoded, actual, ex.Value)
+		actual, err := DecodeVarint(bytes.NewReader(ex.Encoded))
+
+		if ex.Success {
+			if *ex.Value != actual {
+				t.Errorf("DecodeVarint(%v) == %v, want %v", ex.Encoded, actual, ex.Value)
+			}
+		} else if err == nil {
+			t.Errorf("expected DecodeVarint(%v) to err but it succeeded", ex.Encoded)
 		}
 	}
 }

@@ -48,7 +48,7 @@ pub fn decode(input: &mut &[u8]) -> Result<u64> {
             let result = LittleEndian::read_u64(&bytes[1..9]);
 
             if result < (1 << 56) {
-                return Err(ErrorKind::CorruptedMessage("malformatted varint".to_string()).into());
+                return Err(ErrorKind::CorruptedMessage("malformed varint".to_string()).into());
             }
 
             *input = &bytes[9..];
@@ -67,7 +67,7 @@ pub fn decode(input: &mut &[u8]) -> Result<u64> {
     let result = LittleEndian::read_uint(bytes, length) >> length;
 
     if length > 1 && result < (1 << (7 * (length - 1))) {
-        return Err(ErrorKind::CorruptedMessage("malformatted varint".to_string()).into());
+        return Err(ErrorKind::CorruptedMessage("malformed varint".to_string()).into());
     }
 
     *input = &bytes[length..];

@@ -2,83 +2,119 @@
     "examples:A<O>": [
         {
             "value:u": "0",
-            "encoded:d16": "01"
+            "encoded:d16": "01",
+            "success:b": true
         },
         {
             "value:u": "1",
-            "encoded:d16": "03"
+            "encoded:d16": "03",
+            "success:b": true
         },
         {
             "value:u": "127",
-            "encoded:d16": "ff"
+            "encoded:d16": "ff",
+            "success:b": true
         },
         {
             "value:u": "128",
-            "encoded:d16": "0202"
+            "encoded:d16": "0202",
+            "success:b": true
         },
         {
             "value:u": "16383",
-            "encoded:d16": "feff"
+            "encoded:d16": "feff",
+            "success:b": true
         },
         {
             "value:u": "16384",
-            "encoded:d16": "040002"
+            "encoded:d16": "040002",
+            "success:b": true
         },
         {
             "value:u": "2097151",
-            "encoded:d16": "fcffff"
+            "encoded:d16": "fcffff",
+            "success:b": true
         },
         {
             "value:u": "2097152",
-            "encoded:d16": "08000002"
+            "encoded:d16": "08000002",
+            "success:b": true
         },
         {
             "value:u": "268435455",
-            "encoded:d16": "f8ffffff"
+            "encoded:d16": "f8ffffff",
+            "success:b": true
         },
         {
             "value:u": "268435456",
-            "encoded:d16": "1000000002"
+            "encoded:d16": "1000000002",
+            "success:b": true
         },
         {
             "value:u": "34359738367",
-            "encoded:d16": "f0ffffffff"
+            "encoded:d16": "f0ffffffff",
+            "success:b": true
         },
         {
             "value:u": "34359738368",
-            "encoded:d16": "200000000002"
+            "encoded:d16": "200000000002",
+            "success:b": true
         },
         {
             "value:u": "4398046511103",
-            "encoded:d16": "e0ffffffffff"
+            "encoded:d16": "e0ffffffffff",
+            "success:b": true
         },
         {
             "value:u": "4398046511104",
-            "encoded:d16": "40000000000002"
+            "encoded:d16": "40000000000002",
+            "success:b": true
         },
         {
             "value:u": "562949953421311",
-            "encoded:d16": "c0ffffffffffff"
+            "encoded:d16": "c0ffffffffffff",
+            "success:b": true
         },
         {
             "value:u": "562949953421312",
-            "encoded:d16": "8000000000000002"
+            "encoded:d16": "8000000000000002",
+            "success:b": true
         },
         {
             "value:u": "9223372036854775807",
-            "encoded:d16": "00ffffffffffffff7f"
+            "encoded:d16": "00ffffffffffffff7f",
+            "success:b": true
         },
         {
             "value:u": "9223372036854775808",
-            "encoded:d16": "000000000000000080"
+            "encoded:d16": "000000000000000080",
+            "success:b": true
         },
         {
             "value:u": "18446744073709551614",
-            "encoded:d16": "00feffffffffffffff"
+            "encoded:d16": "00feffffffffffffff",
+            "success:b": true
         },
         {
             "value:u": "18446744073709551615",
-            "encoded:d16": "00ffffffffffffffff"
+            "encoded:d16": "00ffffffffffffffff",
+            "success:b": true
+        },
+        {
+            "encoded:d16": "00",
+            "success:b": false
+        },
+        {
+            "encoded:d16": "000000000000000000",
+            "success:b": false
+        },
+        {
+            "encoded:d16": "00ff00000000000000",
+            "success:b": false
+        },
+        {
+            "encoded:d16": "aa00",
+            "success:b": false
         }
     ]
 }

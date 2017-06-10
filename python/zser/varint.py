@@ -1,6 +1,6 @@
 """varint.py: Little Endian 64-bit Unsigned Prefix Varints"""
 
-from .exceptions import TruncatedMessageError
+from .exceptions import ParseError, TruncatedMessageError
 import numbers
 import struct
 import sys
@@ -78,5 +78,8 @@ def decode(encoded):
         decoded = struct.unpack("<Q", encoded[1:9])[0]
     else:
         decoded = struct.unpack("<Q", encoded[:length] + b"\0" * (8 - length))[0] >> length
+
+    if length > 1 and decoded < (1 << (7 * (length - 1))):
+        raise ParseError("malformed varint")
 
     return decoded, encoded[length:]

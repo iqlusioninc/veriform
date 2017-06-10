@@ -12,8 +12,9 @@ use std::path::Path;
 // TODO: switch to the tjson crate (based on serde)
 #[derive(Debug)]
 pub struct VarintExample {
-    pub value: u64,
+    pub value: Option<u64>,
     pub encoded: Vec<u8>,
+    pub success: bool,
 }
 
 /// Load examples from varint.tjson
@@ -37,18 +38,27 @@ pub fn load_from_file(path: &Path) -> Vec<VarintExample> {
     examples
         .into_iter()
         .map(|ex| {
+            let success = ex["success:b"].as_bool().expect("success boolean");
+
+            let value = if success {
+                Some(ex["value:u"]
+                         .as_str()
+                         .expect("value string")
+                         .parse()
+                         .expect("unsigned integer value"))
+            } else {
+                None
+            };
+
             VarintExample {
-                value: ex["value:u"]
-                    .as_str()
-                    .expect("string data")
-                    .parse()
-                    .expect("unsigned integer value"),
+                value: value,
                 encoded: HEXLOWER
                     .decode(ex["encoded:d16"]
                                 .as_str()
                                 .expect("encoded example")
                                 .as_bytes())
                     .expect("hex encoded"),
+                success: success,
             }
         })
         .collect()

@@ -12,6 +12,10 @@ import { VarintExample } from "./varint_examples";
 
   @test "encodes valid examples"() {
     for (let example of VarintEncode.examples) {
+      if (!example.success) {
+        continue;
+      }
+
       expect(Varint.encode(example.value)).to.eql(example.encoded);
     }
 
@@ -41,7 +45,11 @@ import { VarintExample } from "./varint_examples";
 
   @test "decodes valid examples"() {
     for (let example of VarintEncode.examples) {
-      expect(Varint.decode(example.encoded)[0]).to.eql(example.value);
+      if (example.success) {
+        expect(Varint.decode(example.encoded)[0]).to.eql(example.value);
+      } else {
+        expect(() => Varint.decode(example.encoded)).to.throw(Error);
+      }
     }
 
     // Serialization of Varint.MAX

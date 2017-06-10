@@ -68,7 +68,7 @@ module Zser
     # Parse a data type stored with a length prefix
     def parse_length_prefixed_data
       length, remaining = Zser::Varint.decode(@remaining.pop)
-      raise EOFError, "not enough bytes remaining in input" if remaining.bytesize < length
+      raise TruncatedMessageError, "not enough bytes remaining in input" if remaining.bytesize < length
       data = remaining.byteslice(0, length)
       @remaining << remaining.byteslice(length, remaining.bytesize - length)
       data

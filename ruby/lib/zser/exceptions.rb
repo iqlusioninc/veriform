@@ -11,7 +11,7 @@ module Zser
   EncodingError = Class.new(ParseError)
 
   # Unexpected end of input
-  EOFError = Class.new(ParseError)
+  TruncatedMessageError = Class.new(ParseError)
 
   # Message is larger than our maximum configured size
   OversizeMessageError = Class.new(ParseError)
