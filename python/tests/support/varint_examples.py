@@ -4,7 +4,7 @@ import binascii
 import json
 from collections import namedtuple
 
-VarintExample = namedtuple("VarintExample", ["value", "encoded"])
+VarintExample = namedtuple("VarintExample", ["value", "encoded", "success"])
 
 
 def load():
@@ -23,9 +23,15 @@ def load_from_file(filename):
 
     result = []
     for example in examples:
+        value = None
+        success = example[u"success:b"]
+        if success:
+            value = int(example[u"value:u"])
+
         result.append(VarintExample(
-            value=int(example[u"value:u"]),
+            value=value,
             encoded=binascii.unhexlify(example[u"encoded:d16"]),
+            success=success
         ))
 
     return result
