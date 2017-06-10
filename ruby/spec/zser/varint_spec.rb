@@ -6,6 +6,7 @@ RSpec.describe Zser::Varint do
     context "varint.tjson examples" do
       it "encodes examples successfully" do
         VarintExample.load_file.each do |ex|
+          next unless ex.success
           expect(described_class.encode(ex.value)).to eq ex.encoded
         end
       end
@@ -27,7 +28,11 @@ RSpec.describe Zser::Varint do
   describe ".decode" do
     it "decodes examples successfully" do
       VarintExample.load_file.each do |ex|
-        expect(described_class.decode(ex.encoded)).to eq [ex.value, ""]
+        if ex.success
+          expect(described_class.decode(ex.encoded)).to eq [ex.value, ""]
+        else
+          expect { described_class.decode(ex.encoded) }.to raise_error Zser::ParseError
+        end
       end
     end
 
@@ -39,9 +44,9 @@ RSpec.describe Zser::Varint do
       expect { described_class.decode(42) }.to raise_error TypeError
     end
 
-    it "raises Zser::EOFError if input is truncated" do
-      expect { described_class.decode("\x02") }.to raise_error Zser::EOFError
-      expect { described_class.decode("\x00\xFF") }.to raise_error Zser::EOFError
+    it "raises Zser::TruncatedMessageError if input is truncated" do
+      expect { described_class.decode("\x02") }.to raise_error Zser::TruncatedMessageError
+      expect { described_class.decode("\x00\xFF") }.to raise_error Zser::TruncatedMessageError
     end
   end
 end

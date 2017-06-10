@@ -9,14 +9,15 @@ Tests for the zser `varint` module: prefixed variable-sized integers
 
 import unittest
 from zser import varint
-from zser.exceptions import TruncatedMessageError
+from zser.exceptions import TruncatedMessageError, ParseError
 
 from .support import varint_examples
 
 class TestEncode(unittest.TestCase):
     def test_valid_examples(self):
         for example in varint_examples.load():
-            self.assertEqual(varint.encode(example.value), example.encoded)
+            if example.success:
+                self.assertEqual(varint.encode(example.value), example.encoded)
 
     def test_non_integer_param(self):
         with self.assertRaises(TypeError):
@@ -34,7 +35,11 @@ class TestEncode(unittest.TestCase):
 class TestDecode(unittest.TestCase):
     def test_valid_examples(self):
         for example in varint_examples.load():
-            self.assertEqual(varint.decode(example.encoded), (example.value, b""))
+            if example.success:
+                self.assertEqual(varint.decode(example.encoded), (example.value, b""))
+            else:
+                with self.assertRaises(ParseError):
+                    varint.decode(example.encoded)
 
     def test_empty_input(self):
         with self.assertRaises(TruncatedMessageError):
