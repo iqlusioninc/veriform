@@ -36,5 +36,6 @@ export class VarintExample {
   constructor(
     public readonly value: number,
     public readonly encoded: Uint8Array,
+    public readonly success: boolean
   ) { }
 }

@@ -3,6 +3,7 @@ package zser
 import (
 	"bytes"
 	"encoding/binary"
+	"errors"
 	"io"
 )
 
@@ -41,33 +42,43 @@ func DecodeVarint(r io.Reader) (uint64, error) {
 
 	_, err := r.Read(buf[:1])
 	if err != nil {
-		return result, err
+		return 0, err
 	}
 
 	prefix := buf[0]
 	if prefix == 0 {
 		err := binary.Read(r, binary.LittleEndian, &result)
+
+		if err == nil && result < (1 << 56) {
+			return 0, errors.New("malformed varint")
+		}
+
 		return result, err
 	}
 
-	count := uint(1)
+	length := uint(1)
 
 	// TODO: use math/bits TrailingZeros() if/when it becomes available
 	// See: https://github.com/golang/go/issues/18616
 	for prefix&1 == 0 {
-		count += 1
+		length += 1
 		prefix >>= 1
 	}
 
-	_, err = io.ReadFull(r, buf[1:count])
+	_, err = io.ReadFull(r, buf[1:length])
 	if err != nil {
-		return result, err
+		return 0, err
 	}
 
 	err = binary.Read(bytes.NewReader(buf[:]), binary.LittleEndian, &result)
 	if err != nil {
-		return result, err
+		return 0, err
 	}
 
-	return result >> count, nil
+	result >>= length
+	if length > 1 && result < (1 << (7 * (length - 1))) {
+		return 0, errors.New("malformed varint")
+	}
+
+	return result, nil
 }

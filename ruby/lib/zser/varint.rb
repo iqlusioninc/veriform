@@ -71,14 +71,21 @@ module Zser
 
       # 9-byte special case
       if prefix.zero?
-        raise EOFError, "not enough bytes to decode varint" if input_len < 9
-        [decode_le64(input[1, 8]), input.byteslice(9, input_len - 9)]
+        raise TruncatedMessageError, "not enough bytes to decode varint" if input_len < 9
+        length = 9
+        result = decode_le64(input[1, 8])
       else
         # Count trailing zeroes
         length = CTZ_TABLE[prefix] + 1
-        raise EOFError, "not enough bytes to decode varint" if input_len < length
-        [decode_le64(input[0, length]) >> length, input.byteslice(length, input_len - length)]
+        result = decode_le64(input[0, length]) >> length
+        raise TruncatedMessageError, "not enough bytes to decode varint" if input_len < length
       end
+
+      if length > 1 && result < (1 << (7 * (length - 1)))
+        raise ParseError, "malformed varint"
+      end
+
+      [result, input.byteslice(length, input_len - length)]
     end
 
     class << self

@@ -3,7 +3,7 @@
 require "tjson"
 
 class VarintExample
-  attr_reader :value, :encoded
+  attr_reader :value, :encoded, :success
 
   # Error parsing the example file
   ParseError = Class.new(StandardError)
@@ -19,7 +19,8 @@ class VarintExample
   end
 
   def initialize(attrs)
-    @value = attrs.fetch("value")
+    @success = attrs.fetch("success")
+    @value = attrs.fetch("value") if @success
     @encoded = attrs.fetch("encoded")
   end
 end
