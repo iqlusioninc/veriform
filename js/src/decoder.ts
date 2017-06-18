@@ -1,29 +1,29 @@
-import { Handler } from "./parser";
+import { IHandler } from "./parser";
 
-export class Decoder implements Handler<object> {
-  private stack: object[];
+export class Decoder implements IHandler<object> {
+  private stack: Array<object>;
 
   constructor() {
     this.stack = [{}];
   }
 
   // Add a uint64 to the current object
-  uint64(id: number, value: number) {
+  public uint64(id: number, value: number) {
     this.currentObject()[id] = value;
   }
 
   // Add binary data to the current object
-  binary(id: number, value: Uint8Array) {
+  public binary(id: number, value: Uint8Array) {
     this.currentObject()[id] = value;
   }
 
   // Push down the internal stack, constructing a new object
-  beginNested() {
+  public beginNested() {
     this.stack.push({});
   }
 
   // End a nested object, setting it to the given ID on its parent
-  endNested(id: number) {
+  public endNested(id: number) {
     let value = this.stack.pop();
 
     if (this.stack.length === 0) {
@@ -34,7 +34,7 @@ export class Decoder implements Handler<object> {
   }
 
   // Finish decoding, returning the finished parent object
-  finish(): any {
+  public finish(): any {
     let result = this.stack.pop();
 
     if (this.stack.length !== 0) {
