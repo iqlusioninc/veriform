@@ -3,7 +3,7 @@
 use byteorder::{ByteOrder, LittleEndian};
 
 #[cfg(not(feature = "std"))]
-use collections::string::ToString;
+use alloc::string::ToString;
 use errors::*;
 
 /// Encode a 64-bit unsigned integer in zsuint64 form

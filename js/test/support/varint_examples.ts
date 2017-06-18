@@ -1,6 +1,6 @@
 import * as fs from "async-file";
 import TJSON from "tjson-js";
-import { Varint } from "../src/varint";
+import { Varint } from "../../src/varint";
 
 export class VarintExample {
   static readonly DEFAULT_EXAMPLES_PATH = "../vectors/varint.tjson";
