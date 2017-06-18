@@ -25,8 +25,8 @@ export class Varint {
       throw new TypeError(`value ${n} is not an integer`);
     }
 
-    let result = Uint64.fromNumber(n).bitwiseLeftShift(1).bitwiseOr(1);
-    let max = Uint64.fromNumber(1 << 7);
+    const result = Uint64.fromNumber(n).bitwiseLeftShift(1).bitwiseOr(1);
+    const max = Uint64.fromNumber(1 << 7);
     let length = 1;
 
     while (max.lessThanOrEqual(n)) {
@@ -35,8 +35,8 @@ export class Varint {
       length += 1;
     }
 
-    let buffer = new ArrayBuffer(8);
-    let view = new DataView(buffer);
+    const buffer = new ArrayBuffer(8);
+    const view = new DataView(buffer);
     view.setUint32(0, result.lower(), true);
     view.setUint32(4, result.upper(), true);
 
@@ -53,26 +53,26 @@ export class Varint {
       throw new Error("cannot decode empty array");
     }
 
-    let prefix = bytes[0];
+    const prefix = bytes[0];
 
     // Determine number of trailing zeroes using CTZ_TABLE
-    let length = Varint.CTZ_TABLE[prefix] + 1;
+    const length = Varint.CTZ_TABLE[prefix] + 1;
 
     if (bytes.length < length) {
       throw new Error(`not enough bytes in buffer (expected ${length}, got ${bytes.length}`);
     }
 
-    let buffer = new ArrayBuffer(8);
+    const buffer = new ArrayBuffer(8);
     new Uint8Array(buffer).set(bytes.subarray(0, length));
-    let view = new DataView(buffer);
+    const view = new DataView(buffer);
 
-    let values = new Uint32Array(2);
+    const values = new Uint32Array(2);
     values[0] = view.getUint32(0, true);
     values[1] = view.getUint32(4, true);
 
     // This will throw an exception if we're outside the safe integer range
-    let result = new Uint64(values).bitwiseRightShift(length).toInteger();
-    let remaining = bytes.subarray(length);
+    const result = new Uint64(values).bitwiseRightShift(length).toInteger();
+    const remaining = bytes.subarray(length);
 
     return [result, remaining];
   }

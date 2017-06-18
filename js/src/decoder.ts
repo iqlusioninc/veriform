@@ -1,7 +1,7 @@
 import { IHandler } from "./parser";
 
 export class Decoder implements IHandler<object> {
-  private stack: Array<object>;
+  private stack: object[];
 
   constructor() {
     this.stack = [{}];
@@ -24,7 +24,7 @@ export class Decoder implements IHandler<object> {
 
   // End a nested object, setting it to the given ID on its parent
   public endNested(id: number) {
-    let value = this.stack.pop();
+    const value = this.stack.pop();
 
     if (this.stack.length === 0) {
       throw new Error("not inside a nested message");
@@ -35,7 +35,7 @@ export class Decoder implements IHandler<object> {
 
   // Finish decoding, returning the finished parent object
   public finish(): any {
-    let result = this.stack.pop();
+    const result = this.stack.pop();
 
     if (this.stack.length !== 0) {
       throw new Error("objects remaining in stack");

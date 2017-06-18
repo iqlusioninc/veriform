@@ -11,7 +11,7 @@ export class Uint64 {
   public static fromNumber(n: number): Uint64 {
     Uint64.checkInteger(n);
 
-    let values = new Uint32Array(2);
+    const values = new Uint32Array(2);
     values[0] = n & 0xFFFFFFFF;
     values[1] = (n - values[0]) / Math.pow(2, 32);
     return new Uint64(values);
@@ -44,7 +44,7 @@ export class Uint64 {
       throw new RangeError("can only shift 32-bits at a time");
     }
 
-    let carry = this.values[0] >>> (32 - n) & ((1 << n) - 1);
+    const carry = this.values[0] >>> (32 - n) & ((1 << n) - 1);
     this.values[1] = (this.values[1] << n | carry) & 0xFFFFFFFF;
     this.values[0] = (this.values[0] << n) & 0xFFFFFFFF;
 
@@ -61,7 +61,7 @@ export class Uint64 {
       throw new RangeError("can only shift 32-bits at a time");
     }
 
-    let carry = this.values[1] & ((1 << n) - 1);
+    const carry = this.values[1] & ((1 << n) - 1);
     this.values[1] >>>= n;
     this.values[0] = (this.values[0] >>> n) | (carry << (32 - n));
 
@@ -87,8 +87,8 @@ export class Uint64 {
   public lessThanOrEqual(n: number) {
     Uint64.checkInteger(n);
 
-    let nLower = n & 0xFFFFFFFF;
-    let nUpper = (n - nLower) / Math.pow(2, 32);
+    const nLower = n & 0xFFFFFFFF;
+    const nUpper = (n - nLower) / Math.pow(2, 32);
 
     if (this.values[1] < nUpper) {
       return true;
