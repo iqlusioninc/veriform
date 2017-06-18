@@ -5,18 +5,15 @@
 
 #![deny(missing_docs)]
 
-// For error-chain
-#![recursion_limit = "1024"]
-
 #![cfg_attr(not(any(feature = "std", test)), no_std)]
-#![cfg_attr(not(feature = "std"), feature(collections))]
+#![cfg_attr(not(feature = "std"), feature(alloc))]
 #![cfg_attr(feature = "bench", feature(test))]
 
 extern crate byteorder;
 
 #[cfg(not(feature = "std"))]
 #[macro_use]
-extern crate collections;
+extern crate alloc;
 
 #[cfg(feature = "std")]
 extern crate core;

@@ -1,7 +1,7 @@
 //! zser message parser
 
 #[cfg(not(feature = "std"))]
-use collections::Vec;
+use alloc::Vec;
 use errors::*;
 use varint;
 

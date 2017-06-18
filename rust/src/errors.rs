@@ -2,10 +2,10 @@
 
 
 #[cfg(not(feature = "std"))]
-use collections::boxed::Box;
+use alloc::boxed::Box;
 
 #[cfg(not(feature = "std"))]
-use collections::string::String;
+use alloc::string::String;
 use core::fmt::{self, Debug, Display};
 use core::result;
 

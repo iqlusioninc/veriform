@@ -11,7 +11,7 @@ RSpec.describe Zser::Parser do
           expect(parser.parse(example.encoded)).to eq true
           result = parser.finish
           expect(result).to be_a Zser::Object
-          expect(result.to_h).to eq example.decoded
+          expect(result).to eql Zser::Object.from_tjson(example.decoded)
         else
           expect { parser.parse(example.encoded) }.to raise_error Zser::ParseError
         end
