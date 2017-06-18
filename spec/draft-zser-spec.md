@@ -1,11 +1,11 @@
 %%%
 
-    Title = "Zcred Serialization Data Interchange Format (a.k.a. zser)"
+    Title = "Zcred Serialization Format (a.k.a. zser)"
     abbrev = "Zser Data Interchange Format"
     category = "info"
     docName = "draft-zser-spec"
 
-    date = 2017-03-26
+    date = 2017-06-11
 
     [[author]]
     initials = "T. "
@@ -18,10 +18,13 @@
 
 The Zcred Serialization Format (zser) is a binary encoding for structured data
 designed to support operating with or without schemas, supporting a compact
-on-wire representation, and with advanced cryptographic authentication features
-similar to Merkle trees. The format is inspired by Google's Protocol Buffers,
-but makes a number of changes aimed at improving simplicity, performance, and
-security.
+on-wire representation, and authenticable using a structured content hashing
+algorithm reminiscent of (and providing similar properties to) Merkle trees.
+
+The format is inspired by Google's Protocol Buffers, but where that format is
+aimed at long-term storage of data and schema evolution, zser is aimed at
+shorter-term documents (i.e. credentials) with greater emphasis on simplicity,
+performance, and security.
 
 {mainmatter}
 
@@ -38,7 +41,7 @@ This keeps the format simple and parsimonious for security use cases.
 
 zser supports five scalar types:
 
-* Strings
+* Unicode Strings (always encoded as UTF-8)
 * Binary Data
 * Integers (unsigned only)
 * Timestamps
@@ -113,7 +116,7 @@ value is one of a set of different wire types with different encoding
 properties.
 
 Every entry in a message begins with a zsuint64 which encodes both an integer
-field identifier (the "key" of the key/value pair) along witha wire type
+field identifier (the "key" of the key/value pair) along with a wire type
 identifier. The lower 3 bits of this initial varint contain the wire type
 value, so the entire integer is encoded as follows:
 
@@ -134,3 +137,199 @@ The following wire types are supported by zser:
 
 The "Length Prefixed" encoding consists of a single zsuint64 which indicates
 the number of bytes in the subsequent value, followed by the value.
+
+Field IDs MUST be unique. Any message containing repeated field IDs MUST be
+rejected by compliant parsers.
+
+# Structured Content Hashing (zhash)
+
+The zhash algorithm computes a unique content hash for every field and nested
+message present in a zser message. This approach to hashing can either happen
+in tandem with deserialization, or by walking the object graph produced by
+parsing a message. Only the content of messages is included in the hash
+calculation, and not the serialized structure, allowing compatible hashes to
+be computed for the same message serialized in other formats (e.g. TJSON).
+
+By computing a hash based on the content of a message and not its literal
+on-wire serialization, we avoid having to specify complex canonicalization
+rules which ensure there is a singular "one true serialization" for each
+message. Instead, specific field ordering is not required, and messages
+serialized in different orders will produce the same content hash.
+
+This approach to hashing is somewhat reminiscent of a Merkle tree. Like a
+Merkle tree, structured hashing facilitates the ability to compute so-called
+"inclusion proofs" for sub-messages, by providing a sub-message and the
+necessary message digests of the surrounding structure to show that a
+sub-message is rooted in a given parent hash.
+
+Both zser and the zhash algorithm have been designed specifically to support
+authentication of content independent from the schema. This is the main
+impetus for the format to be self-describing, and allows message generators
+and verifiers with differing views of the schema to compute the same content
+hash. This is necessary to support schema evolution while ensuring messages
+containing unknown fields can still be cryptographically authenticated.
+
+While zser's primary intended use case is for highly structured credentials,
+it is assumed this structured hashing approach is applicable to other areas
+that involve hashing of structured data, including so-called "blockchain" and
+"transparency log" systems, particularly because these systems benefit highly
+from support for "inclusion proofs".
+
+## Acknowledgements
+
+The design of the zhash algorithm is heavily inspired by Ben Laurie's
+[ObjectHash] algorithm, and is also a major impetus for the existence of this
+entire project in the first place.
+
+[ObjectHash]: https://github.com/benlaurie/objecthash
+
+## Supported Hash Algorithms
+
+This format is designed with the mindset that diversity of cryptographic
+primitives is expensive and failure to provide normative advice about algorithm
+selection has lead to complicated, incompatible, fractured ecosystems
+containing a massive proliferation of algorithms. As such, all allowed hash
+functions are explicitly specified in this document, and conforming
+implementations MUST NOT implement any algorithms besides the ones
+specifically enumerated below.
+
+Each algorithm is identified by an all-upper-case alphanumeric short code
+of variable length. These short codes SHOULD be used by all implementations
+as the name of the constant or enum variant identifying these algorithms.
+
+Conforming implementations MUST support selectable hash functions, and MUST NOT
+be implemented in such a way that a single hash function is hard coded into
+the implementation in an unselectable/inextensible manner.
+
+### "SHA256"
+
+The United States of America (USA) Federal Information Processing Standard
+(FIPS) Secure Hash Algorithms (SHAs) specifies a suite of hash functions
+with varying digest and block sizes.
+
+Of these, SHA-256, as described in [RFC6234], is supported as a hash function
+for use with zhash. This function is mandatory to implement for all confirming
+zhash implementations, i.e. conforming implementations MUST implement SHA-256.
+
+The string `SHA256` identifies this algorithm uniquely for the purposes of
+zhash. Conforming implementations should support selecting this hash function
+using this string.
+
+SHA-256 was selected as the primary hash function for use with zhash for the
+following reasons:
+
+* The SHA-2 algorithm family is ubiquitous with fast software and hardware
+  implementations available for all platforms where zser is applicable.
+* The SHA-2 algorithm family has not been subject to a practical or
+  theoretical attack, despite the initial results which lead to the SHA-3
+  competition (which were inapplicable to SHA-2).
+* SHA-256 in particular has been selected over alternatives such as SHA-512
+  and SHA-512/256 despite software implementations of the 512-bit versions
+  of these functions performing nearly twice as well on 64-bit architectures.
+  This is because this standard is considering the performance on
+  low-power/embedded devices with less-than-64-bit CPUs, where software
+  SHA-256 will greatly outperform a software SHA-512 implementation. These
+  devices increasingly support hardware SHA-256, much more than they support
+  hardware SHA-512.
+* In addition to better embedded performance, modern x86 CPUs across multiple
+  vendors will support (or will soon support) the Intel SHA Extensions,
+  providing a hardware accelerated implementation of SHA-256. The SHA-512
+  algorithm is NOT supported by the SHA Extensions.
+
+#### Security Considerations
+
+The SHA-2 family is known to be vulnerable to length extension attacks due
+to their use of the Merkle-Damgaard construction, which (after computing a
+finalizer block) outputs its full internal state such that it can be used as a
+"chaining variable".
+
+However, individual fields within zhash messages are not vulnerable to these
+attacks, due to the use of structured hashing. As zhash repeatedly hashes
+digests of individual messages in order to compute a final hash for a message
+object, repeat hashing prevents the extension of individual fields.
+
+It should still be noted that it's possible to extend the toplevel message
+with additional fields. No specific mitigation for this potential attack is
+presently provided. When using SHA-256 as a hash function with zhash, message
+verifiers should be aware that the toplevel message is potentially extensible.
+
+To completely avoid this class of attacks, a hash algorithm which is not
+vulnerable to length extension attacks is recommended.
+
+## Tagged Hashing
+
+All zser wire types are given a unique tag which acts as a domain separation
+mechanism. Scalars tags are lower-case, and non-scalar tags are upper case.
+
+Domain separation provides important security properties: naive Merkle Trees
+are vulnerable to second-preimage attacks in which an attacker convinces
+a victim to hash a string, only for that string to be structurally significant
+in the context of the Merkle Tree.
+
+To avoid these attacks, we encode the type of hashed data into the digest
+itself. This is accomplished by prepending the message to be hashed with a
+tag character which uniquely identifies the data type. For example, to
+compute a digest of the bytestring "Hello, world!" tagged with the character
+"x" (not actually a valid tag, just an example), we can use the following
+Python code:
+
+    import hashlib
+
+    tag, data = b"X", b"Hello, world!"
+    hash = hashlib.sha256()
+    hash.update(tag)
+    hash.update(data)
+    digest = hash.digest()
+
+By tagging digests with their type, we ensure that each type produces a unique
+digest, even if the serialized data is identical. This means that e.g. nested
+messages can be readily disambiguated by a nested message serialized as binary
+data, even though the wire format is otherwise identical (although the wire type
+will differ).
+
+## Data Types
+
+The following section describes the hashing schemes used for the various data
+types provided by zser.
+
+### uint64 ("u")
+
+To compute the digest of an unsigned integer, compute a tagged hash beginning
+with the "u" character followed by the 64-bit little endian serialization of
+a number.
+
+For example, the hexadecimal representation of the SHA-256 digest of the
+integer value "42" is:
+
+    afed9cfd89625380e2ea8eb8bdd293d2c8149283b1ae2f5bd5a55ee8d9a8f27a
+
+### Binary Data ("d")
+
+To compute the digest of binary data, compute a tagged hash beginning with the
+"d" character followed by the binary data to be hashed.
+
+For example, the hexadecimal representation of the SHA-256 digest of the
+ASCII string "Hello, world!" is:
+
+    6ff091b89c1bdf783df27de366e1616f5d2f89ca46588c79f8c152b1fa5d698f
+
+### Message Objects ("O")
+
+Message objects are one of the non-scalar types provided by zser, and are
+identified by a tag consisting of the upper case letter "O" (i.e. the letter,
+NOT the digit zero)
+
+To compute the hash of a message object, begin by sorting the IDs of each of
+the fields. This is unambiguous as field IDs MUST be unique.
+
+Begin computing the digest by hashing the "O", followed by the 64-bit little
+endian serialization of the field ID. Next, compute zhash for the value of
+the field, and include that in the message digest, i.e.:
+
+    "O" || Field #1 ID || Field #1 Hash || ... || Field #N ID || Field #N Hash
+
+For example, the hexadecimal representation of the SHA-256 digest of a message
+with a single field with an ID of "1" whose value is the ASCII string
+"Hello, world!" serialied as binary data is:
+
+    be0e50a6723c484b45aeaefa853337ecd161ab5fc613667b3dcd73f69d187ff8

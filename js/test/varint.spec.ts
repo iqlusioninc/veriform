@@ -1,7 +1,7 @@
 import { suite, test } from "mocha-typescript";
 import { expect } from "chai";
 import { Varint } from "../src/varint";
-import { VarintExample } from "./varint_examples";
+import { VarintExample } from "./support/varint_examples";
 
 @suite class VarintEncode {
   static examples: VarintExample[];

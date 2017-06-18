@@ -38,8 +38,10 @@
     "gulp-typescript": "^3.1.7",
     "mocha": "^3.2.0",
     "mocha-typescript": "^1.0.23",
+    "node-webcrypto-ossl": "^1.0.25",
     "tjson-js": "^0.1.2",
     "ts-node": "^3.0.2",
     "typescript": "^2.2.1"
-  }
+  },
+  "dependencies": {}
 }

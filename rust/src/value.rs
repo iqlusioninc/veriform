@@ -2,10 +2,10 @@
 
 
 #[cfg(not(feature = "std"))]
-pub use collections::btree_map::BTreeMap;
+pub use alloc::btree_map::BTreeMap;
 
 #[cfg(not(feature = "std"))]
-use collections::vec::Vec;
+use alloc::vec::Vec;
 #[cfg(feature = "std")]
 pub use std::collections::HashMap;
 

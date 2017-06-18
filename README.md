@@ -64,15 +64,15 @@ meaning signatures for one encoding will validate in the other.
 The table below compares zser to the other formats considered
 (and rejected) for the zcred use case:
 
-| Name          | Schemas         | Self-Describing  | Integers        | Authentication   | Standardization |
-|---------------|-----------------|------------------|-----------------|------------------|-----------------|
-| [zser]        | :green_heart:†  | :green_heart:    | Prefix-Varint   | Merkleized†      | None            |
-| [Protobuf]    | :green_heart:   | :broken_heart:   | [LEB128]        | Canonicalization | None            |
-| [Cap'n Proto] | :green_heart:   | :green_heart:    | Fixed-Width     | Canonicalization | None            |
-| [CBOR]        | :broken_heart:  | :green_heart:    | Fixed-Width     | Canonicalization | IETF            |
-| [ASN.1 DER]   | :broken_heart:  | :yellow_heart:   | Fixed-Width     | Canonicalization | ITU/IETF        |
-| [csexp]       | :broken_heart:  | :green_heart:    | Fixed-Width     | Canonicalization | IETF            |
-| [MessagePack] | :broken_heart:  | :green_heart:    | Fixed-Width     | None             | None            |
+| Name          | Schemas         | Self-Describing  | Integers        | Authentication     | Standardization |
+|---------------|-----------------|------------------|-----------------|--------------------|-----------------|
+| [zser]        | :green_heart:†  | :green_heart:    | Prefix-Varint   | Structured Hashing | None            |
+| [Protobuf]    | :green_heart:   | :broken_heart:   | [LEB128]        | Canonicalization   | None            |
+| [Cap'n Proto] | :green_heart:   | :green_heart:    | Fixed-Width     | Canonicalization   | None            |
+| [CBOR]        | :broken_heart:  | :green_heart:    | Fixed-Width     | Canonicalization   | IETF            |
+| [ASN.1 DER]   | :broken_heart:  | :yellow_heart:   | Fixed-Width     | Canonicalization   | ITU/IETF        |
+| [csexp]       | :broken_heart:  | :green_heart:    | Fixed-Width     | Canonicalization   | IETF            |
+| [MessagePack] | :broken_heart:  | :green_heart:    | Fixed-Width     | None               | None            |
 
 *†NOTE: Coming soon!*
 
@@ -93,12 +93,11 @@ useful. The table below covers the current implementation state:
 
 | Status             | Feature               | Notes             |
 |--------------------|-----------------------|-------------------|
-| :white_check_mark: | Prefix Varints        | Fully implemented |
 | :construction:     | Message Decoding      | In progress       |
-| :no_entry:         | Message Encoding      |                   |
-| :no_entry:         | Merkle Authentication |                   |
-| :no_entry:         | Schemas               |                   |
-| :no_entry:         | [TJSON] Transcoding   |                   |
+| :no_entry:         | Message Encoding      | Not started       |
+| :construction:     | Structured Hashing    | In progress       |
+| :no_entry:         | Schemas               | Not started       |
+| :construction:     | [TJSON] Transcoding   | In progress       |
 
 NOTE: zser is a multi-language monorepo: all implementations in all languages
 within the repo are intended to implement the spec in its current state and

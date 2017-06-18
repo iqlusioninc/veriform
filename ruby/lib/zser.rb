@@ -7,6 +7,7 @@ require "zser/decoder"
 require "zser/object"
 require "zser/parser"
 require "zser/varint"
+require "zser/zhash"
 
 # zcred serialization format
 module Zser
