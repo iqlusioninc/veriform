@@ -16,7 +16,7 @@ go)
     ;;
 js)
     cd js
-    yarn global add typescript typescript-formatter tslint mocha
+    yarn global add typescript@2.3.4 typescript-formatter@5.2.0 tslint@5.4.3 mocha@3.2.0
     yarn install
     yarn test
     tsfmt --verify $(find {src,test} -name "*.ts")

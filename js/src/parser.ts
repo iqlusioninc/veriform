@@ -40,7 +40,7 @@ export class Parser<T> {
 
     // Iterate over the stack of remaining messages, consuming them
     while (this.remaining[this.remaining.length - 1].length > 0) {
-      let [id, wiretype] = this.parseFieldPrefix();
+      const [id, wiretype] = this.parseFieldPrefix();
 
       switch (wiretype) {
         case 0:
@@ -71,7 +71,7 @@ export class Parser<T> {
 
   // Pop the top item in the remaining stack and parse a varint from it
   private parseVarint(): [number, Uint8Array] {
-    let buffer = this.remaining.pop();
+    const buffer = this.remaining.pop();
 
     if (buffer === undefined) {
       throw new Error("buffer underrun");
@@ -82,32 +82,32 @@ export class Parser<T> {
 
   // Parse the integer each field starts with, extracting field ID and wiretype
   private parseFieldPrefix(): [number, number] {
-    let [value, remaining] = this.parseVarint();
+    const [value, remaining] = this.parseVarint();
     this.remaining.push(remaining);
 
-    let fieldId = value >>> 3;
-    let wiretype = value & 0x7;
+    const fieldId = value >>> 3;
+    const wiretype = value & 0x7;
 
     return [fieldId, wiretype];
   }
 
   // Parse a Uint64 value stored as a prefix varint
   private parseUint64(id: number) {
-    let [value, remaining] = this.parseVarint();
+    const [value, remaining] = this.parseVarint();
     this.remaining.push(remaining);
     this.handler.uint64(id, value);
   }
 
   // Parse a blob of data that begins with a length prefix
   private parseLengthPrefixedData(): Uint8Array {
-    let buffer = this.remaining.pop();
+    const buffer = this.remaining.pop();
 
     if (buffer === undefined) {
       throw new Error("buffer underrun");
     }
 
-    let [length, remaining] = Varint.decode(buffer);
-    let data = remaining.subarray(0, length);
+    const [length, remaining] = Varint.decode(buffer);
+    const data = remaining.subarray(0, length);
     this.remaining.push(remaining.subarray(length));
 
     return data;
@@ -117,14 +117,14 @@ export class Parser<T> {
   private parseMessage(id: number) {
     this.handler.beginNested();
 
-    let nestedMessage = this.parseLengthPrefixedData();
+    const nestedMessage = this.parseLengthPrefixedData();
     this.parse(nestedMessage);
     this.handler.endNested(id);
   }
 
   // Parse a field containing binary data
   private parseBinary(id: number) {
-    let data = this.parseLengthPrefixedData();
+    const data = this.parseLengthPrefixedData();
     this.handler.binary(id, data);
   }
 }
