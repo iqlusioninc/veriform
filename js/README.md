@@ -1,9 +1,11 @@
-# zser.js [![Latest Version][npm-shield]][npm-link] [![Build Status][build-image]][build-link] [![MIT licensed][license-image]][license-link]
+# zser.js [![Latest Version][npm-shield]][npm-link] [![Build Status][build-image]][build-link] [![Known Vulnerabilities][snyk-image]][snyk-link] [![MIT licensed][license-image]][license-link]
 
 [npm-shield]: https://img.shields.io/npm/v/zser.svg
 [npm-link]: https://www.npmjs.com/package/zser
 [build-image]: https://secure.travis-ci.org/zcred/zser.svg?branch=master
 [build-link]: http://travis-ci.org/zcred/zser
+[snyk-image]: https://snyk.io/test/github/zcred/zser/2da5f2dce73ac0f059da4e2ea1d477e06cc190dd/badge.svg?targetFile=js%2Fpackage.json
+[snyk-link]: https://snyk.io/test/github/zcred/zser/2da5f2dce73ac0f059da4e2ea1d477e06cc190dd?targetFile=js%2Fpackage.json
 [license-image]: https://img.shields.io/badge/license-MIT-blue.svg
 [license-link]: https://github.com/zcred/zser/blob/master/LICENSE.txt
 
