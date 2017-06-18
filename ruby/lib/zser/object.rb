@@ -1,8 +1,27 @@
 # frozen_string_literal: true
 
+require "forwardable"
+
 module Zser
   # Key/value pairs ala JSON objects or Protobuf messages
   class Object
+    extend Enumerable
+    extend Forwardable
+
+    # Delegate certain Hash functions to the underlying hash
+    def_delegators :@fields, :each, :keys
+
+    # Create a Zser::Object from a TJSON::Object
+    def self.from_tjson(obj)
+      raise TypeError, "expected TJSON::Object, got #{obj.class}" unless obj.is_a?(TJSON::Object)
+
+      new.tap do |result|
+        obj.each do |key, value|
+          result[Integer(key, 10)] = value.is_a?(TJSON::Object) ? from_tjson(value) : value
+        end
+      end
+    end
+
     # Create a new Zser::Object
     #
     # @return [Zser::Object]
@@ -44,10 +63,24 @@ module Zser
       result = {}
 
       @fields.each do |k, v|
-        result[k.to_s] = v.is_a?(self.class) ? v.to_h : v
+        result[k] = v.is_a?(self.class) ? v.to_h : v
       end
 
       result
     end
+
+    # Compare two Zser::Objects by value for equality
+    def eql?(other)
+      return false unless other.is_a?(self.class)
+      return false unless keys.length == other.keys.length
+
+      keys.each do |key|
+        return false unless self[key].eql?(other[key])
+      end
+
+      true
+    end
+
+    alias == eql?
   end
 end

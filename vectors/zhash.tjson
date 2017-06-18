@@ -1,0 +1,72 @@
+{
+    "examples:A<O>": [
+        {
+            "name:s": "SHA-256: uint64: 0",
+            "algorithm:s": "SHA256",
+            "digest:d16": "449c716eedf377c13b0c51c26388015c5872b19f32d69707215280581391bb87",
+            "value:u": "0"
+        },
+        {
+            "name:s": "SHA-256: uint64: 42",
+            "algorithm:s": "SHA256",
+            "digest:d16": "afed9cfd89625380e2ea8eb8bdd293d2c8149283b1ae2f5bd5a55ee8d9a8f27a",
+            "value:u": "42"
+        },
+        {
+            "name:s": "SHA-256: uint64: 2**64-1",
+            "algorithm:s": "SHA256",
+            "digest:d16": "0892fe8cef0e4ab3c14087d9495d35601261007e22694a936d8478b8174de816",
+            "value:u": "18446744073709551615"
+        },
+        {
+            "name:s": "SHA-256: binary data: 'Hello, world!'",
+            "algorithm:s": "SHA256",
+            "digest:d16": "6ff091b89c1bdf783df27de366e1616f5d2f89ca46588c79f8c152b1fa5d698f",
+            "value:d16": "48656c6c6f2c20776f726c6421"
+        },
+        {
+            "name:s": "SHA-256: message with field ID #123 containing the uint64 value 42",
+            "algorithm:s": "SHA256",
+            "digest:d16": "934aa4b79f0ce4f9b707ee2e25f549fdc8acfbc3a57bca42f6416889d23fd826",
+            "value:O": {
+                "123:u": "42"
+            }
+        },
+        {
+            "name:s": "SHA-256: message with field ID #123 => 24 (uint64), #456 => 42 (uint64)",
+            "algorithm:s": "SHA256",
+            "digest:d16": "5498ea593421d0aa7423a227f4c57b224962cea76ef70f9469fbec37d78b06e9",
+            "value:O": {
+                "123:u": "24",
+                "456:u": "42"
+            }
+        },
+        {
+            "name:s": "SHA-256: message with field ID #456 => 42 (uint64), #123 => 24 (uint64)",
+            "algorithm:s": "SHA256",
+            "digest:d16": "5498ea593421d0aa7423a227f4c57b224962cea76ef70f9469fbec37d78b06e9",
+            "value:O": {
+                "456:u": "42",
+                "123:u": "24"
+            }
+        },
+        {
+            "name:s": "SHA-256: nested message with field ID #1 => field ID #2 => 42 (uint64)",
+            "algorithm:s": "SHA256",
+            "digest:d16": "722235d8c66da3e0d5c657069f3599df3bffed383d972df957be8090ff38188f",
+            "value:O": {
+                "1:O": {
+                    "2:u": "42"
+                }
+            }
+        },
+        {
+            "name:s": "SHA-256: message with field ID #1 => 'Hello, world!' (binary data)",
+            "algorithm:s": "SHA256",
+            "digest:d16": "be0e50a6723c484b45aeaefa853337ecd161ab5fc613667b3dcd73f69d187ff8",
+            "value:O": {
+                "1:d16": "48656c6c6f2c20776f726c6421"
+            }
+        }
+    ]
+}

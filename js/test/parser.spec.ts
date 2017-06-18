@@ -1,6 +1,6 @@
 import { suite, test } from "mocha-typescript";
 import { expect } from "chai";
-import { MessageExample } from "./message_examples";
+import { MessageExample } from "./support/message_examples";
 import { Decoder } from "../src/decoder";
 import { Parser } from "../src/parser";
 
