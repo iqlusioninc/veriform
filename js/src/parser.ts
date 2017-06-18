@@ -1,23 +1,27 @@
 // parser.ts: zser message parser
 
-import { Varint } from "./varint"
+import { Varint } from "./varint";
 
-// Default maximum length of a zser message: 1kB
-// This is conservative as zser's main intended use case is a credential format
+/**
+ * Default maximum length of a zser message: 1kB
+ * This is conservative as zser's main intended use case is a credential format
+ */
 const DEFAULT_MAX_LENGTH = 1024;
 
-// Default maximum depth (i.e. default max level of nested messages)
+/** Default maximum depth (i.e. default max level of nested messages) */
 const DEFAULT_MAX_DEPTH = 8;
 
-// Parser for zser messages which invokes callbacks on a given handler object
-// (i.e. this is a non-streaming "push parser" with multi-backend support
+/**
+ * Parser for zser messages which invokes callbacks on a given handler object
+ * (i.e. this is a non-streaming "push parser" with multi-backend support
+ */
 export class Parser<T> {
   private remaining: Uint8Array[];
 
   constructor(
-    private readonly handler: Handler<T>,
+    private readonly handler: IHandler<T>,
     private readonly maxLength = DEFAULT_MAX_LENGTH,
-    private readonly maxDepth = DEFAULT_MAX_DEPTH
+    private readonly maxDepth = DEFAULT_MAX_DEPTH,
   ) {
     this.remaining = [];
   }
@@ -57,7 +61,7 @@ export class Parser<T> {
   }
 
   // Finish parsing, returning the resulting object produced by the builder
-  finish(): T {
+  public finish(): T {
     if (this.remaining.length !== 0) {
       throw new Error("attempted to finish without consuming entire message!");
     }
@@ -66,7 +70,7 @@ export class Parser<T> {
   }
 
   // Pop the top item in the remaining stack and parse a varint from it
-  parseVarint(): [number, Uint8Array] {
+  private parseVarint(): [number, Uint8Array] {
     let buffer = this.remaining.pop();
 
     if (buffer === undefined) {
@@ -77,7 +81,7 @@ export class Parser<T> {
   }
 
   // Parse the integer each field starts with, extracting field ID and wiretype
-  parseFieldPrefix(): [number, number] {
+  private parseFieldPrefix(): [number, number] {
     let [value, remaining] = this.parseVarint();
     this.remaining.push(remaining);
 
@@ -88,14 +92,14 @@ export class Parser<T> {
   }
 
   // Parse a Uint64 value stored as a prefix varint
-  parseUint64(id: number) {
+  private parseUint64(id: number) {
     let [value, remaining] = this.parseVarint();
     this.remaining.push(remaining);
     this.handler.uint64(id, value);
   }
 
   // Parse a blob of data that begins with a length prefix
-  parseLengthPrefixedData(): Uint8Array {
+  private parseLengthPrefixedData(): Uint8Array {
     let buffer = this.remaining.pop();
 
     if (buffer === undefined) {
@@ -110,23 +114,23 @@ export class Parser<T> {
   }
 
   // Parse a nested message
-  parseMessage(id: number) {
+  private parseMessage(id: number) {
     this.handler.beginNested();
 
-    let nestedMessage = this.parseLengthPrefixedData()
+    let nestedMessage = this.parseLengthPrefixedData();
     this.parse(nestedMessage);
     this.handler.endNested(id);
   }
 
   // Parse a field containing binary data
-  parseBinary(id: number) {
+  private parseBinary(id: number) {
     let data = this.parseLengthPrefixedData();
     this.handler.binary(id, data);
   }
 }
 
 // Callback API used by the parser to process parsed data
-export interface Handler<T> {
+export interface IHandler<T> {
   // Called when a uint64 value with the given field ID is parsed
   // TODO: switch to TC39 BigInt when available: https://tc39.github.io/proposal-bigint/
   uint64(id: number, value: number): void;
