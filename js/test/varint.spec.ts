@@ -1,13 +1,13 @@
 import { suite, test } from "mocha-typescript";
 import { expect } from "chai";
 import { Varint } from "../src/varint";
-import { VarintExample } from "./support/varint_examples";
+import { VarintExample } from "./support/test_vectors";
 
 @suite class VarintEncode {
   static examples: VarintExample[];
 
-  static before() {
-    return VarintExample.loadAll(examples => this.examples = examples);
+  static async before() {
+    this.examples = await VarintExample.loadAll();
   }
 
   @test "encodes valid examples"() {
@@ -39,12 +39,12 @@ import { VarintExample } from "./support/varint_examples";
 @suite class VarintDecode {
   static examples: VarintExample[];
 
-  static before() {
-    return VarintExample.loadAll(examples => this.examples = examples);
+  static async before() {
+    this.examples = await VarintExample.loadAll();
   }
 
   @test "decodes valid examples"() {
-    for (let example of VarintEncode.examples) {
+    for (let example of VarintDecode.examples) {
       if (example.success) {
         expect(Varint.decode(example.encoded)[0]).to.eql(example.value);
       } else {

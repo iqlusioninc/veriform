@@ -1,14 +1,14 @@
 import { suite, test } from "mocha-typescript";
 import { expect } from "chai";
-import { MessageExample } from "./support/message_examples";
+import { MessageExample } from "./support/test_vectors";
 import { Decoder } from "../src/decoder";
 import { Parser } from "../src/parser";
 
 @suite class ParserSpec {
   static examples: MessageExample[];
 
-  static before() {
-    return MessageExample.loadAll(examples => this.examples = examples);
+  static async before() {
+    this.examples = await MessageExample.loadAll();
   }
 
   @test "vectors/messages.tjson (zser message test vectors)"() {
