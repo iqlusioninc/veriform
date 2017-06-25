@@ -31,14 +31,15 @@ impl MessageExample {
     pub fn load_from_file(path: &Path) -> Vec<Self> {
         let mut file = File::open(&path).expect("valid messages.tjson");
         let mut tjson_string = String::new();
-        file.read_to_string(&mut tjson_string)
-            .expect("messages.tjson read successfully");
+        file.read_to_string(&mut tjson_string).expect(
+            "messages.tjson read successfully",
+        );
 
         let tjson: serde_json::Value =
             serde_json::from_str(&tjson_string).expect("messages.tjson parses successfully");
-        let examples = &tjson["examples:A<O>"]
-            .as_array()
-            .expect("messages.tjson examples array");
+        let examples = &tjson["examples:A<O>"].as_array().expect(
+            "messages.tjson examples array",
+        );
 
         examples
             .into_iter()
@@ -51,10 +52,12 @@ impl MessageExample {
                         .to_owned(),
                     success: ex["success:b"].as_bool().expect("boolean success value"),
                     encoded: HEXLOWER
-                        .decode(ex["encoded:d16"]
-                            .as_str()
-                            .expect("encoded example")
-                            .as_bytes())
+                        .decode(
+                            ex["encoded:d16"]
+                                .as_str()
+                                .expect("encoded example")
+                                .as_bytes(),
+                        )
                         .expect("hex encoded"),
                     decoded: ex.get("decoded:O").cloned(),
                 }
@@ -82,14 +85,15 @@ impl VarintExample {
     pub fn load_from_file(path: &Path) -> Vec<Self> {
         let mut file = File::open(&path).expect("valid varint.tjson");
         let mut tjson_string = String::new();
-        file.read_to_string(&mut tjson_string)
-            .expect("varint.tjson read successfully");
+        file.read_to_string(&mut tjson_string).expect(
+            "varint.tjson read successfully",
+        );
 
         let tjson: serde_json::Value =
             serde_json::from_str(&tjson_string).expect("varint.tjson parses successfully");
-        let examples = &tjson["examples:A<O>"]
-            .as_array()
-            .expect("varint.tjson examples array");
+        let examples = &tjson["examples:A<O>"].as_array().expect(
+            "varint.tjson examples array",
+        );
 
         examples
             .into_iter()
@@ -97,11 +101,13 @@ impl VarintExample {
                 let success = ex["success:b"].as_bool().expect("success boolean");
 
                 let value = if success {
-                    Some(ex["value:u"]
-                        .as_str()
-                        .expect("value string")
-                        .parse()
-                        .expect("unsigned integer value"))
+                    Some(
+                        ex["value:u"]
+                            .as_str()
+                            .expect("value string")
+                            .parse()
+                            .expect("unsigned integer value"),
+                    )
                 } else {
                     None
                 };
@@ -109,10 +115,12 @@ impl VarintExample {
                 Self {
                     value: value,
                     encoded: HEXLOWER
-                        .decode(ex["encoded:d16"]
-                            .as_str()
-                            .expect("encoded example")
-                            .as_bytes())
+                        .decode(
+                            ex["encoded:d16"]
+                                .as_str()
+                                .expect("encoded example")
+                                .as_bytes(),
+                        )
                         .expect("hex encoded"),
                     success: success,
                 }
@@ -129,30 +137,29 @@ pub fn decode_value(value: &JsonValue) -> ZserValue {
         for (key, encoded_value) in input_map {
             let mut parts = key.split(':');
 
-            let id: u64 = parts
-                .next()
-                .expect("colon delimited tag")
-                .parse()
-                .expect("numeric id");
+            let id: u64 = parts.next().expect("colon delimited tag").parse().expect(
+                "numeric id",
+            );
 
             let tag = parts.next().expect("colon delimited tag");
 
             let decoded_value = match tag {
                 "O" => decode_value(encoded_value),
                 "d16" => {
-                    ZserValue::Data(HEXLOWER
-                                        .decode(encoded_value
-                                                    .as_str()
-                                                    .expect("string data")
-                                                    .as_bytes())
-                                        .expect("hex encoded"))
+                    ZserValue::Data(
+                        HEXLOWER
+                            .decode(encoded_value.as_str().expect("string data").as_bytes())
+                            .expect("hex encoded"),
+                    )
                 }
                 "u" => {
-                    ZserValue::UInt(encoded_value
-                                        .as_str()
-                                        .expect("string data")
-                                        .parse()
-                                        .expect("unsigned integer value"))
+                    ZserValue::UInt(
+                        encoded_value
+                            .as_str()
+                            .expect("string data")
+                            .parse()
+                            .expect("unsigned integer value"),
+                    )
                 }
                 _ => panic!("unknown tag: '{}'", tag),
             };
