@@ -85,9 +85,9 @@ impl From<ErrorKind> for Error {
     fn from(ek: ErrorKind) -> Self {
         Error {
             err: Box::new(ErrorImpl {
-                              kind: ek,
-                              byte_offset: None,
-                          }),
+                kind: ek,
+                byte_offset: None,
+            }),
         }
     }
 }

@@ -26,8 +26,10 @@ fn message_examples() {
             let expected = decode_value(&example.decoded.expect("decoded"));
             assert_eq!(value, expected);
         } else if parser.parse(&example.encoded).is_ok() {
-            panic!("{}: expected error but example parsed successfully",
-                   example.name);
+            panic!(
+                "{}: expected error but example parsed successfully",
+                example.name
+            );
         }
     }
 }
@@ -55,12 +57,16 @@ fn varint_decode() {
         let mut encoded_ref = &example.encoded[..];
 
         if example.success {
-            assert_eq!(varint::decode(&mut encoded_ref).unwrap(),
-                       example.value.expect("integer value"));
+            assert_eq!(
+                varint::decode(&mut encoded_ref).unwrap(),
+                example.value.expect("integer value")
+            );
             assert_eq!(encoded_ref, b"");
         } else if varint::decode(&mut encoded_ref).is_ok() {
-            panic!("expected error but example parsed successfully: {:?}",
-                   example.encoded);
+            panic!(
+                "expected error but example parsed successfully: {:?}",
+                example.encoded
+            );
         }
     }
 }
