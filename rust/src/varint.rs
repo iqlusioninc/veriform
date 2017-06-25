@@ -83,13 +83,11 @@ pub fn decode(input: &mut &[u8]) -> Result<u64> {
 
 #[cfg(feature = "bench")]
 mod bench {
-    #[cfg(feature = "bench")]
-    use leb128;
-    #[cfg(feature = "bench")]
+    extern crate leb128;
+
     use test::Bencher;
     use varint;
 
-    #[cfg(feature = "bench")]
     #[bench]
     fn bench_encode(b: &mut Bencher) {
         let mut output = [0u8; 9];
@@ -98,7 +96,6 @@ mod bench {
         b.iter(|| varint::encode(281474976741993, &mut output));
     }
 
-    #[cfg(feature = "bench")]
     #[bench]
     fn bench_decode(b: &mut Bencher) {
         let input = b"\xC04=\x00\x00\x00\x80";
@@ -110,7 +107,6 @@ mod bench {
         });
     }
 
-    #[cfg(feature = "bench")]
     #[bench]
     fn bench_leb128_encode(b: &mut Bencher) {
         let mut output = [0u8; 9];
@@ -122,7 +118,6 @@ mod bench {
         });
     }
 
-    #[cfg(feature = "bench")]
     #[bench]
     fn bench_leb128_decode(b: &mut Bencher) {
         let input = b"\xE9\xF4\x81\x80\x80\x80@";

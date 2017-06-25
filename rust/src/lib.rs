@@ -21,10 +21,6 @@ extern crate core;
 #[cfg(all(feature = "bench", test))]
 extern crate test;
 
-// For competitive benchmarking
-#[cfg(all(feature = "bench", test))]
-extern crate leb128;
-
 pub mod decoder;
 pub mod errors;
 pub mod parser;
