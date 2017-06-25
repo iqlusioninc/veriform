@@ -3,7 +3,7 @@
 #![crate_name = "zser"]
 #![crate_type = "lib"]
 
-#![deny(missing_docs)]
+#![deny(missing_docs, warnings)]
 
 #![cfg_attr(not(any(feature = "std", test)), no_std)]
 #![cfg_attr(not(feature = "std"), feature(alloc))]

@@ -1,9 +1,9 @@
 //! Variable-width 64-bit little endian integers
 
-use byteorder::{ByteOrder, LittleEndian};
 
 #[cfg(not(feature = "std"))]
 use alloc::string::ToString;
+use byteorder::{ByteOrder, LittleEndian};
 use errors::*;
 
 /// Encode a 64-bit unsigned integer in zsuint64 form
@@ -38,36 +38,43 @@ pub fn encode(value: u64, out: &mut [u8]) -> usize {
 pub fn decode(input: &mut &[u8]) -> Result<u64> {
     let bytes = *input;
 
-    let prefix =
-        *bytes
-             .first()
-             .ok_or_else(|| ErrorKind::TruncatedMessage("missing varint prefix".to_string()))?;
+    let prefix = *bytes.first().ok_or_else(|| {
+        ErrorKind::TruncatedMessage("missing varint prefix".to_string())
+    })?;
 
     if prefix == 0 {
         if bytes.len() >= 9 {
             let result = LittleEndian::read_u64(&bytes[1..9]);
 
             if result < (1 << 56) {
-                return Err(ErrorKind::CorruptedMessage("malformed varint".to_string()).into());
+                return Err(
+                    ErrorKind::CorruptedMessage("malformed varint".to_string()).into(),
+                );
             }
 
             *input = &bytes[9..];
             return Ok(result);
         } else {
-            return Err(ErrorKind::TruncatedMessage("truncated varint".to_string()).into());
+            return Err(
+                ErrorKind::TruncatedMessage("truncated varint".to_string()).into(),
+            );
         }
     }
 
     let length = prefix.trailing_zeros() as usize + 1;
 
     if bytes.len() < length {
-        return Err(ErrorKind::TruncatedMessage("truncated varint".to_string()).into());
+        return Err(
+            ErrorKind::TruncatedMessage("truncated varint".to_string()).into(),
+        );
     }
 
     let result = LittleEndian::read_uint(bytes, length) >> length;
 
     if length > 1 && result < (1 << (7 * (length - 1))) {
-        return Err(ErrorKind::CorruptedMessage("malformed varint".to_string()).into());
+        return Err(
+            ErrorKind::CorruptedMessage("malformed varint".to_string()).into(),
+        );
     }
 
     *input = &bytes[length..];
@@ -98,9 +105,9 @@ mod bench {
 
         // 2**48 + 31337
         b.iter(|| {
-                   let mut readable = &input[..];
-                   varint::decode(&mut readable).unwrap()
-               });
+            let mut readable = &input[..];
+            varint::decode(&mut readable).unwrap()
+        });
     }
 
     #[cfg(feature = "bench")]
@@ -110,9 +117,9 @@ mod bench {
 
         // 2**48 + 31337
         b.iter(|| {
-                   let mut writable = &mut output[..];
-                   leb128::write::unsigned(&mut writable, 281474976741993).unwrap()
-               });
+            let mut writable = &mut output[..];
+            leb128::write::unsigned(&mut writable, 281474976741993).unwrap()
+        });
     }
 
     #[cfg(feature = "bench")]
@@ -122,8 +129,8 @@ mod bench {
 
         // 2**48 + 31337
         b.iter(|| {
-                   let mut readable = &input[..];
-                   leb128::read::unsigned(&mut readable).unwrap()
-               });
+            let mut readable = &input[..];
+            leb128::read::unsigned(&mut readable).unwrap()
+        });
     }
 }
