@@ -1,14 +1,14 @@
 import { suite, test } from "mocha-typescript";
 import { expect } from "chai";
-import { ZhashExample } from "./support/zhash_examples";
+import { ZhashExample } from "./support/test_vectors";
 import { Zhash } from "../src/zhash";
 import WebCrypto = require("node-webcrypto-ossl");
 
 @suite class ZhashSpec {
   static examples: ZhashExample[];
 
-  static before() {
-    return ZhashExample.loadAll(examples => this.examples = examples);
+  static async before() {
+    this.examples = await ZhashExample.loadAll();
   }
 
   @test async "encodes valid examples"() {
