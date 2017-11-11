@@ -1,18 +1,18 @@
-//! zser message parser
+//! veriform message parser
 
 #[cfg(not(feature = "std"))]
 use alloc::Vec;
 use errors::*;
 use varint;
 
-/// Default maximum length of a zser message: 1kB
-/// This is conservative as zser's main intended use case is a credential format
+/// Default maximum length of a veriform message: 1kB
+/// This is conservative as veriform's main intended use case is a credential format
 pub const DEFAULT_MAX_LENGTH: usize = 1024;
 
 /// Default maximum depth (i.e. default max level of nested messages)
 pub const DEFAULT_MAX_DEPTH: usize = 8;
 
-/// Parser for zser messages
+/// Parser for veriform messages
 pub struct Parser<'m, H: Handler> {
     /// Maximum length message we'll accept
     max_length: usize,
@@ -38,7 +38,7 @@ impl<'m, H: Handler> Parser<'m, H> {
         }
     }
 
-    /// Parse the given zser message, invoking callbacks as necessary
+    /// Parse the given veriform message, invoking callbacks as necessary
     pub fn parse(&mut self, message: &'m [u8]) -> Result<()> {
         if message.len() > self.max_length {
             return Err(ErrorKind::OversizedMessage(self.max_length).into());

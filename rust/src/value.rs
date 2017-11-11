@@ -1,4 +1,4 @@
-//! The Value enum: a loosely typed way of representing zser messages.
+//! The Value enum: a loosely typed way of representing veriform messages.
 
 
 #[cfg(not(feature = "std"))]
@@ -18,7 +18,7 @@ pub type Map = HashMap<u64, Value>;
 #[cfg(not(feature = "std"))]
 pub type Map = BTreeMap<u64, Value>;
 
-/// Represents any value that can occur in a zser message
+/// Represents any value that can occur in a veriform message
 #[derive(Debug, PartialEq)]
 pub enum Value {
     /// Represents 8-bit clean binary data.
@@ -27,6 +27,6 @@ pub enum Value {
     /// Represents an unsigned 64-bit integer.
     UInt(u64),
 
-    /// Represents a (potentially nested) zser message.
+    /// Represents a (potentially nested) veriform message.
     Message(Map),
 }

@@ -4,14 +4,14 @@
 test_parser
 -----------
 
-Tests for the zser `parser` module: parses binary-encoded zser messages
+Tests for the veriform `parser` module: parses binary-encoded Veriform messages
 """
 
 import unittest
 
-from zser.decoder import Decoder
-from zser.exceptions import ParseError
-from zser.parser import Parser
+from veriform.decoder import Decoder
+from veriform.exceptions import ParseError
+from veriform.parser import Parser
 
 from .support import message_examples
 

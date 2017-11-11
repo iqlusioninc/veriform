@@ -1,11 +1,11 @@
 # encoding: binary
 # frozen_string_literal: true
 
-RSpec.describe Zser::Zhash do
+RSpec.describe Veriform::Zhash do
   context "zhash.tjson examples" do
     ZhashExample.load_file.each do |ex|
       it ex.name do
-        value = ex.value.is_a?(TJSON::Object) ? Zser::Object.from_tjson(ex.value) : ex.value
+        value = ex.value.is_a?(TJSON::Object) ? Veriform::Object.from_tjson(ex.value) : ex.value
         expect(described_class.hexdigest(value)).to eql ex.digest.unpack("H*").first
       end
     end

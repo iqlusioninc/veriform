@@ -1,11 +1,11 @@
 %%%
 
-    Title = "Zcred Serialization Format (a.k.a. zser)"
-    abbrev = "Zser Data Interchange Format"
+    Title = "The Veriform Data Interchange Format"
+    abbrev = "Veriform"
     category = "info"
-    docName = "draft-zser-spec"
+    docName = "draft-veriform-spec"
 
-    date = 2017-06-11
+    date = 2017-11-11
 
     [[author]]
     initials = "T. "
@@ -16,30 +16,26 @@
 
 .# Abstract
 
-The Zcred Serialization Format (zser) is a binary encoding for structured data
+The Veriform Data Interchange Format is a binary encoding for structured data
 designed to support operating with or without schemas, supporting a compact
-on-wire representation, and authenticable using a structured content hashing
-algorithm reminiscent of (and providing similar properties to) Merkle trees.
-
-The format is inspired by Google's Protocol Buffers, but where that format is
-aimed at long-term storage of data and schema evolution, zser is aimed at
-shorter-term documents (i.e. credentials) with greater emphasis on simplicity,
-performance, and security.
+on-wire representation, and cryptographically verifiable using a structured
+content hashing algorithm reminiscent of (and providing similar properties to)
+Merkle trees.
 
 {mainmatter}
 
 # Introduction
 
-The Zcred Serialization Format (zser) was designed in service of serializing
-a credential format, and as such makes many decisions aimed at maximizing
-the format's security properties, as opposed to being a general purpose
-serialization format.
+Veriform was originally designed to provide the serializion format for a
+credential scheme (zcreds)  and as such makes many decisions aimed at
+maximizing the format's security properties, as opposed to being a general
+purpose serialization format.
 
 One such decision is reducing the types which can be expressed by the format.
-In zser, some common types such as floats and signed integers are omitted.
+In Veriform, some common types such as floats and signed integers are omitted.
 This keeps the format simple and parsimonious for security use cases.
 
-zser supports five scalar types:
+Veriform supports five scalar types:
 
 * Unicode Strings (always encoded as UTF-8)
 * Binary Data
@@ -61,16 +57,16 @@ interpreted as described in [@!RFC2119].
 # Encoding
 
 This section describes the on-the-wire representations of the various types
-provided by zser.
+provided by Veriform.
 
-## Little Endian Prefix Varints (zsint)
+## Little Endian Prefixed Variable-Width Integers
 
-Integers in zser are variable-width, allowing a highly compact representation
-of small integer values. However, unlike Protocol Buffers, zser does not use
+Integers in Veriform are variable-width, allowing a highly compact representation
+of small integer values. However, unlike Protocol Buffers, Veriform does not use
 Little Endian Base 128 (LEB128) encoding, but instead places all continuation
 bits at the beginning of the serialized value, ala UTF-8 [@!RFC3629]. Though
 this format has been independently reinvented several times, this document
-will describe it as "zsint" to distinguish this particular construction.
+will describe it as "vint64" to distinguish this particular construction.
 
 Little endian byte order has been controversial when used in IETF standards
 (see e.g. [@!IEN137]), but is the predominant standard used by the
@@ -78,13 +74,11 @@ overwhelming majority of computing devices in the world. For that reason
 we choose to embrace the encoding, rather than "network byte order"
 (i.e. big endian).
 
-### 64-bit Unsigned zsints (zsuint64)
+### 64-bit Unsigned Variable-Width Integers (vint64)
 
-`zsuint64` is presently the only encoding of zsints supported.
-
-Integers serialized as `zsuint64` are (up to) 64-bit unsigned little endian
-integers, which supports the full `[0, (2**64)−1]` unsigned 64-bit integer
-range. They have serialized lengths from 1-byte to 9-bytes depending on
+Integers serialized as unsigned `vint64` are (up to) 64-bit unsigned little
+endian integers, which supports the full `[0, (2**64)−1]` unsigned 64-bit
+integer range. They have serialized lengths from 1-byte to 9-bytes depending on
 what value they're representing. The number of remaining bytes is stored
 in the leading byte, indicated by the number of trailing zeroes in that byte.
 
@@ -103,30 +97,30 @@ which follows:
 | `10000000` | 56 bits   | 8 bytes     |
 | `00000000` | 64 bits   | 9 bytes     |
 
-All arithmetic needed to serialize and deserialize `zsuint64` can be performed
+All arithmetic needed to serialize and deserialize `vint64` can be performed
 using only 64-bit integers. The case of the prefix byte being all-zero is
 a special case, and any remaining arithmetic is performed on the remaining
 bytes.
 
 ## Message Format
 
-The zser message format builds upon zsuint64 integers, using them to encode
-key/value pairs (called message entries) where the key is a zsuint64 and the
+The Veriform message format builds upon vint64 integers, using them to encode
+key/value pairs (called message entries) where the key is a vint64 and the
 value is one of a set of different wire types with different encoding
 properties.
 
-Every entry in a message begins with a zsuint64 which encodes both an integer
+Every entry in a message begins with a vint64 which encodes both an integer
 field identifier (the "key" of the key/value pair) along with a wire type
 identifier. The lower 3 bits of this initial varint contain the wire type
 value, so the entire integer is encoded as follows:
 
     (field_number << 3) | wire_type
 
-The following wire types are supported by zser:
+The following wire types are supported by Veriform:
 
 | ID | Type                    | Encoding        |
 |----|-------------------------|-----------------|
-| 0  | Unsigned 64-bit Integer | zsuint64        |
+| 0  | Unsigned 64-bit Integer | vint64          |
 | 1  | Reserved                | N/A             |
 | 2  | Nested Message          | Length Prefixed |
 | 3  | Binary Data             | Length Prefixed |
@@ -135,7 +129,7 @@ The following wire types are supported by zser:
 | 6  | Reserved                | N/A             |
 | 7  | Reserved                | N/A             |
 
-The "Length Prefixed" encoding consists of a single zsuint64 which indicates
+The "Length Prefixed" encoding consists of a single vint64 which indicates
 the number of bytes in the subsequent value, followed by the value.
 
 Field IDs MUST be unique. Any message containing repeated field IDs MUST be
@@ -144,7 +138,7 @@ rejected by compliant parsers.
 # Structured Content Hashing (zhash)
 
 The zhash algorithm computes a unique content hash for every field and nested
-message present in a zser message. This approach to hashing can either happen
+message present in a Veriform message. This approach to hashing can either happen
 in tandem with deserialization, or by walking the object graph produced by
 parsing a message. Only the content of messages is included in the hash
 calculation, and not the serialized structure, allowing compatible hashes to
@@ -162,14 +156,14 @@ Merkle tree, structured hashing facilitates the ability to compute so-called
 necessary message digests of the surrounding structure to show that a
 sub-message is rooted in a given parent hash.
 
-Both zser and the zhash algorithm have been designed specifically to support
+Both Veriform and the zhash algorithm have been designed specifically to support
 authentication of content independent from the schema. This is the main
 impetus for the format to be self-describing, and allows message generators
 and verifiers with differing views of the schema to compute the same content
 hash. This is necessary to support schema evolution while ensuring messages
 containing unknown fields can still be cryptographically authenticated.
 
-While zser's primary intended use case is for highly structured credentials,
+While Veriform's primary intended use case is for highly structured credentials,
 it is assumed this structured hashing approach is applicable to other areas
 that involve hashing of structured data, including so-called "blockchain" and
 "transparency log" systems, particularly because these systems benefit highly
@@ -219,7 +213,7 @@ SHA-256 was selected as the primary hash function for use with zhash for the
 following reasons:
 
 * The SHA-2 algorithm family is ubiquitous with fast software and hardware
-  implementations available for all platforms where zser is applicable.
+  implementations available for all platforms where Veriform is applicable.
 * The SHA-2 algorithm family has not been subject to a practical or
   theoretical attack, despite the initial results which lead to the SHA-3
   competition (which were inapplicable to SHA-2).
@@ -258,7 +252,7 @@ vulnerable to length extension attacks is recommended.
 
 ## Tagged Hashing
 
-All zser wire types are given a unique tag which acts as a domain separation
+All Veriform wire types are given a unique tag which acts as a domain separation
 mechanism. Scalars tags are lower-case, and non-scalar tags are upper case.
 
 Domain separation provides important security properties: naive Merkle Trees
@@ -290,7 +284,7 @@ will differ).
 ## Data Types
 
 The following section describes the hashing schemes used for the various data
-types provided by zser.
+types provided by Veriform.
 
 ### uint64 ("u")
 
@@ -315,7 +309,7 @@ ASCII string "Hello, world!" is:
 
 ### Message Objects ("O")
 
-Message objects are one of the non-scalar types provided by zser, and are
+Message objects are one of the non-scalar types provided by Veriform, and are
 identified by a tag consisting of the upper case letter "O" (i.e. the letter,
 NOT the digit zero)
 

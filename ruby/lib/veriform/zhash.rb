@@ -2,12 +2,12 @@
 
 require "digest"
 
-module Zser
-  # Computes a "Merkleized" tree hash of a Zser message
+module Veriform
+  # Computes astructured hash of a Veriform message
   class Zhash
     # One character "tag" values used to separate zhash domains
     module Tags
-      # "Objects" represent zser messages
+      # "Objects" represent Veriform messages
       OBJECT = "O"
 
       # 8-bit clean binary data
@@ -30,7 +30,7 @@ module Zser
     end
 
     # Calculate an object's zhash digest, hex encoding the result.
-    # Takes the same parameters as `Zser::Zhash.digest`
+    # Takes the same parameters as `Veriform::Zhash.digest`
     #
     # @return [String] hex encoded string containing the resulting digest
     def self.hexdigest(object, **args)
@@ -41,20 +41,20 @@ module Zser
     #
     # @param algorithm [Class] a class which behaves like a `Digest` (i.e. implements `reset`, `update`, `digest`)
     #
-    # @return [Zser::Zhash]
+    # @return [Veriform::Zhash]
     def initialize(algorithm: DEFAULT_HASH_ALGORITHM)
       @algorithm = algorithm
       @hasher = algorithm.new
     end
 
-    # Compute the zhash of any object allowed in a zser message
+    # Compute the zhash of any object allowed in a Veriform message
     #
-    # @param object [Zser::Object, String, Integer] object to compute a Zhash from
+    # @param object [Veriform::Object, String, Integer] object to compute a Zhash from
     #
     # @return [String] bytestring containing the resulting digest
     def digest(object)
       case object
-      when Zser::Object, Hash then object_digest(object)
+      when Veriform::Object, Hash then object_digest(object)
       when String then binary_digest(object)
       when Integer then uint64_digest(object)
       else raise TypeError, "can't compute zhash of #{object.class}"
@@ -62,7 +62,7 @@ module Zser
     end
 
     # Calculate an object's zhash digest, hex encoding the result.
-    # Takes the same parameters as `Zser::Zhash#digest`
+    # Takes the same parameters as `Veriform::Zhash#digest`
     #
     # @return [String] hex encoded string containing the resulting digest
     def hexdigest(object)
@@ -71,7 +71,7 @@ module Zser
 
     private
 
-    # Compute digest of a `Zser::Object`
+    # Compute digest of a `Veriform::Object`
     def object_digest(message)
       hasher = @algorithm.new
       hasher.update Tags::OBJECT

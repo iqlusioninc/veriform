@@ -2,7 +2,7 @@
 
 // One character "tag" values used to separate zhash domains
 namespace Tags {
-  // "Objects" represent zser messages
+  // "Objects" represent veriform messages
   export const OBJECT = "O";
 
   // 8-bit clean binary data
@@ -34,7 +34,7 @@ export class Zhash {
     private readonly crypto = window.crypto,
   ) {
     switch (algorithm) {
-      // Map from the zser algorithm identifier strings to WebCrypto's
+      // Map from the Veriform algorithm identifier strings to WebCrypto's
       case "SHA256":
         this.algorithm = "SHA-256";
         break;

@@ -1,14 +1,14 @@
-"""decoder.py: Decode zser's self-describing form"""
+"""decoder.py: Decode Veriform's self-describing structure"""
 
 from .exceptions import StateError
 from .object import Object
 
 
 class Decoder(object):
-    """Decoder for zser's self-describing form"""
+    """Decoder for Veriform's self-describing structure"""
 
     def __init__(self):
-        """Create a new decoder object which will construct a Zser::Object tree"""
+        """Create a new decoder object which will construct a Veriform object tree"""
         self.stack = [Object()]
 
     def uint64(self, field_id, value):

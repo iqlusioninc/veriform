@@ -1,4 +1,4 @@
-package zser
+package veriform
 
 // Numerical identifier for an individual field within a message
 type FieldID uint64

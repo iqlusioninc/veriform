@@ -1,4 +1,4 @@
-//! Decodes a zser message into `Zser::Value`
+//! Decodes a Veriform message into `Veriform::Value`
 
 #[cfg(not(feature = "std"))]
 use alloc::vec::Vec;
@@ -6,7 +6,7 @@ use alloc::vec::Vec;
 use parser::Handler;
 use value::{Map, Value};
 
-/// Decode messages to `Zser::Value`
+/// Decode messages to `Veriform::Value`
 // TODO: switch to serde
 #[derive(Debug, Default)]
 pub struct Decoder {
