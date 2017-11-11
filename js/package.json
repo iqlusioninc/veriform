@@ -1,15 +1,15 @@
 {
-  "name": "zser",
-  "version": "0.0.1",
-  "description": "zcred serialization format",
-  "homepage": "https://github.com/zcred/zser#readme",
-  "main": "release/zser.js",
-  "types": "src/zser.ts",
+  "name": "veriform",
+  "version": "0.0.0",
+  "description": "Protobuf-like security-oriented serialization format with cryptographic authentication/signature support",
+  "homepage": "https://github.com/zcred/veriform#readme",
+  "main": "release/veriform.js",
+  "types": "src/veriform.ts",
   "author": "Tony Arcieri",
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/zcred/zser.git"
+    "url": "git+https://github.com/zcred/veriform.git"
   },
   "keywords": [
     "authentication",
@@ -19,7 +19,7 @@
     "token"
   ],
   "bugs": {
-    "url": "https://github.com/zcred/zser/issues"
+    "url": "https://github.com/zcred/veriform/issues"
   },
   "directories": {
     "test": "test"

@@ -1,6 +1,6 @@
 /**
  * A Uint64 represented as two 32-bit uints, with the bitwise ops we need
- * to implement zsints. This allows us to do bitwise arithmetic that is
+ * to implement vint64s. This allows us to do bitwise arithmetic that is
  * outside the MAX_SAFE_INTEGER range.
  *
  * TODO: remove when we can use TC39 BigInt: https://tc39.github.io/proposal-bigint/

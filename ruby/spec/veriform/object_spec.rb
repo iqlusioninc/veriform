@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-RSpec.describe Zser::Object do
+RSpec.describe Veriform::Object do
   subject(:object) { described_class.new }
 
   describe "#[]=" do
@@ -16,9 +16,9 @@ RSpec.describe Zser::Object do
       expect { object[-1] = 42 }.to raise_error RangeError
     end
 
-    it "raises Zser::DuplicateFieldError if key is set twice" do
+    it "raises Veriform::DuplicateFieldError if key is set twice" do
       object[1] = 42
-      expect { object[1] = 42 }.to raise_error Zser::DuplicateFieldError
+      expect { object[1] = 42 }.to raise_error Veriform::DuplicateFieldError
     end
   end
 end

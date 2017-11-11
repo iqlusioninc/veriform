@@ -1,11 +1,11 @@
 # frozen_string_literal: true
 
-module Zser
-  # Build Zser::Objects from zser's self-describing form
+module Veriform
+  # Build Veriform::Objects from Veriform's self-describing messages
   class Decoder
-    # Create a new decoder object which will construct a Zser::Object tree
+    # Create a new decoder object which will construct a Veriform::Object tree
     def initialize
-      @stack = [Zser::Object.new]
+      @stack = [Veriform::Object.new]
     end
 
     # Add a uint64 to the current object
@@ -21,9 +21,9 @@ module Zser
       @stack.last[id] = value
     end
 
-    # Push down the internal stack, constructing a new Zser::Object
+    # Push down the internal stack, constructing a new Veriform::Object
     def begin_nested
-      @stack << Zser::Object.new
+      @stack << Veriform::Object.new
     end
 
     # Complete the pushdown, adding the newly constructed object to the next one in the stack
@@ -33,7 +33,7 @@ module Zser
       @stack.last[id] = value
     end
 
-    # Finish decoding, returning the parent Zser::Object
+    # Finish decoding, returning the parent Veriform::Object
     def finish
       result = @stack.pop
       raise StateError, "objects remaining in stack" unless @stack.empty?

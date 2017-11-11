@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-RSpec.describe Zser::Decoder do
+RSpec.describe Veriform::Decoder do
   subject(:decoder) { described_class.new }
 
   describe "#uint64" do

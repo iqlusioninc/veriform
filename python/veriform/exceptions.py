@@ -1,4 +1,4 @@
-"""exceptions.py: Custom exceptions used by zser"""
+"""exceptions.py: Custom exceptions used by Veriform"""
 
 
 class ParseError(Exception):

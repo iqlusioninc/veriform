@@ -1,10 +1,10 @@
 # encoding: binary
 # frozen_string_literal: true
 
-module Zser
-  # zsint: Little Endian 64-bit Unsigned Prefix Varints
+module Veriform
+  # Little Endian 64-bit Unsigned Prefix Varints
   module Varint
-    # Maximum value we can encode as a zsuint64
+    # Maximum value we can encode as a vint64
     MAX = (2**64) - 1
 
     # :nodoc: Lookup table for the number of trailing zeroes in a byte
@@ -25,14 +25,14 @@ module Zser
                  5, 0, 1, 0, 2, 0, 1, 0, 3, 0, 1, 0, 2, 0, 1, 0,
                  4, 0, 1, 0, 2, 0, 1, 0, 3, 0, 1, 0, 2, 0, 1, 0].freeze
 
-    # Encode the given integer value as a zsuint64
+    # Encode the given unsignedinteger value as a vint64
     #
-    # @param value [Integer] unsigned integer value to encode as a zsuint64
+    # @param value [Integer] unsigned integer value to encode as a vint64
     #
     # @raise [TypeError] non-integer value given
     # @raise [ArgumentError] value outside the unsigned 64-bit integer range
     #
-    # @return [String] serialized zsuint64 value
+    # @return [String] serialized vint64 value
     def self.encode(value)
       raise TypeError, "value must be an Integer" unless value.is_a?(Integer)
       raise ArgumentError, "value must be zero or greater" if value < 0
@@ -54,9 +54,9 @@ module Zser
       [result].pack("Q<")[0, length].force_encoding(Encoding::BINARY)
     end
 
-    # Decode a zsuint64-serialized value into an integer
+    # Decode a vint64-serialized value into an unsignedinteger
     #
-    # @param input [String] serialized zsuint64 to decode
+    # @param input [String] serialized vint64 to decode
     #
     # @raise [TypeError] non-String input given
     # @raise [ArgumentError] empty input given

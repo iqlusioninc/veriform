@@ -1,14 +1,14 @@
 extern crate data_encoding;
 extern crate serde_json;
-extern crate zser;
+extern crate veriform;
 
 use self::data_encoding::HEXLOWER;
 pub use self::serde_json::Value as JsonValue;
 use std::fs::File;
 use std::io::Read;
 use std::path::Path;
-use zser::value::Map as ZserMap;
-use zser::value::Value as ZserValue;
+use veriform::value::Map as VeriformMap;
+use veriform::value::Value as VeriformValue;
 
 /// Message examples (with messages.tjson structure)
 // TODO: switch to the tjson crate (based on serde)
@@ -129,10 +129,10 @@ impl VarintExample {
     }
 }
 
-/// Convert a decoded value from (T)JSON to the corresponding `ZserValue`
-pub fn decode_value(value: &JsonValue) -> ZserValue {
+/// Convert a decoded value from (T)JSON to the corresponding `VeriformValue`
+pub fn decode_value(value: &JsonValue) -> VeriformValue {
     if let JsonValue::Object(ref input_map) = *value {
-        let mut output_map = ZserMap::new();
+        let mut output_map = VeriformMap::new();
 
         for (key, encoded_value) in input_map {
             let mut parts = key.split(':');
@@ -146,14 +146,14 @@ pub fn decode_value(value: &JsonValue) -> ZserValue {
             let decoded_value = match tag {
                 "O" => decode_value(encoded_value),
                 "d16" => {
-                    ZserValue::Data(
+                    VeriformValue::Data(
                         HEXLOWER
                             .decode(encoded_value.as_str().expect("string data").as_bytes())
                             .expect("hex encoded"),
                     )
                 }
                 "u" => {
-                    ZserValue::UInt(
+                    VeriformValue::UInt(
                         encoded_value
                             .as_str()
                             .expect("string data")
@@ -167,7 +167,7 @@ pub fn decode_value(value: &JsonValue) -> ZserValue {
             output_map.insert(id, decoded_value);
         }
 
-        ZserValue::Message(output_map)
+        VeriformValue::Message(output_map)
     } else {
         panic!("can't convert value: {:?}", value);
     }

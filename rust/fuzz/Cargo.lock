@@ -1,9 +1,9 @@
 [root]
-name = "zser-fuzz"
-version = "0.0.1"
+name = "veriform-fuzz"
+version = "0.0.0"
 dependencies = [
  "libfuzzer-sys 0.1.0 (git+https://github.com/rust-fuzz/libfuzzer-sys.git)",
- "zser 0.0.1",
+ "veriform 0.0.0",
 ]
 
 [[package]]
@@ -31,8 +31,8 @@ dependencies = [
 ]
 
 [[package]]
-name = "zser"
-version = "0.0.1"
+name = "veriform"
+version = "0.0.0"
 dependencies = [
  "byteorder 0.5.3 (registry+https://github.com/rust-lang/crates.io-index)",
 ]

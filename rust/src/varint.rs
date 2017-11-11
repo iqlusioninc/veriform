@@ -1,12 +1,11 @@
 //! Variable-width 64-bit little endian integers
 
-
 #[cfg(not(feature = "std"))]
 use alloc::string::ToString;
 use byteorder::{ByteOrder, LittleEndian};
 use errors::*;
 
-/// Encode a 64-bit unsigned integer in zsuint64 form
+/// Encode a 64-bit unsigned integer in vint64 format
 ///
 /// Panics if the `out` slice is not large enough to store the result.
 ///
@@ -34,7 +33,7 @@ pub fn encode(value: u64, out: &mut [u8]) -> usize {
     length
 }
 
-/// Decode a zsuint64-encoded unsigned 64-bit integer
+/// Decode a vint64-encoded unsigned 64-bit integer
 pub fn decode(input: &mut &[u8]) -> Result<u64> {
     let bytes = *input;
 

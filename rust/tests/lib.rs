@@ -1,8 +1,8 @@
-extern crate zser;
+extern crate veriform;
 
-use zser::decoder::Decoder;
-use zser::parser::Parser;
-use zser::varint;
+use veriform::decoder::Decoder;
+use veriform::parser::Parser;
+use veriform::varint;
 
 mod test_vectors;
 
