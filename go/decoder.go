@@ -1,4 +1,4 @@
-package zser
+package veriform
 
 type decoder struct {
 	stack []*Object

@@ -1,8 +1,8 @@
 #![no_main]
 #[macro_use] extern crate libfuzzer_sys;
-extern crate zser;
+extern crate veriform;
 
-use zser::varint;
+use veriform::varint;
 
 fuzz_target!(|input: &[u8]| {
     let mut input_ref = &input[..];

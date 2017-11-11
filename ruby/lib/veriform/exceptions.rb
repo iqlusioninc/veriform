@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
-module Zser
-  # Base class of all Zser errors
+module Veriform
+  # Base class of all Veriform errors
   Error = Class.new(StandardError)
 
   # Generic parse error

@@ -1,20 +1,20 @@
-// parser.go: zser message parser
+// parser.go: veriform message parser
 
-package zser
+package veriform
 
 import (
 	"bytes"
 	"fmt"
 )
 
-// Default maximum length of a zser message: 1kB
-// This is conservative as zser's main intended use case is a credential format
+// Default maximum length of a veriform message: 1kB
+// This is conservative as veriform's main intended use case is a credential format
 const DEFAULT_MAX_LENGTH = 1024
 
 // Default maximum depth (i.e. default max level of nested messages)
 const DEFAULT_MAX_DEPTH = 8
 
-// Parser for zser messages
+// Parser for veriform messages
 type parser struct {
 	// Maximum length message we'll accept
 	maxLength uint
@@ -39,7 +39,7 @@ func NewParser(callbacks handler) *parser {
 	}
 }
 
-// Parse the given zser message, invoking callbacks as necessary
+// Parse the given veriform message, invoking callbacks as necessary
 func (p *parser) Parse(message []byte) error {
 	if len(message) > int(p.maxLength) {
 		return fmt.Errorf("oversized message: %d bytes (max %d)", len(message), p.maxLength)

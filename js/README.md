@@ -1,27 +1,27 @@
-# zser.js [![Latest Version][npm-shield]][npm-link] [![Build Status][build-image]][build-link] [![Known Vulnerabilities][snyk-image]][snyk-link] [![MIT licensed][license-image]][license-link]
+# veriform.js [![Latest Version][npm-shield]][npm-link] [![Build Status][build-image]][build-link] [![Known Vulnerabilities][snyk-image]][snyk-link] [![MIT licensed][license-image]][license-link]
 
-[npm-shield]: https://img.shields.io/npm/v/zser.svg
-[npm-link]: https://www.npmjs.com/package/zser
-[build-image]: https://secure.travis-ci.org/zcred/zser.svg?branch=master
-[build-link]: http://travis-ci.org/zcred/zser
-[snyk-image]: https://snyk.io/test/github/zcred/zser/2da5f2dce73ac0f059da4e2ea1d477e06cc190dd/badge.svg?targetFile=js%2Fpackage.json
-[snyk-link]: https://snyk.io/test/github/zcred/zser/2da5f2dce73ac0f059da4e2ea1d477e06cc190dd?targetFile=js%2Fpackage.json
+[npm-shield]: https://img.shields.io/npm/v/veriform.svg
+[npm-link]: https://www.npmjs.com/package/veriform
+[build-image]: https://secure.travis-ci.org/zcred/veriform.svg?branch=master
+[build-link]: http://travis-ci.org/zcred/veriform
+[snyk-image]: https://snyk.io/test/github/zcred/veriform/2da5f2dce73ac0f059da4e2ea1d477e06cc190dd/badge.svg?targetFile=js%2Fpackage.json
+[snyk-link]: https://snyk.io/test/github/zcred/veriform/2da5f2dce73ac0f059da4e2ea1d477e06cc190dd?targetFile=js%2Fpackage.json
 [license-image]: https://img.shields.io/badge/license-MIT-blue.svg
-[license-link]: https://github.com/zcred/zser/blob/master/LICENSE.txt
+[license-link]: https://github.com/zcred/veriform/blob/master/LICENSE.txt
 
-JavaScript-compatible TypeScript implementation of **zser**: a
-security-oriented serialization format with novel authentication properties
-based on "Merkleized" data structures.
+TypeScript implementation of **Veriform**: a cryptographically verifiable data
+serialization format inspired by Protocol Buffers, useful for things like
+credentials, transparency logs, and "blockchain" applications.
 
 For more information, see the [toplevel README.md].
 
-[toplevel README.md]: https://github.com/zcred/zser/blob/master/README.md
+[toplevel README.md]: https://github.com/zcred/veriform/blob/master/README.md
 
 ## Help and Discussion
 
 Have questions? Want to suggest a feature or change?
 
-* [Gitter]: web-based chat about zcred projects including **zser**
+* [Gitter]: web-based chat about zcred projects including **veriform**
 * [Google Group]: join via web or email ([zcred+subscribe@googlegroups.com])
 
 [Gitter]: https://gitter.im/zcred/Lobby
@@ -30,7 +30,7 @@ Have questions? Want to suggest a feature or change?
 
 ## Requirements
 
-**zser.js** is presently targeting <b>ES2017</b>. This is because we soon plan
+**veriform.js** is presently targeting <b>ES2017</b>. This is because we soon plan
 on making use of the [TC39 BigInt] type when it becomes available, and want to
 make sure users of this library can handle modern ECMAScript versions.
 
@@ -45,43 +45,43 @@ like [babel] support older versions of ECMAScript.
 Via [npm](https://www.npmjs.com/):
 
 ```bash
-npm install zser
+npm install veriform
 ```
 
 Via [Yarn](https://yarnpkg.com/):
 
 ```bash
-yarn install zser
+yarn install veriform
 ```
 
-Import **zser** into your project with:
+Import **veriform** into your project with:
 
 ```js
-import Zser from "zser";
+import Veriform from "veriform";
 ```
 
 ## API
 
-### Zser.parse()
+### Veriform.parse()
 
-The `Zser.parse()` method parses a `Uint8Array` containing a serialized
-**zser** message into a corresponding self-describing object representation.
+The `Veriform.parse()` method parses a `Uint8Array` containing a serialized
+**veriform** message into a corresponding self-describing object representation.
 
 #### Parameters
 
-* **message**: The `Uint8Array` containing a **zser** message to parse
+* **message**: The `Uint8Array` containing a **veriform** message to parse
 
 #### Example
 
 ```js
 let message = new Uint8Array([0x15, 0x07, 0x02, 0x03, 0x55]);
-Zser.parse(message);
+Veriform.parse(message);
 // Object { 1: Object { 24: 42 } }
 ```
 
 ## Contributing
 
-Bug reports and pull requests are welcome on GitHub at https://github.com/zcred/zser
+Bug reports and pull requests are welcome on GitHub at https://github.com/zcred/veriform
 
 ## Copyright
 
@@ -89,4 +89,4 @@ Copyright (c) 2017 [The Zcred Developers][AUTHORS].
 See [LICENSE.txt] for further details.
 
 [AUTHORS]: https://github.com/zcred/zcred/blob/master/AUTHORS.md
-[LICENSE.txt]: https://github.com/zcred/zser/blob/master/LICENSE.txt
+[LICENSE.txt]: https://github.com/zcred/veriform/blob/master/LICENSE.txt

@@ -1,4 +1,4 @@
-package zser
+package veriform
 
 import (
 	"reflect"

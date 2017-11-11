@@ -12,13 +12,13 @@ task default: %w[spec rubocop]
 
 task :bench do
   require "benchmark/ips"
-  require "zser"
+  require "veriform"
 
   Benchmark.ips do |b|
     input = "\xE9\xF4\x81\x80\x80\x80@".dup.force_encoding("BINARY").freeze
 
-    b.report("zsint encode") { Zser::Varint.encode(281_474_976_741_993) }
-    b.report("zsint decode") { Zser::Varint.decode(input) }
+    b.report("vint64 encode") { Veriform::Varint.encode(281_474_976_741_993) }
+    b.report("vint64 decode") { Veriform::Varint.decode(input) }
 
     b.compare!
   end

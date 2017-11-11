@@ -11,7 +11,7 @@ import { Parser } from "../src/parser";
     this.examples = await MessageExample.loadAll();
   }
 
-  @test "vectors/messages.tjson (zser message test vectors)"() {
+  @test "vectors/messages.tjson (veriform message test vectors)"() {
     for (let example of ParserSpec.examples) {
       let parser = new Parser(new Decoder);
 

@@ -1,11 +1,11 @@
 # frozen_string_literal: true
 
-module Zser
-  # Parses encoded zser messages, invoking callbacks in the given handler
+module Veriform
+  # Parses encoded Veriform messages, invoking callbacks in the given handler
   # (i.e. this is a "push parser" which supports different backends)
   class Parser
-    # Default maximum length of a zser message. This is a conservative choice
-    # as zser's main intended use is a credential format.
+    # Default maximum length of a Veriform message. This is a conservative choice
+    # as Veriform's main intended use is a credential format.
     MAX_LENGTH = 1024
 
     # Default maximum depth (i.e. number of levels of child objects)
@@ -19,7 +19,7 @@ module Zser
       @remaining = []
     end
 
-    # Parse the given zser message, invoking callbacks as necessary
+    # Parse the given Veriform message, invoking callbacks as necessary
     def parse(msg)
       raise OversizeMessageError, "length #{msg.length} exceeds max of #{@max_length}" if msg.length > @max_length
       raise EncodingError, "expected BINARY encoding, got #{msg.encoding}" unless msg.encoding == Encoding::BINARY
@@ -52,7 +52,7 @@ module Zser
 
     # Parse a varint which also stores a wiretype
     def parse_field_prefix
-      result, remaining = Zser::Varint.decode(@remaining.pop)
+      result, remaining = Veriform::Varint.decode(@remaining.pop)
       @remaining << remaining
       wiretype = result & 0x7
       [result >> 3, wiretype]
@@ -60,14 +60,14 @@ module Zser
 
     # Parse an unsigned 64-bit integer
     def parse_uint64(id)
-      value, remaining = Zser::Varint.decode(@remaining.pop)
+      value, remaining = Veriform::Varint.decode(@remaining.pop)
       @remaining << remaining
       @handler.uint64(id, value)
     end
 
     # Parse a data type stored with a length prefix
     def parse_length_prefixed_data
-      length, remaining = Zser::Varint.decode(@remaining.pop)
+      length, remaining = Veriform::Varint.decode(@remaining.pop)
       raise TruncatedMessageError, "not enough bytes remaining in input" if remaining.bytesize < length
       data = remaining.byteslice(0, length)
       @remaining << remaining.byteslice(length, remaining.bytesize - length)

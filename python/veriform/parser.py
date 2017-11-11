@@ -1,9 +1,9 @@
-"""parser.py: Parse encoded zser messages"""
+"""parser.py: Parse encoded Veriform messages"""
 
 from . import varint
 from .exceptions import *
 
-#: Default maximum length of a zser message.
+#: Default maximum length of a Veriform message.
 MAX_LENGTH = 1024
 
 #: Default maximum depth (i.e. number of levels of child objects)
@@ -11,7 +11,7 @@ MAX_DEPTH = 8
 
 
 class Parser(object):
-    """Parses encoded zser messages, invoking callbacks in the given handler
+    """Parses encoded Veriform messages, invoking callbacks in the given handler
     (i.e. this is a "push parser" which supports different backends)"""
 
     def __init__(self, handler, max_length = MAX_LENGTH, max_depth = MAX_DEPTH):
@@ -22,7 +22,7 @@ class Parser(object):
         self.remaining = []
 
     def parse(self, msg):
-        """Parse the given zser message, invoking callbacks as necessary"""
+        """Parse the given Veriform message, invoking callbacks as necessary"""
         if not isinstance(msg, bytes):
             raise TypeError("msg must be bytes")
 

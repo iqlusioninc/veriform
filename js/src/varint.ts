@@ -19,7 +19,7 @@ export class Varint {
    */
   public static readonly MAX = Math.pow(2, 53) - 1;
 
-  /** Encode a safe JavaScript integer as a zsint */
+  /** Encode a safe JavaScript integer as an unsigned vint64 */
   public static encode(n: number): Uint8Array {
     if (typeof n !== "number" || (n % 1) !== 0) {
       throw new TypeError(`value ${n} is not an integer`);
@@ -43,7 +43,7 @@ export class Varint {
     return new Uint8Array(buffer, 0, length);
   }
 
-  /** Decode a serialized zsint, returning its value and any remaining data */
+  /** Decode a serialized unsigned vint64, returning its value and any remaining data */
   public static decode(bytes: Uint8Array): [number, Uint8Array] {
     if (!(bytes instanceof Uint8Array)) {
       throw new TypeError("expected a Uint8Array parameter");

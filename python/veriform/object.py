@@ -1,11 +1,11 @@
-"""object.py: Represents self-describing zser messages"""
+"""object.py: Represents self-describing Veriform messages"""
 
 from collections import MutableMapping
 from .exceptions import DuplicateFieldError
 
 
 class Object(MutableMapping):
-    """A dict-like type that represents a self-describing zser message"""
+    """A dict-like type that represents a self-describing Veriform message"""
 
     def __init__(self, *args, **kwargs):
         self.fields = dict()
@@ -36,7 +36,7 @@ class Object(MutableMapping):
         return len(self.fields)
 
     def __repr__(self):
-        return "<zser.object{0}>".format(repr(self.fields))
+        return "<veriform.object{0}>".format(repr(self.fields))
 
     def to_dict(self):
         result = dict()

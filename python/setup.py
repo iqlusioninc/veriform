@@ -4,15 +4,15 @@
 from setuptools import setup
 
 setup(
-    name="zser",
-    version="0.0.1",
+    name="veriform",
+    version="0.0.0",
     description="zcred serialization format",
     long_description="A protobuf-inspired minimalistic serialization format with cryptographic authentication",
     author="Tony Arcieri",
     author_email="bascule@gmail.com",
-    url="https://github.com/zcred/zser",
-    packages=["zser"],
-    package_dir={"zser": "zser"},
+    url="https://github.com/zcred/veriform",
+    packages=["veriform"],
+    package_dir={"veriform": "veriform"},
     include_package_data=True,
     install_requires=[],
     license="MIT license",

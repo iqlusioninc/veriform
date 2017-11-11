@@ -1,7 +1,7 @@
 # encoding: binary
 # frozen_string_literal: true
 
-RSpec.describe Zser::Varint do
+RSpec.describe Veriform::Varint do
   describe ".encode" do
     context "varint.tjson examples" do
       it "encodes examples successfully" do
@@ -21,7 +21,7 @@ RSpec.describe Zser::Varint do
     end
 
     it "raises ArgumentError if given Integer is larger than 64-bit unsigned" do
-      expect { described_class.encode(Zser::Varint::MAX + 1) }.to raise_error ArgumentError
+      expect { described_class.encode(Veriform::Varint::MAX + 1) }.to raise_error ArgumentError
     end
   end
 
@@ -31,7 +31,7 @@ RSpec.describe Zser::Varint do
         if ex.success
           expect(described_class.decode(ex.encoded)).to eq [ex.value, ""]
         else
-          expect { described_class.decode(ex.encoded) }.to raise_error Zser::ParseError
+          expect { described_class.decode(ex.encoded) }.to raise_error Veriform::ParseError
         end
       end
     end
@@ -44,9 +44,9 @@ RSpec.describe Zser::Varint do
       expect { described_class.decode(42) }.to raise_error TypeError
     end
 
-    it "raises Zser::TruncatedMessageError if input is truncated" do
-      expect { described_class.decode("\x02") }.to raise_error Zser::TruncatedMessageError
-      expect { described_class.decode("\x00\xFF") }.to raise_error Zser::TruncatedMessageError
+    it "raises Veriform::TruncatedMessageError if input is truncated" do
+      expect { described_class.decode("\x02") }.to raise_error Veriform::TruncatedMessageError
+      expect { described_class.decode("\x00\xFF") }.to raise_error Veriform::TruncatedMessageError
     end
   end
 end
