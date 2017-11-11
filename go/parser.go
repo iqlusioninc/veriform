@@ -1,4 +1,4 @@
-// parser.go: veriform message parser
+// parser.go: Veriform message parser
 
 package veriform
 
@@ -7,15 +7,15 @@ import (
 	"fmt"
 )
 
-// Default maximum length of a veriform message: 1kB
-// This is conservative as veriform's main intended use case is a credential format
-const DEFAULT_MAX_LENGTH = 1024
+// DefaultMaxLength is the default maximum length of a Veriform message (1kB)
+// This is conservative as Veriform's main intended use case is a credential format
+const DefaultMaxLength = 1024
 
-// Default maximum depth (i.e. default max level of nested messages)
-const DEFAULT_MAX_DEPTH = 8
+// DefaultMaxDepth is the default maximum level of nested messages
+const DefaultMaxDepth = 8
 
 // Parser for veriform messages
-type parser struct {
+type Parser struct {
 	// Maximum length message we'll accept
 	maxLength uint
 
@@ -29,18 +29,18 @@ type parser struct {
 	callbacks handler
 }
 
-// Create a new Parser
-func NewParser(callbacks handler) *parser {
-	return &parser{
-		DEFAULT_MAX_LENGTH,
-		DEFAULT_MAX_DEPTH,
+// NewParser creates a new Parser
+func NewParser(callbacks handler) *Parser {
+	return &Parser{
+		DefaultMaxLength,
+		DefaultMaxDepth,
 		make([][]byte, 0),
 		callbacks,
 	}
 }
 
 // Parse the given veriform message, invoking callbacks as necessary
-func (p *parser) Parse(message []byte) error {
+func (p *Parser) Parse(message []byte) error {
 	if len(message) > int(p.maxLength) {
 		return fmt.Errorf("oversized message: %d bytes (max %d)", len(message), p.maxLength)
 	}
@@ -79,17 +79,17 @@ func (p *parser) Parse(message []byte) error {
 }
 
 // Finish parsing, returning the resulting object produced by the builder
-func (p *parser) Finish() (interface{}, error) {
-	if len(p.remaining) == 0 {
-		return p.callbacks.Finish(), nil
-	} else {
+func (p *Parser) Finish() (interface{}, error) {
+	if len(p.remaining) != 0 {
 		return nil, fmt.Errorf("not finished parsing: %d messages in buffer", len(p.remaining))
 	}
+
+	return p.callbacks.Finish(), nil
 }
 
 // Pop the top item in the remaining stack and parse a varint from it
 // TODO: better integrate io.Reader to avoid unnecessary slicing
-func (p *parser) parseVarint() (uint64, []byte, error) {
+func (p *Parser) parseVarint() (uint64, []byte, error) {
 	slice := p.remaining[len(p.remaining)-1]
 	reader := bytes.NewReader(slice)
 	p.remaining = p.remaining[:len(p.remaining)-1]
@@ -103,7 +103,7 @@ func (p *parser) parseVarint() (uint64, []byte, error) {
 }
 
 // Parse the integer each field starts with, extracting field ID and wiretype
-func (p *parser) parseFieldPrefix() (FieldID, WireType, error) {
+func (p *Parser) parseFieldPrefix() (FieldID, WireType, error) {
 	value, remaining, err := p.parseVarint()
 	if err != nil {
 		return 0, 0, err
@@ -118,7 +118,7 @@ func (p *parser) parseFieldPrefix() (FieldID, WireType, error) {
 }
 
 // Parse a u64 value stored as a prefix varint
-func (p *parser) parseUint64(fieldID FieldID) error {
+func (p *Parser) parseUint64(fieldID FieldID) error {
 	value, remaining, err := p.parseVarint()
 	if err != nil {
 		return err
@@ -131,7 +131,7 @@ func (p *parser) parseUint64(fieldID FieldID) error {
 }
 
 // Parse a blob of data that begins with a length prefix
-func (p *parser) parseLengthPrefixedData() ([]byte, error) {
+func (p *Parser) parseLengthPrefixedData() ([]byte, error) {
 	length, remaining, err := p.parseVarint()
 	if err != nil {
 		return nil, err
@@ -148,7 +148,7 @@ func (p *parser) parseLengthPrefixedData() ([]byte, error) {
 }
 
 // Parse a nested message
-func (p *parser) parseMessage(fieldID FieldID) error {
+func (p *Parser) parseMessage(fieldID FieldID) error {
 	p.callbacks.BeginNested()
 
 	nestedMessage, err := p.parseLengthPrefixedData()
@@ -166,7 +166,7 @@ func (p *parser) parseMessage(fieldID FieldID) error {
 }
 
 // Parse a field containing binary data
-func (p *parser) parseBytes(fieldID FieldID) error {
+func (p *Parser) parseBytes(fieldID FieldID) error {
 	data, err := p.parseLengthPrefixedData()
 	if err != nil {
 		return err

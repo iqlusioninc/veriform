@@ -1,10 +1,10 @@
 package veriform
 
 import (
-	"bytes"
 	"encoding/binary"
 	"errors"
 	"io"
+	"math/bits"
 )
 
 // EncodeVarint encodes a uint64 into buf and returns the number of bytes written.
@@ -33,8 +33,8 @@ func EncodeVarint(buf []byte, input uint64) int {
 	return length
 }
 
+// DecodeVarint decodes a serialized vint64 into a uint64
 func DecodeVarint(r io.Reader) (uint64, error) {
-	var result uint64
 	var buf [8]byte
 
 	_, err := r.Read(buf[:1])
@@ -44,6 +44,7 @@ func DecodeVarint(r io.Reader) (uint64, error) {
 
 	prefix := buf[0]
 	if prefix == 0 {
+		var result uint64
 		err := binary.Read(r, binary.LittleEndian, &result)
 
 		if err == nil && result < (1<<56) {
@@ -53,25 +54,14 @@ func DecodeVarint(r io.Reader) (uint64, error) {
 		return result, err
 	}
 
-	length := uint(1)
-
-	// TODO: use math/bits TrailingZeros() if/when it becomes available
-	// See: https://github.com/golang/go/issues/18616
-	for prefix&1 == 0 {
-		length += 1
-		prefix >>= 1
-	}
+	length := uint(bits.TrailingZeros8(prefix) + 1)
 
 	_, err = io.ReadFull(r, buf[1:length])
 	if err != nil {
 		return 0, err
 	}
 
-	err = binary.Read(bytes.NewReader(buf[:]), binary.LittleEndian, &result)
-	if err != nil {
-		return 0, err
-	}
-
+	result := binary.LittleEndian.Uint64(buf[:])
 	result >>= length
 	if length > 1 && result < (1<<(7*(length-1))) {
 		return 0, errors.New("malformed varint")

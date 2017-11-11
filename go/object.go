@@ -1,4 +1,4 @@
-// object.go: Represents self-describing veriform messages
+// object.go: Represents self-describing Veriform messages
 
 package veriform
 
@@ -6,17 +6,17 @@ import (
 	"fmt"
 )
 
-// Represents a deserialized veriform message
+// Object is a deserialized Veriform message
 type Object struct {
 	Fields map[FieldID]interface{}
 }
 
-// Allocate a new message object
+// NewObject creates a new Object instance
 func NewObject() *Object {
 	return &Object{make(map[FieldID]interface{})}
 }
 
-// Load a uint64 value at the given field ID
+// LoadUint64 loads a uint64 value at the given field ID
 func (o *Object) LoadUint64(fieldID FieldID) (uint64, error) {
 	value, err := o.loadValue(fieldID)
 	if err != nil {
@@ -31,7 +31,7 @@ func (o *Object) LoadUint64(fieldID FieldID) (uint64, error) {
 	}
 }
 
-// Load a []byte value at the given field ID
+// LoadBytes loads a []byte value at the given field ID
 func (o *Object) LoadBytes(fieldID FieldID) ([]byte, error) {
 	value, err := o.loadValue(fieldID)
 	if err != nil {
@@ -46,7 +46,7 @@ func (o *Object) LoadBytes(fieldID FieldID) ([]byte, error) {
 	}
 }
 
-// Load a nested message object at the given field ID
+// LoadObject loads a nested message object at the given field ID
 func (o *Object) LoadObject(fieldID FieldID) (*Object, error) {
 	value, err := o.loadValue(fieldID)
 	if err != nil {
@@ -72,7 +72,7 @@ func (o *Object) Store(fieldID FieldID, value interface{}) error {
 	return nil
 }
 
-// Convert veriform.Objects into FieldID-indexed maps
+// ToMap converts veriform.Objects into FieldID-indexed maps
 func (o *Object) ToMap() map[FieldID]interface{} {
 	result := make(map[FieldID]interface{})
 
@@ -92,9 +92,9 @@ func (o *Object) ToMap() map[FieldID]interface{} {
 func (o *Object) loadValue(fieldID FieldID) (interface{}, error) {
 	value, ok := o.Fields[fieldID]
 
-	if ok {
-		return value, nil
-	} else {
+	if !ok {
 		return nil, fmt.Errorf("message has no such field: %d", fieldID)
 	}
+
+	return value, nil
 }
