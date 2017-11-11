@@ -19,18 +19,18 @@ type varintExample struct {
 // Load common test examples from messages.tjson
 // TODO: switch to a native Go TJSON parser when available
 func loadVarintExamples() []varintExample {
-	var examplesJson map[string]interface{}
+	var examplesJSON map[string]interface{}
 
 	exampleData, err := ioutil.ReadFile("../vectors/varint.tjson")
 	if err != nil {
 		panic(err)
 	}
 
-	if err = json.Unmarshal(exampleData, &examplesJson); err != nil {
+	if err = json.Unmarshal(exampleData, &examplesJSON); err != nil {
 		panic(err)
 	}
 
-	examplesArray := examplesJson["examples:A<O>"].([]interface{})
+	examplesArray := examplesJSON["examples:A<O>"].([]interface{})
 
 	if examplesArray == nil {
 		panic("no toplevel 'examples:A<O>' key in varint.tjson")
@@ -38,8 +38,8 @@ func loadVarintExamples() []varintExample {
 
 	result := make([]varintExample, len(examplesArray))
 
-	for i, exampleJson := range examplesArray {
-		example := exampleJson.(map[string]interface{})
+	for i, exampleJSON := range examplesArray {
+		example := exampleJSON.(map[string]interface{})
 		encodedHex := example["encoded:d16"].(string)
 		encoded := make([]byte, hex.DecodedLen(len(encodedHex)))
 
@@ -109,6 +109,8 @@ func BenchmarkDecodeVarint(b *testing.B) {
 	input := []byte("\xE9\xF4\x81\x80\x80\x80@")
 
 	for n := 0; n < b.N; n++ {
-		DecodeVarint(bytes.NewReader(input))
+		if _, err := DecodeVarint(bytes.NewReader(input)); err != nil {
+			panic(err)
+		}
 	}
 }
