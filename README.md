@@ -1,4 +1,4 @@
-# ![Veriform][logo-image]
+# <img alt="Veriform" src="http://www.zcred.org/images/veriform-logo.svg" style="max-width: 75%">
 
 [![Build Status][build-image]][build-link]
 [![MIT licensed][license-image]][license-link]
@@ -90,7 +90,7 @@ The table below compares Veriform to the other formats considered
 
 ## Status
 
-![DANGER: EXPERIMENTAL](https://raw.github.com/cryptosphere/cryptosphere/master/images/experimental.png)
+<img alt="DANGER: EXPERIMENTAL" src="http://www.zcred.org/images/experimental.svg" width="400px" height="50px">
 
 Veriform does not yet provide the minimum viable functionality it needs to be
 useful. The table below covers the current implementation state:
