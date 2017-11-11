@@ -1,32 +1,38 @@
 package veriform
 
-type decoder struct {
+// Decoder decodes self-describing Veriform to an Object representation
+type Decoder struct {
 	stack []*Object
 }
 
-func NewDecoder() *decoder {
-	return &decoder{
+// NewDecoder creates a new Decoder instance
+func NewDecoder() *Decoder {
+	return &Decoder{
 		[]*Object{NewObject()},
 	}
 }
 
-// Called when a uint64 value with the given field ID is parsed
-func (d *decoder) Uint64(fieldID FieldID, value uint64) {
-	d.currentObject().Store(fieldID, value)
+// Uint64 field callback
+func (d *Decoder) Uint64(fieldID FieldID, value uint64) {
+	if err := d.currentObject().Store(fieldID, value); err != nil {
+		panic(err)
+	}
 }
 
-// Called when we've received binary data with the given ID
-func (d *decoder) Bytes(fieldID FieldID, data []byte) {
-	d.currentObject().Store(fieldID, data)
+// Bytes field callback
+func (d *Decoder) Bytes(fieldID FieldID, data []byte) {
+	if err := d.currentObject().Store(fieldID, data); err != nil {
+		panic(err)
+	}
 }
 
-// Indicate we've entered a new nested message
-func (d *decoder) BeginNested() {
+// BeginNested signals we've entered a new nested message
+func (d *Decoder) BeginNested() {
 	d.stack = append(d.stack, NewObject())
 }
 
-// Indicate we've reached the end of a nested message with the given ID
-func (d *decoder) EndNested(fieldID FieldID) {
+// EndNested signals we've finished a nested message
+func (d *Decoder) EndNested(fieldID FieldID) {
 	if len(d.stack) == 0 {
 		panic("not inside a nested message")
 	}
@@ -34,11 +40,13 @@ func (d *decoder) EndNested(fieldID FieldID) {
 	value := d.stack[len(d.stack)-1]
 	d.stack = d.stack[:len(d.stack)-1]
 
-	d.currentObject().Store(fieldID, value)
+	if err := d.currentObject().Store(fieldID, value); err != nil {
+		panic(err)
+	}
 }
 
-// Return the fully parsed object
-func (d *decoder) Finish() interface{} {
+// Finish signals we've finished parsing
+func (d *Decoder) Finish() interface{} {
 	if len(d.stack) == 0 {
 		panic("message stack is empty")
 	} else if len(d.stack) > 1 {
@@ -49,6 +57,6 @@ func (d *decoder) Finish() interface{} {
 }
 
 // Retrieve the current object on the stack
-func (d *decoder) currentObject() *Object {
+func (d *Decoder) currentObject() *Object {
 	return d.stack[len(d.stack)-1]
 }
