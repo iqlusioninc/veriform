@@ -24,9 +24,19 @@ func nestedObject() *Object {
 
 func exampleObject() *Object {
 	obj := NewObject()
-	obj.Store(uintField, exampleUint())
-	obj.Store(byteField, exampleBytes())
-	obj.Store(objField, nestedObject())
+
+	if err := obj.Store(uintField, exampleUint()); err != nil {
+		panic(err)
+	}
+
+	if err := obj.Store(byteField, exampleBytes()); err != nil {
+		panic(err)
+	}
+
+	if err := obj.Store(objField, nestedObject()); err != nil {
+		panic(err)
+	}
+
 	return obj
 }
 
