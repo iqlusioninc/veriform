@@ -14,7 +14,6 @@ Gem::Specification.new do |spec|
   spec.description   = <<-DESCRIPTION.strip.gsub(/\s+/, " ")
     Cryptographically verifiable data serialization format inspired by Protocol Buffers,
     useful for things like credentials, transparency logs, and blockchain applications.
-    Misuse-resistant symmetric encryption using the AES-SIV (RFC 5297)
   DESCRIPTION
   spec.homepage      = "https://github.com/zcred/veriform/tree/master/ruby/"
   spec.files         = `git ls-files -z`.split("\x0").reject { |f| f.match(%r{^(test|spec|features)/}) }
