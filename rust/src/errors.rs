@@ -12,7 +12,7 @@ use core::result;
 #[cfg(feature = "std")]
 use std::error;
 
-/// Errors which can occur when serializing or deserializing zser messages
+/// Errors which can occur when serializing or deserializing veriform messages
 pub struct Error {
     err: Box<ErrorImpl>,
 }

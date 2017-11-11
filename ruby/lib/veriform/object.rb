@@ -2,7 +2,7 @@
 
 require "forwardable"
 
-module Zser
+module Veriform
   # Key/value pairs ala JSON objects or Protobuf messages
   class Object
     extend Enumerable
@@ -11,7 +11,7 @@ module Zser
     # Delegate certain Hash functions to the underlying hash
     def_delegators :@fields, :each, :keys
 
-    # Create a Zser::Object from a TJSON::Object
+    # Create a Veriform::Object from a TJSON::Object
     def self.from_tjson(obj)
       raise TypeError, "expected TJSON::Object, got #{obj.class}" unless obj.is_a?(TJSON::Object)
 
@@ -22,14 +22,14 @@ module Zser
       end
     end
 
-    # Create a new Zser::Object
+    # Create a new Veriform::Object
     #
-    # @return [Zser::Object]
+    # @return [Veriform::Object]
     def initialize
       @fields = {}
     end
 
-    # Retrieve the value associated with a field identifier in a Zser::Object
+    # Retrieve the value associated with a field identifier in a Veriform::Object
     #
     # @param key [Integer] field identifier
     #
@@ -44,7 +44,7 @@ module Zser
     # @param value [Object] value associated with the given key
     #
     # @raise [TypeError] non-Integer key given
-    # @raise [Zser::DuplicateFieldError] attempt to set field that's already been set
+    # @raise [Veriform::DuplicateFieldError] attempt to set field that's already been set
     #
     # @return [Object] newly set value
     def []=(key, value)
@@ -69,7 +69,7 @@ module Zser
       result
     end
 
-    # Compare two Zser::Objects by value for equality
+    # Compare two Veriform::Objects by value for equality
     def eql?(other)
       return false unless other.is_a?(self.class)
       return false unless keys.length == other.keys.length

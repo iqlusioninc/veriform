@@ -1,10 +1,10 @@
-// parser.ts: zser message parser
+// parser.ts: Veriform message parser
 
 import { Varint } from "./varint";
 
 /**
- * Default maximum length of a zser message: 1kB
- * This is conservative as zser's main intended use case is a credential format
+ * Default maximum length of a veriform message: 1kB
+ * This is conservative as veriform's main intended use case is a credential format
  */
 const DEFAULT_MAX_LENGTH = 1024;
 
@@ -12,7 +12,7 @@ const DEFAULT_MAX_LENGTH = 1024;
 const DEFAULT_MAX_DEPTH = 8;
 
 /**
- * Parser for zser messages which invokes callbacks on a given handler object
+ * Parser for Veriform messages which invokes callbacks on a given handler object
  * (i.e. this is a non-streaming "push parser" with multi-backend support
  */
 export class Parser<T> {
@@ -26,7 +26,7 @@ export class Parser<T> {
     this.remaining = [];
   }
 
-  // Parse the given zser message, invoking callbacks as necessary
+  // Parse the given veriform message, invoking callbacks as necessary
   public parse(message: Uint8Array) {
     if (message.length > this.maxLength) {
       throw new Error(`maximum message length (${this.maxLength}) exceeded: ${message.length}`);

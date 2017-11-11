@@ -1,6 +1,6 @@
-//! zser.rs: Implementation of the zcred serialization format
+//! veriform.rs: Implementation of the zcred serialization format
 
-#![crate_name = "zser"]
+#![crate_name = "veriform"]
 #![crate_type = "lib"]
 
 #![deny(missing_docs, warnings)]

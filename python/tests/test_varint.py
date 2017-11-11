@@ -4,12 +4,12 @@
 test_varint
 -----------
 
-Tests for the zser `varint` module: prefixed variable-sized integers
+Tests for the veriform `varint` module: prefixed variable-sized integers
 """
 
 import unittest
-from zser import varint
-from zser.exceptions import TruncatedMessageError, ParseError
+from veriform import varint
+from veriform.exceptions import TruncatedMessageError, ParseError
 
 from .support import varint_examples
 

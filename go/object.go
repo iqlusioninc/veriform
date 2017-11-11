@@ -1,12 +1,12 @@
-// object.go: Represents self-describing zser messages
+// object.go: Represents self-describing veriform messages
 
-package zser
+package veriform
 
 import (
 	"fmt"
 )
 
-// Represents a deserialized zser message
+// Represents a deserialized veriform message
 type Object struct {
 	Fields map[FieldID]interface{}
 }
@@ -57,7 +57,7 @@ func (o *Object) LoadObject(fieldID FieldID) (*Object, error) {
 	case *Object:
 		return value, nil
 	default:
-		return nil, fmt.Errorf("field %d has type %T (expected zser.Object)", fieldID, value)
+		return nil, fmt.Errorf("field %d has type %T (expected veriform.Object)", fieldID, value)
 	}
 }
 
@@ -72,7 +72,7 @@ func (o *Object) Store(fieldID FieldID, value interface{}) error {
 	return nil
 }
 
-// Convert zser.Objects into FieldID-indexed maps
+// Convert veriform.Objects into FieldID-indexed maps
 func (o *Object) ToMap() map[FieldID]interface{} {
 	result := make(map[FieldID]interface{})
 

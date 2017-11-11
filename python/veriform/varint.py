@@ -5,7 +5,7 @@ import numbers
 import struct
 import sys
 
-# Maximum value we can encode as a zsuint64
+# Maximum value we can encode as an unsigned vint64
 MAX = (2**64) - 1
 
 # Lookup table for the number of trailing zeroes in a byte
@@ -28,7 +28,7 @@ CTZ_TABLE = [8, 0, 1, 0, 2, 0, 1, 0, 3, 0, 1, 0, 2, 0, 1, 0,
 
 
 def encode(value):
-    """Encode the given integer value as a zsuint64"""
+    """Encode the given integer value as an unsigned vint64"""
     if not isinstance(value, numbers.Integral):
         raise TypeError("value must be an integer")
 
@@ -54,7 +54,7 @@ def encode(value):
 
 
 def decode(encoded):
-    """Decode a zsuint64-serialized value into an integer"""
+    """Decode a vint64-serialized value into an unsigned integer"""
     if not isinstance(encoded, bytes):
         raise TypeError("input must be a byte array")
 

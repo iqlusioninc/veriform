@@ -1,24 +1,25 @@
-# zser.rb [![Latest Version][gem-shield]][gem-link] [![Build Status][build-image]][build-link] [![MIT licensed][license-image]][license-link]
+# veriform.rb [![Latest Version][gem-shield]][gem-link] [![Build Status][build-image]][build-link] [![MIT licensed][license-image]][license-link]
 
-[gem-shield]: https://badge.fury.io/rb/zser.svg
-[gem-link]: https://rubygems.org/gems/zser
-[build-image]: https://secure.travis-ci.org/zcred/zser.svg?branch=master
-[build-link]: http://travis-ci.org/zcred/zser
+[gem-shield]: https://badge.fury.io/rb/veriform.svg
+[gem-link]: https://rubygems.org/gems/veriform
+[build-image]: https://secure.travis-ci.org/zcred/veriform.svg?branch=master
+[build-link]: http://travis-ci.org/zcred/veriform
 [license-image]: https://img.shields.io/badge/license-MIT-blue.svg
-[license-link]: https://github.com/zcred/zser/blob/master/LICENSE.txt
+[license-link]: https://github.com/zcred/veriform/blob/master/LICENSE.txt
 
-Ruby implementation of **zser**: a security-oriented serialization format
-with novel authentication properties based on "Merkleized" data structures.
+Ruby implementation of **Veriform**: a cryptographically verifiable data
+serialization format inspired by Protocol Buffers, useful for things like
+credentials, transparency logs, and "blockchain" applications.
 
 For more information, see the [toplevel README.md].
 
-[toplevel README.md]: https://github.com/zcred/zser/blob/master/README.md
+[toplevel README.md]: https://github.com/zcred/veriform/blob/master/README.md
 
 ## Help and Discussion
 
 Have questions? Want to suggest a feature or change?
 
-* [Gitter]: web-based chat about zcred projects including **zser**
+* [Gitter]: web-based chat about zcred projects including **Veriform**
 * [Google Group]: join via web or email ([zcred+subscribe@googlegroups.com])
 
 [Gitter]: https://gitter.im/zcred/Lobby
@@ -40,7 +41,7 @@ Other Ruby versions may work, but are not officially supported.
 Add this line to your application's Gemfile:
 
 ```ruby
-gem "zser"
+gem "veriform"
 ```
 
 And then execute:
@@ -49,22 +50,22 @@ And then execute:
 
 Or install it yourself as:
 
-    $ gem install zser
+    $ gem install veriform
 
 ## API
 
-### Zser.parse
+### Veriform.parse
 
-To parse a **zser** message, use the `Zser.parse` method:
+To parse a **veriform** message, use the `Veriform.parse` method:
 
 ```ruby
->> Zser.parse("\x15\x07\x02\x03\x55".b)
+>> Veriform.parse("\x15\x07\x02\x03\x55".b)
 => {1=>{24=>42}}
 ```
 
 ## Contributing
 
-Bug reports and pull requests are welcome on GitHub at https://github.com/zcred/zser
+Bug reports and pull requests are welcome on GitHub at https://github.com/zcred/veriform
 
 ## Copyright
 
@@ -72,4 +73,4 @@ Copyright (c) 2017 [The Zcred Developers][AUTHORS].
 See [LICENSE.txt] for further details.
 
 [AUTHORS]: https://github.com/zcred/zcred/blob/master/AUTHORS.md
-[LICENSE.txt]: https://github.com/zcred/zser/blob/master/LICENSE.txt
+[LICENSE.txt]: https://github.com/zcred/veriform/blob/master/LICENSE.txt
