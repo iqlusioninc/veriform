@@ -135,9 +135,9 @@ the number of bytes in the subsequent value, followed by the value.
 Field IDs MUST be unique. Any message containing repeated field IDs MUST be
 rejected by compliant parsers.
 
-# Structured Content Hashing (zhash)
+# Structured Content Hashing (Verihash)
 
-The zhash algorithm computes a unique content hash for every field and nested
+The Verihash algorithm computes a unique content hash for every field and nested
 message present in a Veriform message. This approach to hashing can either happen
 in tandem with deserialization, or by walking the object graph produced by
 parsing a message. Only the content of messages is included in the hash
@@ -156,7 +156,7 @@ Merkle tree, structured hashing facilitates the ability to compute so-called
 necessary message digests of the surrounding structure to show that a
 sub-message is rooted in a given parent hash.
 
-Both Veriform and the zhash algorithm have been designed specifically to support
+Both Veriform and the Verihash algorithm have been designed specifically to support
 authentication of content independent from the schema. This is the main
 impetus for the format to be self-describing, and allows message generators
 and verifiers with differing views of the schema to compute the same content
@@ -171,7 +171,7 @@ from support for "inclusion proofs".
 
 ## Acknowledgements
 
-The design of the zhash algorithm is heavily inspired by Ben Laurie's
+The design of the Verihash algorithm is heavily inspired by Ben Laurie's
 [ObjectHash] algorithm, and is also a major impetus for the existence of this
 entire project in the first place.
 
@@ -202,14 +202,14 @@ The United States of America (USA) Federal Information Processing Standard
 with varying digest and block sizes.
 
 Of these, SHA-256, as described in [RFC6234], is supported as a hash function
-for use with zhash. This function is mandatory to implement for all confirming
-zhash implementations, i.e. conforming implementations MUST implement SHA-256.
+for use with Verihash. This function is mandatory to implement for all confirming
+Verihash implementations, i.e. conforming implementations MUST implement SHA-256.
 
 The string `SHA256` identifies this algorithm uniquely for the purposes of
-zhash. Conforming implementations should support selecting this hash function
+Verihash. Conforming implementations should support selecting this hash function
 using this string.
 
-SHA-256 was selected as the primary hash function for use with zhash for the
+SHA-256 was selected as the primary hash function for use with Verihash for the
 following reasons:
 
 * The SHA-2 algorithm family is ubiquitous with fast software and hardware
@@ -237,14 +237,14 @@ to their use of the Merkle-Damgaard construction, which (after computing a
 finalizer block) outputs its full internal state such that it can be used as a
 "chaining variable".
 
-However, individual fields within zhash messages are not vulnerable to these
-attacks, due to the use of structured hashing. As zhash repeatedly hashes
+However, individual fields within Verihash messages are not vulnerable to these
+attacks, due to the use of structured hashing. As Verihash repeatedly hashes
 digests of individual messages in order to compute a final hash for a message
 object, repeat hashing prevents the extension of individual fields.
 
 It should still be noted that it's possible to extend the toplevel message
 with additional fields. No specific mitigation for this potential attack is
-presently provided. When using SHA-256 as a hash function with zhash, message
+presently provided. When using SHA-256 as a hash function with Verihash, message
 verifiers should be aware that the toplevel message is potentially extensible.
 
 To completely avoid this class of attacks, a hash algorithm which is not
@@ -317,7 +317,7 @@ To compute the hash of a message object, begin by sorting the IDs of each of
 the fields. This is unambiguous as field IDs MUST be unique.
 
 Begin computing the digest by hashing the "O", followed by the 64-bit little
-endian serialization of the field ID. Next, compute zhash for the value of
+endian serialization of the field ID. Next, compute Verihash for the value of
 the field, and include that in the message digest, i.e.:
 
     "O" || Field #1 ID || Field #1 Hash || ... || Field #N ID || Field #N Hash

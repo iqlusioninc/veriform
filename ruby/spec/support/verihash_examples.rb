@@ -2,14 +2,14 @@
 
 require "tjson"
 
-class ZhashExample
+class VerihashExample
   attr_reader :name, :digest, :value
 
   # Error parsing the example file
   ParseError = Class.new(StandardError)
 
   # Default file to load examples from
-  DEFAULT_EXAMPLES = File.expand_path("../../../../vectors/zhash.tjson", __FILE__)
+  DEFAULT_EXAMPLES = File.expand_path("../../../../vectors/verihash.tjson", __FILE__)
 
   def self.load_file(filename = DEFAULT_EXAMPLES)
     examples = TJSON.load_file(filename).fetch("examples")
