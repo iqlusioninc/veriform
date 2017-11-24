@@ -49,18 +49,18 @@ export class VarintExample {
   ) { }
 }
 
-export class ZhashExample {
-  static readonly DEFAULT_EXAMPLES_PATH = "../vectors/zhash.tjson";
+export class VerihashExample {
+  static readonly DEFAULT_EXAMPLES_PATH = "../vectors/verihash.tjson";
 
-  static async loadAll(): Promise<ZhashExample[]> {
-    return ZhashExample.loadFromFile(ZhashExample.DEFAULT_EXAMPLES_PATH);
+  static async loadAll(): Promise<VerihashExample[]> {
+    return VerihashExample.loadFromFile(VerihashExample.DEFAULT_EXAMPLES_PATH);
   }
 
-  static async loadFromFile(filename: string): Promise<ZhashExample[]> {
+  static async loadFromFile(filename: string): Promise<VerihashExample[]> {
     let tjsonString = await fs.readFile(filename, "utf8");
     let tjson = TJSON.parse(filterUnsupported(tjsonString));
     return tjson["examples"].map((ex: any) => {
-      let obj = Object.create(ZhashExample.prototype);
+      let obj = Object.create(VerihashExample.prototype);
       return Object.assign(obj, ex);
     });
   }

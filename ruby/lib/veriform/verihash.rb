@@ -4,8 +4,8 @@ require "digest"
 
 module Veriform
   # Computes astructured hash of a Veriform message
-  class Zhash
-    # One character "tag" values used to separate zhash domains
+  class Verihash
+    # One character "tag" values used to separate Verihash domains
     module Tags
       # "Objects" represent Veriform messages
       OBJECT = "O"
@@ -17,10 +17,10 @@ module Veriform
       UINT64 = "u"
     end
 
-    # By default we compute zhashes using SHA-256
+    # By default we compute verihashes using SHA-256
     DEFAULT_HASH_ALGORITHM = Digest::SHA256
 
-    # Calculate the zhash digest of the given object
+    # Calculate the verihash digest of the given object
     #
     # @param algorithm [Class] a class which behaves like a `Digest`
     #
@@ -29,27 +29,27 @@ module Veriform
       new(algorithm: algorithm).digest(object)
     end
 
-    # Calculate an object's zhash digest, hex encoding the result.
-    # Takes the same parameters as `Veriform::Zhash.digest`
+    # Calculate an object's verihash digest, hex encoding the result.
+    # Takes the same parameters as `Veriform::Verihash.digest`
     #
     # @return [String] hex encoded string containing the resulting digest
     def self.hexdigest(object, **args)
       digest(object, **args).unpack("H*").first
     end
 
-    # Create a new `Zhash` instance
+    # Create a new `Verihash` instance
     #
     # @param algorithm [Class] a class which behaves like a `Digest` (i.e. implements `reset`, `update`, `digest`)
     #
-    # @return [Veriform::Zhash]
+    # @return [Veriform::Verihash]
     def initialize(algorithm: DEFAULT_HASH_ALGORITHM)
       @algorithm = algorithm
       @hasher = algorithm.new
     end
 
-    # Compute the zhash of any object allowed in a Veriform message
+    # Compute the verihash of any object allowed in a Veriform message
     #
-    # @param object [Veriform::Object, String, Integer] object to compute a Zhash from
+    # @param object [Veriform::Object, String, Integer] object to compute a Verihash from
     #
     # @return [String] bytestring containing the resulting digest
     def digest(object)
@@ -57,12 +57,12 @@ module Veriform
       when Veriform::Object, Hash then object_digest(object)
       when String then binary_digest(object)
       when Integer then uint64_digest(object)
-      else raise TypeError, "can't compute zhash of #{object.class}"
+      else raise TypeError, "can't compute verihash of #{object.class}"
       end
     end
 
-    # Calculate an object's zhash digest, hex encoding the result.
-    # Takes the same parameters as `Veriform::Zhash#digest`
+    # Calculate an object's verihash digest, hex encoding the result.
+    # Takes the same parameters as `Veriform::Verihash#digest`
     #
     # @return [String] hex encoded string containing the resulting digest
     def hexdigest(object)
