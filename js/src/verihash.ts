@@ -1,6 +1,6 @@
-// zhash.ts: Structured hashing inspired by Merkle trees
+// verihash.ts: Structured hashing inspired by Merkle trees
 
-// One character "tag" values used to separate zhash domains
+// One character "tag" values used to separate verihash domains
 namespace Tags {
   // "Objects" represent veriform messages
   export const OBJECT = "O";
@@ -12,19 +12,19 @@ namespace Tags {
   export const UINT64 = "u";
 }
 
-// By default we compute zhashes using SHA-256
+// By default we compute verihashes using SHA-256
 const DEFAULT_HASH_ALGORITHM = "SHA-256";
 
 // Number of bytes in a digest, for all supported hash functions
 const DIGEST_SIZE = 32;
 
-export class Zhash {
+export class Verihash {
   public static async digest(
     obj: object,
     algorithm = DEFAULT_HASH_ALGORITHM,
     crypto = window.crypto,
   ): Promise<Uint8Array> {
-    return (new Zhash(algorithm, crypto)).digest(obj);
+    return (new Verihash(algorithm, crypto)).digest(obj);
   }
 
   private readonly algorithm: string;
@@ -52,7 +52,7 @@ export class Zhash {
       // TODO: switch to TC39 BigInt
       return this.digestUint64(obj);
     } else {
-      throw new TypeError(`can't compute zhash of ${typeof obj}`);
+      throw new TypeError(`can't compute verihash of ${typeof obj}`);
     }
   }
 

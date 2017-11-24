@@ -7,7 +7,7 @@ require "veriform/decoder"
 require "veriform/object"
 require "veriform/parser"
 require "veriform/varint"
-require "veriform/zhash"
+require "veriform/verihash"
 
 # Cryptographically verifiable data serialization format inspired by Protocol Buffers
 module Veriform
