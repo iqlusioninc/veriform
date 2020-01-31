@@ -38,7 +38,7 @@ See [LICENSE.txt] for further details.
 [crate-link]: https://crates.io/crates/veriform
 [docs-image]: https://docs.rs/veriform/badge.svg
 [docs-link]: https://docs.rs/veriform/
-[build-image]: https://secure.travis-ci.org/clasp-lang/veriform.svg?branch=develop
+[build-image]: https://github.com/clasp-lang/veriform/workflows/Rust/badge.svg?branch=develop&event=push
 [build-link]: http://travis-ci.org/clasp-lang/veriform
 [license-image]: https://img.shields.io/badge/license-MIT-blue.svg
 [license-link]: https://github.com/clasp-lang/veriform/blob/develop/LICENSE.txt
