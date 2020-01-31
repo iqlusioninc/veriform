@@ -1,4 +1,4 @@
-# veriform.rs [![Latest Version][crate-shield]][crate-link] [![Docs][docs-image]][docs-link] [![Build Status][build-image]][build-link] [![Apache 2.0 Licensed][license-image]][license-link]
+# veriform.rs [![Latest Version][crate-shield]][crate-link] [![Docs][docs-image]][docs-link] [![Apache 2.0 Licensed][license-image]][license-link] ![MSRV][msrv-image] [![Build Status][build-image]][build-link]
 
 Rust implementation of **Veriform**: a cryptographically verifiable data
 serialization format inspired by Protocol Buffers, useful for things like
@@ -36,10 +36,11 @@ without any additional terms or conditions.
 [crate-link]: https://crates.io/crates/veriform
 [docs-image]: https://docs.rs/veriform/badge.svg
 [docs-link]: https://docs.rs/veriform/
-[build-image]: https://github.com/clasp-lang/veriform/workflows/Rust/badge.svg?branch=develop&event=push
-[build-link]: http://travis-ci.org/clasp-lang/veriform
 [license-image]: https://img.shields.io/badge/license-Apache2.0-blue.svg
 [license-link]: https://github.com/clasp-lang/veriform/blob/develop/LICENSE
+[msrv-image]: https://img.shields.io/badge/rustc-1.39+-blue.svg
+[build-image]: https://github.com/clasp-lang/veriform/workflows/Rust/badge.svg?branch=develop&event=push
+[build-link]: https://github.com/clasp-lang/veriform/actions?query=workflow%3ARust
 
 [//]: # (general links)
 
