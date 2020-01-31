@@ -6,7 +6,7 @@ use veriform::varint;
 
 mod test_vectors;
 
-use test_vectors::{MessageExample, VarintExample, decode_value};
+use test_vectors::{decode_value, MessageExample, VarintExample};
 
 #[test]
 fn message_examples() {
