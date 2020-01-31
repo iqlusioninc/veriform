@@ -90,8 +90,6 @@ The table below compares Veriform to the other formats considered
 
 ## Status
 
-<img alt="DANGER: EXPERIMENTAL" src="http://www.zcred.org/images/experimental.svg" width="400px" height="50px">
-
 Veriform does not yet provide the minimum viable functionality it needs to be
 useful. The table below covers the current implementation state:
 
@@ -108,33 +106,9 @@ within the repo are intended to implement the spec in its current state and
 share a consistent feature set. The progress above applies equally to all
 language implementations currently within the repo.
 
-## Language Support
-
-Packages implementing Veriform are available for the following languages:
-
-| Language               | Version                              |
-|------------------------|--------------------------------------|
-| [Go][go-link]          | N/A                                  |
-| [JavaScript][npm-link] | [![npm][npm-shield]][npm-link]       |
-| [Python][pypi-link]    | [![pypi][pypi-shield]][pypi-link]    |
-| [Ruby][gem-link]       | [![gem][gem-shield]][gem-link]       |
-| [Rust][crate-link]     | [![crate][crate-shield]][crate-link] |
-
-
-[go-link]: https://github.com/zcred/veriform/tree/master/go
-[npm-shield]: https://img.shields.io/npm/v/veriform.svg
-[npm-link]: https://www.npmjs.com/package/veriform
-[pypi-shield]: https://img.shields.io/pypi/v/veriform.svg
-[pypi-link]: https://pypi.python.org/pypi/veriform/
-[gem-shield]: https://badge.fury.io/rb/veriform.svg
-[gem-link]: https://rubygems.org/gems/veriform
-[crate-shield]: https://img.shields.io/crates/v/veriform.svg
-[crate-link]: https://crates.io/crates/veriform
-
 ## Copyright
 
-Copyright (c) 2017 [The Zcred Developers][AUTHORS].
+Copyright (c) 2017-2020 Tony Arcieri
 See [LICENSE.txt] for further details.
 
-[AUTHORS]: https://github.com/zcred/zcred/blob/master/AUTHORS.md
-[LICENSE.txt]: https://github.com/zcred/veriform/blob/master/LICENSE.txt
+[LICENSE.txt]: https://github.com/clasp-lang/veriform/blob/master/LICENSE.txt
