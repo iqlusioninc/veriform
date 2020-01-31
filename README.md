@@ -3,28 +3,18 @@
 [![Build Status][build-image]][build-link]
 [![MIT licensed][license-image]][license-link]
 
-[logo-image]: https://raw.githubusercontent.com/zcred/logos/master/veriform-logo-md.png
-[build-image]: https://secure.travis-ci.org/zcred/veriform.svg?branch=master
-[build-link]: http://travis-ci.org/zcred/veriform
-[license-image]: https://img.shields.io/badge/license-MIT-blue.svg
-[license-link]: https://github.com/zcred/veriform/blob/master/LICENSE.txt
-
 **Veriform** is a cryptographically verifiable data serialization format
 inspired by [Protocol Buffers], useful for things like credentials, transparency
 logs, and "blockchain" applications.
 
-[Specification](https://github.com/zcred/veriform/blob/master/spec/draft-veriform-spec.md)
+[Specification]
 
-## Rationale (a.k.a. "[Oh no!] Not another serialization format!")
-
-[Oh no!]: https://scottlocklin.wordpress.com/2017/04/02/please-stop-writing-new-serialization-protocols/
+## Rationale (a.k.a. "[Oh no! Not another serialization format!][ohno]")
 
 > If you look at another engineer's work and think, "That's dumb. Why don't you just..."
-> Take a breath. Find out why the problem is hard. _—[Adrienne Porter Felt]_
+> Take a breath. Find out why the problem is hard. _—[Adrienne Porter Felt][apf]_
 
-[Adrienne Porter Felt]: https://twitter.com/__apf__/status/867751153026482177
-
-*[Obligatory xkcd](https://xkcd.com/927/)*
+*[Obligatory xkcd]*
 
 This format was created as a prerequisite of the [zcred] project, which
 originally started as a Protobuf-based format ([protocreds]). Unfortunately
@@ -56,13 +46,6 @@ transcoded to/from TJSON with no data loss. Furthermore, TJSON documents
 can be authenticated with the same Merkleized hashing scheme as Veriform,
 meaning signatures for one encoding will validate in the other.
 
-[Protocol Buffers]: https://developers.google.com/protocol-buffers/
-[zcred]: https://github.com/zcred/zcred
-[protocreds]: https://github.com/protocreds/
-[protobuf limitations]: https://github.com/google/protobuf/issues/2629
-[Cap'n Proto]: https://capnproto.org/
-[TJSON]: https://www.tjson.org/
-
 ## Comparison with other serialization formats
 
 The table below compares Veriform to the other formats considered
@@ -79,14 +62,6 @@ The table below compares Veriform to the other formats considered
 | [MessagePack] | :broken_heart:  | :green_heart:    | Fixed-Width     | None               | None            |
 
 *†NOTE: Coming soon!*
-
-[Veriform]: https://github.com/zcred/veriform
-[Protobuf]: https://developers.google.com/protocol-buffers/
-[CBOR]: https://tools.ietf.org/html/rfc7049
-[ASN.1 DER]: https://www.itu.int/rec/T-REC-X.690-201508-I/en
-[MessagePack]: https://msgpack.org/
-[csexp]: https://en.wikipedia.org/wiki/Canonical_S-expressions
-[LEB128]: https://en.wikipedia.org/wiki/LEB128
 
 ## Status
 
@@ -108,7 +83,37 @@ language implementations currently within the repo.
 
 ## Copyright
 
-Copyright (c) 2017-2020 Tony Arcieri
+Copyright © 2017-2020 Tony Arcieri
 See [LICENSE.txt] for further details.
 
-[LICENSE.txt]: https://github.com/clasp-lang/veriform/blob/master/LICENSE.txt
+[//]: # (badges)
+
+[logo-image]: https://raw.githubusercontent.com/zcred/logos/master/veriform-logo-md.png
+[build-image]: https://github.com/clasp-lang/veriform/workflows/Rust/badge.svg?branch=develop&event=push
+[build-link]: https://github.com/clasp-lang/veriform/actions
+[license-image]: https://img.shields.io/badge/license-MIT-blue.svg
+[license-link]: https://github.com/clasp-lang/veriform/blob/develop/LICENSE.txt
+
+[//]: # (general links)
+
+[Specification]: https://github.com/clasp-lang/veriform/blob/develop/spec/draft-veriform-spec.md
+[ohno]: https://scottlocklin.wordpress.com/2017/04/02/please-stop-writing-new-serialization-protocols/
+[apf]: https://twitter.com/__apf__/status/867751153026482177
+[Obligatory xkcd]: https://xkcd.com/927/
+[Protocol Buffers]: https://developers.google.com/protocol-buffers/
+[zcred]: https://github.com/zcred/zcred
+[protocreds]: https://github.com/protocreds/
+[protobuf limitations]: https://github.com/google/protobuf/issues/2629
+[Cap'n Proto]: https://capnproto.org/
+[TJSON]: https://www.tjson.org/
+[LICENSE.txt]: https://github.com/clasp-lang/veriform/blob/develop/LICENSE.txt
+
+[//]: # (comparison table links)
+
+[Veriform]: https://github.com/zcred/veriform
+[Protobuf]: https://developers.google.com/protocol-buffers/
+[CBOR]: https://tools.ietf.org/html/rfc7049
+[ASN.1 DER]: https://www.itu.int/rec/T-REC-X.690-201508-I/en
+[MessagePack]: https://msgpack.org/
+[csexp]: https://en.wikipedia.org/wiki/Canonical_S-expressions
+[LEB128]: https://en.wikipedia.org/wiki/LEB128

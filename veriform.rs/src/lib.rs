@@ -2,9 +2,7 @@
 
 #![crate_name = "veriform"]
 #![crate_type = "lib"]
-
 #![deny(missing_docs, warnings)]
-
 #![cfg_attr(not(any(feature = "std", test)), no_std)]
 #![cfg_attr(not(feature = "std"), feature(alloc))]
 #![cfg_attr(feature = "bench", feature(test))]

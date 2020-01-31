@@ -37,43 +37,35 @@ pub fn encode(value: u64, out: &mut [u8]) -> usize {
 pub fn decode(input: &mut &[u8]) -> Result<u64> {
     let bytes = *input;
 
-    let prefix = *bytes.first().ok_or_else(|| {
-        ErrorKind::TruncatedMessage("missing varint prefix".to_string())
-    })?;
+    let prefix = *bytes
+        .first()
+        .ok_or_else(|| ErrorKind::TruncatedMessage("missing varint prefix".to_string()))?;
 
     if prefix == 0 {
         if bytes.len() >= 9 {
             let result = LittleEndian::read_u64(&bytes[1..9]);
 
             if result < (1 << 56) {
-                return Err(
-                    ErrorKind::CorruptedMessage("malformed varint".to_string()).into(),
-                );
+                return Err(ErrorKind::CorruptedMessage("malformed varint".to_string()).into());
             }
 
             *input = &bytes[9..];
             return Ok(result);
         } else {
-            return Err(
-                ErrorKind::TruncatedMessage("truncated varint".to_string()).into(),
-            );
+            return Err(ErrorKind::TruncatedMessage("truncated varint".to_string()).into());
         }
     }
 
     let length = prefix.trailing_zeros() as usize + 1;
 
     if bytes.len() < length {
-        return Err(
-            ErrorKind::TruncatedMessage("truncated varint".to_string()).into(),
-        );
+        return Err(ErrorKind::TruncatedMessage("truncated varint".to_string()).into());
     }
 
     let result = LittleEndian::read_uint(bytes, length) >> length;
 
     if length > 1 && result < (1 << (7 * (length - 1))) {
-        return Err(
-            ErrorKind::CorruptedMessage("malformed varint".to_string()).into(),
-        );
+        return Err(ErrorKind::CorruptedMessage("malformed varint".to_string()).into());
     }
 
     *input = &bytes[length..];
