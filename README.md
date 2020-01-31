@@ -1,4 +1,4 @@
-# <img alt="Veriform" src="http://www.zcred.org/images/veriform-logo.svg" style="max-width: 75%">
+# ![Veriform](https://raw.githubusercontent.com/clasp-lang/veriform/develop/img/veriform.png)
 
 [![Build Status][build-image]][build-link]
 [![MIT licensed][license-image]][license-link]
@@ -88,7 +88,6 @@ See [LICENSE.txt] for further details.
 
 [//]: # (badges)
 
-[logo-image]: https://raw.githubusercontent.com/zcred/logos/master/veriform-logo-md.png
 [build-image]: https://github.com/clasp-lang/veriform/workflows/Rust/badge.svg?branch=develop&event=push
 [build-link]: https://github.com/clasp-lang/veriform/actions
 [license-image]: https://img.shields.io/badge/license-MIT-blue.svg
