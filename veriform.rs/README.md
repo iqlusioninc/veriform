@@ -1,4 +1,4 @@
-# veriform.rs [![Latest Version][crate-shield]][crate-link] [![Docs][docs-image]][docs-link] [![Build Status][build-image]][build-link] [![MIT licensed][license-image]][license-link]
+# veriform.rs [![Latest Version][crate-shield]][crate-link] [![Docs][docs-image]][docs-link] [![Build Status][build-image]][build-link] [![Apache 2.0 Licensed][license-image]][license-link]
 
 Rust implementation of **Veriform**: a cryptographically verifiable data
 serialization format inspired by Protocol Buffers, useful for things like
@@ -6,31 +6,29 @@ credentials, transparency logs, and "blockchain" applications.
 
 For more information, see the [toplevel README.md].
 
-[toplevel README.md]: https://github.com/clasp-lang/veriform/blob/develop/README.md
-
-## Help and Discussion
-
-Have questions? Want to suggest a feature or change?
-
-* [Gitter]: web-based chat about zcred projects including **Veriform**
-* [Google Group]: join via web or email ([zcred+subscribe@googlegroups.com])
-
-[Gitter]: https://gitter.im/zcred/Lobby
-[Google Group]: https://groups.google.com/forum/#!forum/zcred
-[zcred+subscribe@googlegroups.com]: mailto:zcred+subscribe@googlegroups.com
-
-## Documentation
-
-[Rustdoc Documentation](https://docs.rs/veriform/)
-
-## Contributing
-
-Bug reports and pull requests are welcome on GitHub at https://github.com/clasp-lang/veriform
+[Documentation][docs-link]
 
 ## Copyright
 
 Copyright © 2017-2020 Tony Arcieri
-See [LICENSE.txt] for further details.
+
+Licensed under the Apache License, Version 2.0 (the "License");
+you may not use this file except in compliance with the License.
+You may obtain a copy of the License at
+
+    https://www.apache.org/licenses/LICENSE-2.0
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
+
+## Contribution
+
+Unless you explicitly state otherwise, any contribution intentionally
+submitted for inclusion in the work by you shall be licensed as above,
+without any additional terms or conditions.
 
 [//]: # (badges)
 
@@ -40,10 +38,9 @@ See [LICENSE.txt] for further details.
 [docs-link]: https://docs.rs/veriform/
 [build-image]: https://github.com/clasp-lang/veriform/workflows/Rust/badge.svg?branch=develop&event=push
 [build-link]: http://travis-ci.org/clasp-lang/veriform
-[license-image]: https://img.shields.io/badge/license-MIT-blue.svg
-[license-link]: https://github.com/clasp-lang/veriform/blob/develop/LICENSE.txt
+[license-image]: https://img.shields.io/badge/license-Apache2.0-blue.svg
+[license-link]: https://github.com/clasp-lang/veriform/blob/develop/LICENSE
 
 [//]: # (general links)
 
-[AUTHORS]: https://github.com/zcred/zcred/blob/develop/AUTHORS.md
-[LICENSE.txt]: https://github.com/clasp-lang/veriform/blob/develop/LICENSE.txt
+[toplevel README.md]: https://github.com/clasp-lang/veriform/blob/develop/README.md
