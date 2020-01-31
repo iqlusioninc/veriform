@@ -51,13 +51,14 @@ The table below compares Veriform to the other formats:
 
 | Name          | Schemas         | Self-Describing  | Integers        | Authentication     | Standardization |
 |---------------|-----------------|------------------|-----------------|--------------------|-----------------|
-| [Veriform]    | :green_heart:†  | :green_heart:    | [vint64]        | Structured Hashing | None            |
-| [Protobuf]    | :green_heart:   | :broken_heart:   | [LEB128]        | Canonicalization   | None            |
+| **Veriform**  | :green_heart:†  | :green_heart:    | [vint64]        | Structured Hashing | None            |
+| [ASN.1 DER]   | :broken_heart:  | :yellow_heart:   | Fixed-Width     | Canonicalization   | ITU/IETF        |
 | [Cap'n Proto] | :green_heart:   | :green_heart:    | Fixed-Width     | Canonicalization   | None            |
 | [CBOR]        | :broken_heart:  | :green_heart:    | Fixed-Width     | Canonicalization   | IETF            |
-| [ASN.1 DER]   | :broken_heart:  | :yellow_heart:   | Fixed-Width     | Canonicalization   | ITU/IETF        |
 | [csexp]       | :broken_heart:  | :green_heart:    | Fixed-Width     | Canonicalization   | IETF            |
 | [MessagePack] | :broken_heart:  | :green_heart:    | Fixed-Width     | None               | None            |
+| [Protobuf]    | :green_heart:   | :broken_heart:   | [LEB128]        | Canonicalization   | None            |
+| [XDR]         | :green_heart:   | :broken_heart:   | Fixed-Width     | None               | IETF            |
 
 *†NOTE: Coming soon!*
 
@@ -116,15 +117,16 @@ without any additional terms or conditions.
 [Obligatory xkcd]: https://xkcd.com/927/
 [Protocol Buffers]: https://developers.google.com/protocol-buffers/
 [protobuf limitations]: https://github.com/google/protobuf/issues/2629
-[Cap'n Proto]: https://capnproto.org/
 [TJSON]: https://www.tjson.org/
-[LICENSE.txt]: https://github.com/clasp-lang/veriform/blob/develop/LICENSE.txt
+[vint64]: https://github.com/clasp-lang/veriform/blob/develop/spec/draft-veriform-spec.md#64-bit-unsigned-variable-width-integers-vint64
 
 [//]: # (comparison table links)
 
-[Protobuf]: https://developers.google.com/protocol-buffers/
-[CBOR]: https://tools.ietf.org/html/rfc7049
 [ASN.1 DER]: https://www.itu.int/rec/T-REC-X.690-201508-I/en
-[MessagePack]: https://msgpack.org/
+[Cap'n Proto]: https://capnproto.org/
+[CBOR]: https://tools.ietf.org/html/rfc7049
 [csexp]: https://en.wikipedia.org/wiki/Canonical_S-expressions
+[MessagePack]: https://msgpack.org/
 [LEB128]: https://en.wikipedia.org/wiki/LEB128
+[Protobuf]: https://developers.google.com/protocol-buffers/
+[XDR]: https://en.wikipedia.org/wiki/External_Data_Representation
