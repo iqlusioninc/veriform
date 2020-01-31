@@ -1,7 +1,0 @@
-{
-    "extends": "tslint:recommended",
-    "rules": {
-        "no-bitwise": false,
-        "no-namespace": false
-    }
-}
