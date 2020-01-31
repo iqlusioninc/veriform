@@ -1,7 +1,7 @@
 # ![Veriform](https://raw.githubusercontent.com/clasp-lang/veriform/develop/img/veriform.png)
 
 [![Build Status][build-image]][build-link]
-[![MIT licensed][license-image]][license-link]
+[![Apache 2.0 licensed][license-image]][license-link]
 
 **Veriform** is a cryptographically verifiable data serialization format
 inspired by [Protocol Buffers], useful for things like credentials, transparency
@@ -16,18 +16,17 @@ logs, and "blockchain" applications.
 
 *[Obligatory xkcd]*
 
-This format was created as a prerequisite of the [zcred] project, which
-originally started as a Protobuf-based format ([protocreds]). Unfortunately
-[protobuf limitations] made it difficult to implement Veriform's distinguishing
-feature: Merkleized content authentication, while still supporting schema
-evolution.
+Veriform is similar in design to [Protocol Buffers], which is at its core
+a schema-driven format. It also includes a small amount of information which
+makes it partly self-describing, "wire types", however they are too limited to
+[comprehend serialized messages in absence of a schema][protobuf limitations].
 
-The wire representation of Veriform largely resembles Protobufs, but with an
-number of improvements including a self-describing structure based on a
-richer set of wire types. The format is simple to implement despite its
-improved expressiveness, provides a simple and limited degree of compression
-with variable-sized integers (using a UTF-8 inspired prefix varint structure),
-and is designed to be free of integer operations that may potentially overflow.
+Without a fully self-describing wire format, it isn't possible to implement
+Veriform's primary distinguishing feature: "Merkleized" content hashing
+which functions even if some of the fields in a message aren't known by the
+schema. This means that the sender and receiver of a message don't need to
+be working with the same version of a schema to agree on a message hash,
+which enables schema evolution.
 
 Veriform is not intended to be a general purpose serialization format: for that
 we recommend something like [Protocol Buffers] or [Cap'n Proto]. While it's fine
@@ -48,12 +47,11 @@ meaning signatures for one encoding will validate in the other.
 
 ## Comparison with other serialization formats
 
-The table below compares Veriform to the other formats considered
-(and rejected) for the zcred use case:
+The table below compares Veriform to the other formats:
 
 | Name          | Schemas         | Self-Describing  | Integers        | Authentication     | Standardization |
 |---------------|-----------------|------------------|-----------------|--------------------|-----------------|
-| [Veriform]    | :green_heart:†  | :green_heart:    | Prefix-Varint   | Structured Hashing | None            |
+| [Veriform]    | :green_heart:†  | :green_heart:    | [vint64]        | Structured Hashing | None            |
 | [Protobuf]    | :green_heart:   | :broken_heart:   | [LEB128]        | Canonicalization   | None            |
 | [Cap'n Proto] | :green_heart:   | :green_heart:    | Fixed-Width     | Canonicalization   | None            |
 | [CBOR]        | :broken_heart:  | :green_heart:    | Fixed-Width     | Canonicalization   | IETF            |
@@ -84,14 +82,31 @@ language implementations currently within the repo.
 ## Copyright
 
 Copyright © 2017-2020 Tony Arcieri
-See [LICENSE.txt] for further details.
+
+Licensed under the Apache License, Version 2.0 (the "License");
+you may not use this file except in compliance with the License.
+You may obtain a copy of the License at
+
+    https://www.apache.org/licenses/LICENSE-2.0
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
+
+## Contribution
+
+Unless you explicitly state otherwise, any contribution intentionally
+submitted for inclusion in the work by you shall be licensed as above,
+without any additional terms or conditions.
 
 [//]: # (badges)
 
 [build-image]: https://github.com/clasp-lang/veriform/workflows/Rust/badge.svg?branch=develop&event=push
 [build-link]: https://github.com/clasp-lang/veriform/actions
-[license-image]: https://img.shields.io/badge/license-MIT-blue.svg
-[license-link]: https://github.com/clasp-lang/veriform/blob/develop/LICENSE.txt
+[license-image]: https://img.shields.io/badge/license-Apache2.0-blue.svg
+[license-link]: https://github.com/clasp-lang/veriform/blob/develop/LICENSE
 
 [//]: # (general links)
 
@@ -100,8 +115,6 @@ See [LICENSE.txt] for further details.
 [apf]: https://twitter.com/__apf__/status/867751153026482177
 [Obligatory xkcd]: https://xkcd.com/927/
 [Protocol Buffers]: https://developers.google.com/protocol-buffers/
-[zcred]: https://github.com/zcred/zcred
-[protocreds]: https://github.com/protocreds/
 [protobuf limitations]: https://github.com/google/protobuf/issues/2629
 [Cap'n Proto]: https://capnproto.org/
 [TJSON]: https://www.tjson.org/
@@ -109,7 +122,6 @@ See [LICENSE.txt] for further details.
 
 [//]: # (comparison table links)
 
-[Veriform]: https://github.com/zcred/veriform
 [Protobuf]: https://developers.google.com/protocol-buffers/
 [CBOR]: https://tools.ietf.org/html/rfc7049
 [ASN.1 DER]: https://www.itu.int/rec/T-REC-X.690-201508-I/en
