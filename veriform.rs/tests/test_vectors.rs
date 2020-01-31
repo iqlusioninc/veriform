@@ -31,36 +31,33 @@ impl MessageExample {
     pub fn load_from_file(path: &Path) -> Vec<Self> {
         let mut file = File::open(&path).expect("valid messages.tjson");
         let mut tjson_string = String::new();
-        file.read_to_string(&mut tjson_string).expect(
-            "messages.tjson read successfully",
-        );
+        file.read_to_string(&mut tjson_string)
+            .expect("messages.tjson read successfully");
 
         let tjson: serde_json::Value =
             serde_json::from_str(&tjson_string).expect("messages.tjson parses successfully");
-        let examples = &tjson["examples:A<O>"].as_array().expect(
-            "messages.tjson examples array",
-        );
+        let examples = &tjson["examples:A<O>"]
+            .as_array()
+            .expect("messages.tjson examples array");
 
         examples
             .into_iter()
-            .map(|ex| {
-                Self {
-                    name: ex["name:s"].as_str().expect("example name").to_owned(),
-                    description: ex["description:s"]
-                        .as_str()
-                        .expect("example description")
-                        .to_owned(),
-                    success: ex["success:b"].as_bool().expect("boolean success value"),
-                    encoded: HEXLOWER
-                        .decode(
-                            ex["encoded:d16"]
-                                .as_str()
-                                .expect("encoded example")
-                                .as_bytes(),
-                        )
-                        .expect("hex encoded"),
-                    decoded: ex.get("decoded:O").cloned(),
-                }
+            .map(|ex| Self {
+                name: ex["name:s"].as_str().expect("example name").to_owned(),
+                description: ex["description:s"]
+                    .as_str()
+                    .expect("example description")
+                    .to_owned(),
+                success: ex["success:b"].as_bool().expect("boolean success value"),
+                encoded: HEXLOWER
+                    .decode(
+                        ex["encoded:d16"]
+                            .as_str()
+                            .expect("encoded example")
+                            .as_bytes(),
+                    )
+                    .expect("hex encoded"),
+                decoded: ex.get("decoded:O").cloned(),
             })
             .collect()
     }
@@ -85,15 +82,14 @@ impl VarintExample {
     pub fn load_from_file(path: &Path) -> Vec<Self> {
         let mut file = File::open(&path).expect("valid varint.tjson");
         let mut tjson_string = String::new();
-        file.read_to_string(&mut tjson_string).expect(
-            "varint.tjson read successfully",
-        );
+        file.read_to_string(&mut tjson_string)
+            .expect("varint.tjson read successfully");
 
         let tjson: serde_json::Value =
             serde_json::from_str(&tjson_string).expect("varint.tjson parses successfully");
-        let examples = &tjson["examples:A<O>"].as_array().expect(
-            "varint.tjson examples array",
-        );
+        let examples = &tjson["examples:A<O>"]
+            .as_array()
+            .expect("varint.tjson examples array");
 
         examples
             .into_iter()
@@ -137,30 +133,28 @@ pub fn decode_value(value: &JsonValue) -> VeriformValue {
         for (key, encoded_value) in input_map {
             let mut parts = key.split(':');
 
-            let id: u64 = parts.next().expect("colon delimited tag").parse().expect(
-                "numeric id",
-            );
+            let id: u64 = parts
+                .next()
+                .expect("colon delimited tag")
+                .parse()
+                .expect("numeric id");
 
             let tag = parts.next().expect("colon delimited tag");
 
             let decoded_value = match tag {
                 "O" => decode_value(encoded_value),
-                "d16" => {
-                    VeriformValue::Data(
-                        HEXLOWER
-                            .decode(encoded_value.as_str().expect("string data").as_bytes())
-                            .expect("hex encoded"),
-                    )
-                }
-                "u" => {
-                    VeriformValue::UInt(
-                        encoded_value
-                            .as_str()
-                            .expect("string data")
-                            .parse()
-                            .expect("unsigned integer value"),
-                    )
-                }
+                "d16" => VeriformValue::Data(
+                    HEXLOWER
+                        .decode(encoded_value.as_str().expect("string data").as_bytes())
+                        .expect("hex encoded"),
+                ),
+                "u" => VeriformValue::UInt(
+                    encoded_value
+                        .as_str()
+                        .expect("string data")
+                        .parse()
+                        .expect("unsigned integer value"),
+                ),
                 _ => panic!("unknown tag: '{}'", tag),
             };
 

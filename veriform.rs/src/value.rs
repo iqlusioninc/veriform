@@ -1,6 +1,5 @@
 //! The Value enum: a loosely typed way of representing veriform messages.
 
-
 #[cfg(not(feature = "std"))]
 pub use alloc::btree_map::BTreeMap;
 
