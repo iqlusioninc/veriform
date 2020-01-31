@@ -105,7 +105,7 @@ without any additional terms or conditions.
 [//]: # (badges)
 
 [build-image]: https://github.com/clasp-lang/veriform/workflows/Rust/badge.svg?branch=develop&event=push
-[build-link]: https://github.com/clasp-lang/veriform/actions
+[build-link]: https://github.com/clasp-lang/veriform/actions?query=workflow%3ARust
 [license-image]: https://img.shields.io/badge/license-Apache2.0-blue.svg
 [license-link]: https://github.com/clasp-lang/veriform/blob/develop/LICENSE
 

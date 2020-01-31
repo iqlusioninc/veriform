@@ -8,49 +8,48 @@ on:
 name: Rust
 
 jobs:
-# TODO(tarcieri): test on embedded targets
-#  build:
-#    name: Build
-#    runs-on: ubuntu-latest
-#    strategy:
-#      matrix:
-#        target:
-#          - armv7-unknown-linux-musleabihf
-#          - thumbv7em-none-eabihf
-#          - wasm32-unknown-unknown
-#        toolchain:
-#          - 1.39.0
-#          - stable
-#    steps:
-#      - name: Checkout sources
-#        uses: actions/checkout@v1
-#
-#      - name: Cache cargo registry
-#        uses: actions/cache@v1
-#        with:
-#          path: ~/.cargo/registry
-#          key: ${{ runner.os }}-cargo-registry-${{ hashFiles('Cargo.lock') }}
-#
-#      - name: Cache cargo index
-#        uses: actions/cache@v1
-#        with:
-#          path: ~/.cargo/git
-#          key: ${{ runner.os }}-cargo-index-${{ hashFiles('Cargo.lock') }}
-#
-#      - name: Install toolchain
-#        uses: actions-rs/toolchain@v1
-#        with:
-#          toolchain: ${{ matrix.toolchain }}
-#          override: true
-#
-#      - name: Install target
-#        run: rustup target add ${{ matrix.target }}
-#
-#      - name: Run cargo build (core)
-#        working-directory: core
-#        env:
-#          RUSTFLAGS: -D warnings
-#        run: cargo build --release --target ${{ matrix.target }} --no-default-features
+  build:
+    name: Build
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        target:
+          - armv7-unknown-linux-musleabihf
+          - thumbv7em-none-eabihf
+          - wasm32-unknown-unknown
+        toolchain:
+          - 1.39.0
+          - stable
+    steps:
+      - name: Checkout sources
+        uses: actions/checkout@v1
+
+      - name: Cache cargo registry
+        uses: actions/cache@v1
+        with:
+          path: ~/.cargo/registry
+          key: ${{ runner.os }}-cargo-registry-${{ hashFiles('Cargo.lock') }}
+
+      - name: Cache cargo index
+        uses: actions/cache@v1
+        with:
+          path: ~/.cargo/git
+          key: ${{ runner.os }}-cargo-index-${{ hashFiles('Cargo.lock') }}
+
+      - name: Install toolchain
+        uses: actions-rs/toolchain@v1
+        with:
+          toolchain: ${{ matrix.toolchain }}
+          override: true
+
+      - name: Install target
+        run: rustup target add ${{ matrix.target }}
+
+      - name: Run cargo build (core)
+        working-directory: veriform.rs
+        env:
+          RUSTFLAGS: -D warnings
+        run: cargo build --release --target ${{ matrix.target }} --no-default-features
 
   check:
     name: Check
