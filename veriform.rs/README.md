@@ -1,21 +1,12 @@
 # veriform.rs [![Latest Version][crate-shield]][crate-link] [![Docs][docs-image]][docs-link] [![Build Status][build-image]][build-link] [![MIT licensed][license-image]][license-link]
 
-[crate-shield]: https://img.shields.io/crates/v/veriform.svg
-[crate-link]: https://crates.io/crates/veriform
-[docs-image]: https://docs.rs/veriform/badge.svg
-[docs-link]: https://docs.rs/veriform/
-[build-image]: https://secure.travis-ci.org/zcred/veriform.svg?branch=master
-[build-link]: http://travis-ci.org/zcred/veriform
-[license-image]: https://img.shields.io/badge/license-MIT-blue.svg
-[license-link]: https://github.com/zcred/veriform/blob/master/LICENSE.txt
-
 Rust implementation of **Veriform**: a cryptographically verifiable data
 serialization format inspired by Protocol Buffers, useful for things like
 credentials, transparency logs, and "blockchain" applications.
 
 For more information, see the [toplevel README.md].
 
-[toplevel README.md]: https://github.com/zcred/veriform/blob/master/README.md
+[toplevel README.md]: https://github.com/clasp-lang/veriform/blob/develop/README.md
 
 ## Help and Discussion
 
@@ -34,12 +25,25 @@ Have questions? Want to suggest a feature or change?
 
 ## Contributing
 
-Bug reports and pull requests are welcome on GitHub at https://github.com/zcred/veriform
+Bug reports and pull requests are welcome on GitHub at https://github.com/clasp-lang/veriform
 
 ## Copyright
 
-Copyright (c) 2017 [The Zcred Developers][AUTHORS].
+Copyright © 2017-2020 Tony Arcieri
 See [LICENSE.txt] for further details.
 
-[AUTHORS]: https://github.com/zcred/zcred/blob/master/AUTHORS.md
-[LICENSE.txt]: https://github.com/zcred/veriform/blob/master/LICENSE.txt
+[//]: # (badges)
+
+[crate-shield]: https://img.shields.io/crates/v/veriform.svg
+[crate-link]: https://crates.io/crates/veriform
+[docs-image]: https://docs.rs/veriform/badge.svg
+[docs-link]: https://docs.rs/veriform/
+[build-image]: https://secure.travis-ci.org/clasp-lang/veriform.svg?branch=develop
+[build-link]: http://travis-ci.org/clasp-lang/veriform
+[license-image]: https://img.shields.io/badge/license-MIT-blue.svg
+[license-link]: https://github.com/clasp-lang/veriform/blob/develop/LICENSE.txt
+
+[//]: # (general links)
+
+[AUTHORS]: https://github.com/zcred/zcred/blob/develop/AUTHORS.md
+[LICENSE.txt]: https://github.com/clasp-lang/veriform/blob/develop/LICENSE.txt

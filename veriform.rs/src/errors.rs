@@ -1,6 +1,5 @@
 //! errors.rs: error types used by this crate
 
-
 #[cfg(not(feature = "std"))]
 use alloc::boxed::Box;
 
@@ -104,7 +103,6 @@ impl Display for ErrorImpl {
             Some(offset) => write!(f, "{} at byte {}", self.kind, offset),
             None => Display::fmt(&self.kind, f),
         }
-
     }
 }
 

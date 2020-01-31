@@ -16,7 +16,9 @@ pub struct Decoder {
 impl Decoder {
     /// Create a new Decoder instance
     pub fn new() -> Self {
-        Self { messages: vec![Map::new()] }
+        Self {
+            messages: vec![Map::new()],
+        }
     }
 
     fn current_message(&mut self) -> &mut Map {
@@ -34,10 +36,8 @@ impl Handler for Decoder {
 
     /// Add binary data to the current object
     fn binary(&mut self, id: u64, value: &[u8]) {
-        self.current_message().insert(
-            id,
-            Value::Data(Vec::from(value)),
-        );
+        self.current_message()
+            .insert(id, Value::Data(Vec::from(value)));
     }
 
     /// Push down the internal stack, constructing a new object
@@ -48,10 +48,8 @@ impl Handler for Decoder {
     /// End a nested object, setting it to the given ID on its parent
     fn end_nested(&mut self, id: u64) {
         let nested_message = self.messages.pop().expect("non-empty messages stack");
-        self.current_message().insert(
-            id,
-            Value::Message(nested_message),
-        );
+        self.current_message()
+            .insert(id, Value::Message(nested_message));
     }
 
     /// Finish decoding, returning the finished parent object

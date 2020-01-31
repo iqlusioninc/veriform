@@ -34,7 +34,7 @@ impl<'m, H: Handler> Parser<'m, H> {
             max_length: DEFAULT_MAX_LENGTH,
             max_depth: DEFAULT_MAX_DEPTH,
             remaining: Vec::new(),
-            handler: handler,
+            handler,
         }
     }
 
