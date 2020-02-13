@@ -2,15 +2,26 @@
 
 use crate::Error;
 use core::convert::TryFrom;
+use vint64::Vint64;
+
+/// Tag which identifies a field
+pub type Tag = u64;
 
 /// Field headers
 #[derive(Copy, Clone, Debug, Eq, PartialEq)]
 pub struct Header {
     /// Tag which identifies the field
-    pub tag: u64,
+    pub tag: Tag,
 
     /// Encoded value type for the field
     pub wire_type: WireType,
+}
+
+impl Header {
+    /// Encode this header value as a `Vint64`
+    pub fn encode(self) -> Vint64 {
+        vint64::encode(self.tag << 3 | self.wire_type as u64)
+    }
 }
 
 impl TryFrom<u64> for Header {
@@ -25,6 +36,7 @@ impl TryFrom<u64> for Header {
 
 /// Wire type identifiers for Veriform types
 #[derive(Copy, Clone, Debug, Eq, PartialEq, PartialOrd, Ord)]
+#[repr(u64)]
 pub enum WireType {
     /// 64-bit unsigned integer
     UInt64 = 0,
@@ -48,7 +60,7 @@ impl TryFrom<u64> for WireType {
             1 => Ok(WireType::SInt64),
             2 => Ok(WireType::Message),
             3 => Ok(WireType::Bytes),
-            _ => Err(Error),
+            _ => Err(Error::WireType),
         }
     }
 }

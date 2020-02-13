@@ -12,3 +12,6 @@ keywords    = ["authentication", "cryptography", "security", "serialization", "m
 
 [dependencies]
 vint64 = "0.1"
+
+[features]
+std = []
