@@ -6,12 +6,12 @@
 #![forbid(unsafe_code)]
 #![warn(missing_docs, rust_2018_idioms, unused_qualifications)]
 
+#[cfg(feature = "std")]
+extern crate std;
+
 pub mod decoder;
+pub mod encoder;
+pub mod error;
 pub mod field;
 
-pub use crate::decoder::Decoder;
-
-/// Error type
-// TODO(tarcieri): capture more info?
-#[derive(Debug)]
-pub struct Error;
+pub use crate::{decoder::Decoder, encoder::Encoder, error::Error};

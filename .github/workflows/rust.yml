@@ -45,7 +45,7 @@ jobs:
       - name: Install target
         run: rustup target add ${{ matrix.target }}
 
-      - name: Run cargo build (core)
+      - name: Run cargo build --target ${{ matrix.target }}
         working-directory: veriform.rs
         env:
           RUSTFLAGS: -D warnings
@@ -125,7 +125,7 @@ jobs:
           toolchain: ${{ matrix.toolchain }}
           override: true
 
-      - name: Run cargo test
+      - name: Run cargo test --release
         uses: actions-rs/cargo@v1
         env:
           CARGO_INCREMENTAL: 0
@@ -133,6 +133,15 @@ jobs:
         with:
           command: test
           args: --release
+
+      - name: Run cargo test --all-features --release
+        uses: actions-rs/cargo@v1
+        env:
+          CARGO_INCREMENTAL: 0
+          RUSTFLAGS: -D warnings
+        with:
+          command: test
+          args: --all-features --release
 
   fmt:
     name: Rustfmt

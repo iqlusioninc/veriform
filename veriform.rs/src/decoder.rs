@@ -30,7 +30,7 @@ impl Decoder {
             self.state = Some(new_state);
             Ok(event)
         } else {
-            Err(Error)
+            Err(Error::Failed)
         }
     }
 }
@@ -38,7 +38,7 @@ impl Decoder {
 /// Events emitted by Veriform's decoder
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub enum Event<'a> {
-    /// Consumed field header with the given tag and wiretype
+    /// Consumed field header with the given tag and wire type
     FieldHeader(Header),
 
     /// Consumed an unsigned 64-bit integer
@@ -154,7 +154,7 @@ struct ValueDecoder {
 }
 
 impl ValueDecoder {
-    /// Create a new value decoder for the given wiretype
+    /// Create a new value decoder for the given wire type
     pub fn new(wire_type: WireType) -> Self {
         Self {
             decoder: VInt64Decoder::new(),
@@ -228,7 +228,7 @@ impl BodyDecoder {
         let bytes = &input[..chunk_size];
         *input = &input[chunk_size..];
 
-        let remaining = self.remaining - chunk_size;
+        let remaining = self.remaining.checked_sub(chunk_size).unwrap();
 
         let event = match self.wire_type {
             WireType::Message => Event::MessageChunk { bytes, remaining },
@@ -283,11 +283,12 @@ impl VInt64Decoder {
 
     /// Fill the internal buffer with data, returning a [`FieldHeader`] if we're complete
     fn fill_buffer(&mut self, length: usize, input: &mut &[u8]) {
-        let remaining = length - self.pos;
+        let remaining = length.checked_sub(self.pos).unwrap();
 
         if input.len() < remaining {
-            self.buffer[self.pos..(self.pos + input.len())].copy_from_slice(*input);
-            self.pos += input.len();
+            let new_pos = self.pos.checked_add(input.len()).unwrap();
+            self.buffer[self.pos..new_pos].copy_from_slice(*input);
+            self.pos = new_pos;
             *input = &[];
         } else {
             self.buffer[self.pos..length].copy_from_slice(&input[..remaining]);
@@ -303,7 +304,9 @@ impl VInt64Decoder {
         }
 
         let mut buffer = &self.buffer[..length];
-        vint64::decode(&mut buffer).map(Some).map_err(|_| Error)
+        vint64::decode(&mut buffer)
+            .map(Some)
+            .map_err(|_| Error::Decode)
     }
 }
 
