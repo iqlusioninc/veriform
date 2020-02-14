@@ -1,4 +1,4 @@
-# veriform.rs [![Latest Version][crate-shield]][crate-link] [![Docs][docs-image]][docs-link] [![Apache 2.0 Licensed][license-image]][license-link] ![MSRV][msrv-image] [![Build Status][build-image]][build-link]
+# veriform.rs [![Latest Version][crate-image]][crate-link] [![Docs][docs-image]][docs-link] [![Apache 2.0 Licensed][license-image]][license-link] ![MSRV][msrv-image] [![Build Status][build-image]][build-link]
 
 Rust implementation of **Veriform**: a cryptographically verifiable data
 serialization format inspired by Protocol Buffers, useful for things like
@@ -32,7 +32,7 @@ without any additional terms or conditions.
 
 [//]: # (badges)
 
-[crate-shield]: https://img.shields.io/crates/v/veriform.svg
+[crate-image]: https://img.shields.io/crates/v/veriform.svg
 [crate-link]: https://crates.io/crates/veriform
 [docs-image]: https://docs.rs/veriform/badge.svg
 [docs-link]: https://docs.rs/veriform/
