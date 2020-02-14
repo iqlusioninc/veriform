@@ -11,7 +11,7 @@ categories  = ["authentication", "cryptography", "encoding"]
 keywords    = ["authentication", "cryptography", "security", "serialization", "merkle"]
 
 [dependencies]
-vint64 = "0.1"
+vint64 = { version = "0.1", path = "vint64" }
 
 [features]
 default = ["std"]
