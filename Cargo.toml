@@ -1,2 +1,2 @@
 [workspace]
-members = ["veriform.rs"]
+members = ["veriform.rs", "veriform.rs/vint64"]
