@@ -91,7 +91,7 @@ pub struct Error;
 
 /// `vint64`: serialized variable-width 64-bit integers
 #[derive(Copy, Clone, Eq, PartialEq)]
-pub struct Vint64 {
+pub struct VInt64 {
     /// Serialized variable-width integer
     bytes: [u8; MAX_BYTES],
 
@@ -99,21 +99,21 @@ pub struct Vint64 {
     length: usize,
 }
 
-impl AsRef<[u8]> for Vint64 {
+impl AsRef<[u8]> for VInt64 {
     fn as_ref(&self) -> &[u8] {
         &self.bytes[..self.length]
     }
 }
 
-impl Debug for Vint64 {
+impl Debug for VInt64 {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         let mut bytes_ref = self.as_ref();
         write!(f, "Vint64({})", decode(&mut bytes_ref).unwrap())
     }
 }
 
-impl From<u64> for Vint64 {
-    fn from(value: u64) -> Vint64 {
+impl From<u64> for VInt64 {
+    fn from(value: u64) -> VInt64 {
         let mut length = 1;
         let mut result = (value << 1) | 1;
         let mut max = 1 << 7;
@@ -136,18 +136,18 @@ impl From<u64> for Vint64 {
     }
 }
 
-impl From<i64> for Vint64 {
-    fn from(value: i64) -> Vint64 {
+impl From<i64> for VInt64 {
+    fn from(value: i64) -> VInt64 {
         (((value << 1) ^ (value >> 63)) as u64).into()
     }
 }
 
-impl TryFrom<&[u8]> for Vint64 {
+impl TryFrom<&[u8]> for VInt64 {
     type Error = Error;
 
     fn try_from(slice: &[u8]) -> Result<Self, Error> {
         let mut slice_ref = slice;
-        decode(&mut slice_ref).map(Vint64::from)
+        decode(&mut slice_ref).map(VInt64::from)
     }
 }
 
@@ -159,7 +159,7 @@ pub fn length_hint(byte: u8) -> usize {
 }
 
 /// Encode an unsigned 64-bit integer as `vint64`
-pub fn encode(value: u64) -> Vint64 {
+pub fn encode(value: u64) -> VInt64 {
     value.into()
 }
 
@@ -206,7 +206,7 @@ pub fn decode(input: &mut &[u8]) -> Result<u64, Error> {
 }
 
 /// Encode a signed integer as a zigzag-encoded `vint64`
-pub fn encode_signed(value: i64) -> Vint64 {
+pub fn encode_signed(value: i64) -> VInt64 {
     value.into()
 }
 

@@ -2,7 +2,7 @@
 
 use crate::Error;
 use core::convert::TryFrom;
-use vint64::Vint64;
+use vint64::VInt64;
 
 /// Tag which identifies a field
 pub type Tag = u64;
@@ -19,7 +19,7 @@ pub struct Header {
 
 impl Header {
     /// Encode this header value as a `Vint64`
-    pub fn encode(self) -> Vint64 {
+    pub fn encode(self) -> VInt64 {
         vint64::encode(self.tag << 3 | self.wire_type as u64)
     }
 }
