@@ -1,3 +1,14 @@
+## [0.2.0] (2020-02-14)
+
+- Add `VInt64::len()` method ([#63])
+- Rename `Vint64` -> `VInt64` ([#62])
+- Relocate crate into the Veriform git repo ([#61])
+
+[0.2.0]: https://github.com/clasp-lang/veriform/pull/64
+[#63]: https://github.com/clasp-lang/veriform/pull/63
+[#62]: https://github.com/clasp-lang/veriform/pull/62
+[#61]: https://github.com/clasp-lang/veriform/pull/61
+
 ## 0.1.2 (2020-01-31)
 
 - More documentation improvements

@@ -8,10 +8,10 @@ repository  = "https://github.com/clasp-lang/veriform"
 readme      = "README.md"
 edition     = "2018"
 categories  = ["authentication", "cryptography", "encoding"]
-keywords    = ["authentication", "cryptography", "security", "serialization", "merkle"]
+keywords    = ["hashing", "merkle", "protobufs", "security", "serialization"]
 
 [dependencies]
-vint64 = { version = "0.1", path = "vint64" }
+vint64 = { version = "0.2", path = "vint64" }
 
 [features]
 default = ["std"]
