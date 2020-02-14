@@ -1,32 +1,47 @@
 //! Veriform decoder
 
 use crate::{
-    field::{Header, WireType},
+    field::{Header, Tag, WireType},
     Error,
 };
 use core::convert::TryFrom;
 
 /// Veriform decoder: zero-copy pull parser which emits events based on
 /// incoming data.
-#[derive(Default)]
+#[derive(Debug)]
 pub struct Decoder {
     /// Current state of the decoder (or `None` if an error occurred)
     state: Option<State>,
+
+    /// Last field tag that was decoded (to ensure monotonicity)
+    last_tag: Option<Tag>,
+}
+
+impl Default for Decoder {
+    fn default() -> Self {
+        Self {
+            state: Some(State::default()),
+            last_tag: None,
+        }
+    }
 }
 
 impl Decoder {
     /// Create a new decoder in an initial state
     pub fn new() -> Self {
-        Self {
-            state: Some(State::default()),
-        }
+        Self::default()
     }
 
     /// Process the given input data, advancing the slice for the amount of
     /// data processed, and returning any decoded events.
     pub fn decode<'a>(&mut self, input: &mut &'a [u8]) -> Result<Option<Event<'a>>, Error> {
         if let Some(state) = self.state.take() {
-            let (new_state, event) = state.decode(input)?;
+            let (new_state, event) = state.decode(input, self.last_tag)?;
+
+            if let Some(Event::FieldHeader(header)) = &event {
+                self.last_tag = Some(header.tag);
+            }
+
             self.state = Some(new_state);
             Ok(event)
         } else {
@@ -73,6 +88,7 @@ pub enum Event<'a> {
 }
 
 /// Current decoder state
+#[derive(Debug)]
 enum State {
     /// Reading the initial `vint64` header on a field
     Header(HeaderDecoder),
@@ -87,9 +103,13 @@ enum State {
 impl State {
     /// Process the given input data, advancing the slice for the amount of
     /// data processed, and returning the new state.
-    pub fn decode<'a>(self, input: &mut &'a [u8]) -> Result<(Self, Option<Event<'a>>), Error> {
+    pub fn decode<'a>(
+        self,
+        input: &mut &'a [u8],
+        last_tag: Option<Tag>,
+    ) -> Result<(Self, Option<Event<'a>>), Error> {
         match self {
-            State::Header(header) => header.decode(input),
+            State::Header(header) => header.decode(input, last_tag),
             State::Value(value) => value.decode(input),
             State::Body(body) => body.decode(input),
         }
@@ -127,15 +147,28 @@ impl Default for State {
 }
 
 /// Decoder for field headers
-#[derive(Default)]
+#[derive(Default, Debug)]
 struct HeaderDecoder(VInt64Decoder);
 
 impl HeaderDecoder {
     /// Process the given input data, advancing the slice for the amount of
     /// data processed, and returning the new state.
-    pub fn decode<'a>(mut self, input: &mut &'a [u8]) -> Result<(State, Option<Event<'a>>), Error> {
+    pub fn decode<'a>(
+        mut self,
+        input: &mut &'a [u8],
+        last_tag: Option<Tag>,
+    ) -> Result<(State, Option<Event<'a>>), Error> {
         if let Some(value) = self.0.decode(input)? {
-            let event = Event::FieldHeader(Header::try_from(value)?);
+            let header = Header::try_from(value)?;
+
+            // Ensure field ordering is monotonically increasing
+            if let Some(tag) = last_tag {
+                if header.tag < tag {
+                    return Err(Error::Order { tag: header.tag });
+                }
+            }
+
+            let event = Event::FieldHeader(header);
             let new_state = State::transition(&event);
             Ok((new_state, Some(event)))
         } else {
@@ -145,6 +178,7 @@ impl HeaderDecoder {
 }
 
 /// Decoder for field values
+#[derive(Debug)]
 struct ValueDecoder {
     /// Create a new decoder for the `vint64` length prefix or value
     decoder: VInt64Decoder,
@@ -187,6 +221,7 @@ impl From<ValueDecoder> for State {
 }
 
 /// Decoder for the bodies of variable-length field values
+#[derive(Debug)]
 struct BodyDecoder {
     /// Wire type we're decoding
     wire_type: WireType,
@@ -313,6 +348,7 @@ impl VInt64Decoder {
 #[cfg(test)]
 mod tests {
     use super::{Decoder, Event, WireType};
+    use crate::error::Error;
 
     macro_rules! try_decode {
         ($decoder:expr, $input:expr, $event:path) => {
@@ -431,5 +467,22 @@ mod tests {
         let header = try_decode!(decoder, &mut input_ref, Event::FieldHeader);
         assert_eq!(header.tag, 42);
         assert_eq!(header.wire_type, WireType::UInt64);
+    }
+
+    #[test]
+    fn decode_out_of_order() {
+        let input = [102, 5, 167, 66, 5, 85];
+        let mut input_ref = &input[..];
+        let mut decoder = Decoder::new();
+
+        let header = try_decode!(decoder, &mut input_ref, Event::FieldHeader);
+        assert_eq!(header.tag, 43);
+        assert_eq!(header.wire_type, WireType::SInt64);
+
+        let value = try_decode!(decoder, &mut input_ref, Event::SInt64);
+        assert_eq!(value, -42);
+
+        let error = decoder.decode(&mut input_ref).err().unwrap();
+        assert_eq!(error, Error::Order { tag: 42 })
     }
 }
