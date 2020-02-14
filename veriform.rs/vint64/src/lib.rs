@@ -99,6 +99,14 @@ pub struct VInt64 {
     length: usize,
 }
 
+#[allow(clippy::len_without_is_empty)]
+impl VInt64 {
+    /// Get the length of this value in bytes
+    pub fn len(self) -> usize {
+        self.length
+    }
+}
+
 impl AsRef<[u8]> for VInt64 {
     fn as_ref(&self) -> &[u8] {
         &self.bytes[..self.length]
