@@ -23,3 +23,4 @@ pub mod field;
 pub mod message;
 
 pub use crate::{decoder::Decoder, encoder::Encoder, error::Error, message::Message};
+pub use vint64;
