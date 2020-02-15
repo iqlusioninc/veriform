@@ -53,6 +53,16 @@ pub enum WireType {
     Bytes = 3,
 }
 
+impl WireType {
+    /// Is this a wiretype which is followed by a length delimiter?
+    pub fn is_length_delimited(self) -> bool {
+        match self {
+            WireType::Message | WireType::Bytes => true,
+            _ => false,
+        }
+    }
+}
+
 impl TryFrom<u64> for WireType {
     type Error = Error;
 
