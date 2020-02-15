@@ -146,6 +146,7 @@ impl From<u64> for VInt64 {
 
 impl From<i64> for VInt64 {
     fn from(value: i64) -> VInt64 {
+        // Zigzag encoding
         (((value << 1) ^ (value >> 63)) as u64).into()
     }
 }

@@ -1,4 +1,6 @@
-//! Fields (i.e. key/value pair) in a Veriform message
+//! Fields (i.e. key/value pair) in a message
+
+pub mod length;
 
 use crate::Error;
 use core::convert::TryFrom;
