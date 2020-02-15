@@ -19,7 +19,7 @@ pub trait Message {
 
     /// Encode this message as Veriform into the provided buffer, returning
     /// a slice containing the encoded message on success.
-    fn encode(&self, buffer: &mut [u8]) -> Result<&mut [u8], Error>;
+    fn encode<'a>(&self, buffer: &'a mut [u8]) -> Result<&'a mut [u8], Error>;
 
     /// Get the length of a message after being encoded as Veriform.
     fn encoded_len(&self) -> usize;
