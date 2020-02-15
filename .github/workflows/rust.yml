@@ -46,7 +46,7 @@ jobs:
         run: rustup target add ${{ matrix.target }}
 
       - name: Run cargo build --target ${{ matrix.target }}
-        working-directory: veriform.rs
+        working-directory: rust
         env:
           RUSTFLAGS: -D warnings
         run: cargo build --release --target ${{ matrix.target }} --no-default-features
@@ -129,9 +129,8 @@ jobs:
         env:
           CARGO_INCREMENTAL: 0
           RUSTFLAGS: -D warnings
-        run: |
-          cd veriform.rs
-          cargo test --no-default-features --release
+        working-directory: rust
+        run: cargo test --no-default-features --release
 
       - name: Run cargo test --release
         uses: actions-rs/cargo@v1
