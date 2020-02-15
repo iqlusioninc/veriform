@@ -75,30 +75,50 @@ impl Decoder {
         }
     }
 
+    /// Decode an expected `message` field, returning an error for anything else
+    pub fn decode_message<'a>(&mut self, input: &mut &'a [u8]) -> Result<&'a [u8], Error> {
+        self.decode_value(input, WireType::Message)
+    }
+
     /// Decode an expected `bytes` field, returning an error for anything else
     pub fn decode_bytes<'a>(&mut self, input: &mut &'a [u8]) -> Result<&'a [u8], Error> {
-        if let Some(Event::BytesLength(length)) = self.decode(input)? {
-            match self.decode(input)? {
-                Some(Event::BytesChunk { bytes, remaining }) if remaining == 0 => {
-                    debug_assert_eq!(length, bytes.len());
-                    return Ok(bytes);
-                }
-                _ => (),
+        self.decode_value(input, WireType::Bytes)
+    }
+
+    /// Decode a length delimited value, expecting the given wire type
+    fn decode_value<'a>(
+        &mut self,
+        input: &mut &'a [u8],
+        expected_type: WireType,
+    ) -> Result<&'a [u8], Error> {
+        let length = self.decode_length_delimiter(input, expected_type)?;
+
+        if let Some(Event::ValueChunk {
+            wire_type,
+            bytes,
+            remaining,
+        }) = self.decode(input)?
+        {
+            if wire_type == expected_type && remaining == 0 {
+                debug_assert_eq!(length, bytes.len());
+                return Ok(bytes);
             }
         }
 
         Err(Error::Decode)
     }
 
-    /// Decode an expected `message` field, returning an error for anything else
-    pub fn decode_message<'a>(&mut self, input: &mut &'a [u8]) -> Result<&'a [u8], Error> {
-        if let Some(Event::MessageLength(length)) = self.decode(input)? {
-            match self.decode(input)? {
-                Some(Event::MessageChunk { bytes, remaining }) if remaining == 0 => {
-                    debug_assert_eq!(length, bytes.len());
-                    return Ok(bytes);
-                }
-                _ => (),
+    /// Decode the length delimiter, expecting the given wire type
+    fn decode_length_delimiter(
+        &mut self,
+        input: &mut &[u8],
+        expected_type: WireType,
+    ) -> Result<usize, Error> {
+        debug_assert!(expected_type.is_length_delimited());
+
+        if let Some(Event::LengthDelimiter { wire_type, length }) = self.decode(input)? {
+            if wire_type == expected_type {
+                return Ok(length);
             }
         }
 
@@ -118,23 +138,20 @@ pub enum Event<'a> {
     /// Consumed a signed 64-bit integer
     SInt64(i64),
 
-    /// Consumed the length of a nested message
-    MessageLength(usize),
+    /// Consumed a length delimiter for the given wire type
+    LengthDelimiter {
+        /// Wire type of the value this length delimits
+        wire_type: WireType,
 
-    /// Consumed the length of a field containing raw bytes
-    BytesLength(usize),
-
-    /// Consumed a portion of a nested message value in a field
-    MessageChunk {
-        /// Bytes in this chunk
-        bytes: &'a [u8],
-
-        /// Remaining bytes in the message
-        remaining: usize,
+        /// Length of the field body (sans delimiter)
+        length: usize,
     },
 
-    /// Consumed a portion of binary data in a field
-    BytesChunk {
+    /// Consumed a chunk of a length-delimited value
+    ValueChunk {
+        /// Wire type of the value being consumed
+        wire_type: WireType,
+
         /// Bytes in this chunk
         bytes: &'a [u8],
 
@@ -175,19 +192,17 @@ impl State {
     fn transition(event: &Event<'_>) -> Self {
         match event {
             Event::FieldHeader(header) => ValueDecoder::new(header.wire_type).into(),
-            Event::UInt64(_) | Event::SInt64(_) => State::default(),
-            Event::MessageLength(length) => BodyDecoder::new(WireType::Message, *length).into(),
-            Event::BytesLength(length) => BodyDecoder::new(WireType::Bytes, *length).into(),
-            Event::MessageChunk { remaining, .. } => {
-                if *remaining > 0 {
-                    BodyDecoder::new(WireType::Message, *remaining).into()
-                } else {
-                    State::default()
-                }
+            Event::LengthDelimiter { wire_type, length } => {
+                BodyDecoder::new(*wire_type, *length).into()
             }
-            Event::BytesChunk { remaining, .. } => {
+            Event::UInt64(_) | Event::SInt64(_) => State::default(),
+            Event::ValueChunk {
+                wire_type,
+                remaining,
+                ..
+            } => {
                 if *remaining > 0 {
-                    BodyDecoder::new(WireType::Bytes, *remaining).into()
+                    BodyDecoder::new(*wire_type, *remaining).into()
                 } else {
                     State::default()
                 }
@@ -259,9 +274,12 @@ impl ValueDecoder {
             let event = match self.wire_type {
                 WireType::UInt64 => Event::UInt64(value),
                 WireType::SInt64 => Event::SInt64((value >> 1) as i64 ^ -((value & 1) as i64)),
-                WireType::Message => Event::MessageLength(value as usize),
-                WireType::Bytes => Event::BytesLength(value as usize),
+                WireType::Message | WireType::Bytes => Event::LengthDelimiter {
+                    wire_type: self.wire_type,
+                    length: value as usize,
+                },
             };
+
             let new_state = State::transition(&event);
             Ok((new_state, Some(event)))
         } else {
@@ -289,13 +307,9 @@ struct BodyDecoder {
 impl BodyDecoder {
     /// Create a new field value body decoder for the given wire type.
     ///
-    /// Panics if the given wire type doesn't have a body
+    /// Panics if the given wire type isn't a length-delimited type (debug-only).
     pub fn new(wire_type: WireType, length: usize) -> Self {
-        assert!(
-            wire_type == WireType::Message || wire_type == WireType::Bytes,
-            "can't create field body for {:?}",
-            wire_type
-        );
+        debug_assert!(wire_type.is_length_delimited());
 
         Self {
             wire_type,
@@ -320,14 +334,13 @@ impl BodyDecoder {
         *input = &input[chunk_size..];
 
         let remaining = self.remaining.checked_sub(chunk_size).unwrap();
-
-        let event = match self.wire_type {
-            WireType::Message => Event::MessageChunk { bytes, remaining },
-            WireType::Bytes => Event::BytesChunk { bytes, remaining },
-            _ => unreachable!(), // Invariant maintained by `FieldBodyDecoder::new`
+        let event = Event::ValueChunk {
+            wire_type: self.wire_type,
+            bytes,
+            remaining,
         };
-
         let new_state = State::transition(&event);
+
         Ok((new_state, Some(event)))
     }
 }
