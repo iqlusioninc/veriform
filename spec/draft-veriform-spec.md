@@ -5,7 +5,7 @@
     category = "info"
     docName = "draft-veriform-spec"
 
-    date = 2017-11-11
+    date = 2020-02-15
 
     [[author]]
     initials = "T. "
@@ -26,20 +26,14 @@ Merkle trees.
 
 # Introduction
 
-Veriform was originally designed to provide the serializion format for a
-credential scheme (zcreds)  and as such makes many decisions aimed at
-maximizing the format's security properties, as opposed to being a general
-purpose serialization format.
+Veriform is aimed at maximizing the format's security properties, as opposed
+to being a flexible data warehousing format like Protobufs.
 
-One such decision is reducing the types which can be expressed by the format.
-In Veriform, some common types such as floats and signed integers are omitted.
-This keeps the format simple and parsimonious for security use cases.
-
-Veriform supports five scalar types:
+It supports five scalar types:
 
 * Unicode Strings (always encoded as UTF-8)
 * Binary Data
-* Integers (unsigned only)
+* Integers (signed/unsigned)
 * Timestamps
 * Booleans
 
@@ -118,16 +112,16 @@ value, so the entire integer is encoded as follows:
 
 The following wire types are supported by Veriform:
 
-| ID | Type                    | Encoding        |
-|----|-------------------------|-----------------|
-| 0  | Unsigned 64-bit Integer | vint64          |
-| 1  | Reserved                | N/A             |
-| 2  | Nested Message          | Length Prefixed |
-| 3  | Binary Data             | Length Prefixed |
-| 4  | Reserved                | N/A             |
-| 5  | Reserved                | N/A             |
-| 6  | Reserved                | N/A             |
-| 7  | Reserved                | N/A             |
+| ID | Type                    | Encoding              |
+|----|-------------------------|-----------------------|
+| 0  | Unsigned 64-bit integer | vint64                |
+| 1  | Signed 64-bit integer   | vint64 (zigzag)       |
+| 2  | Nested Message          | Length Prefixed       |
+| 3  | Binary Data             | Length Prefixed       |
+| 4  | Unicode String          | Length Prefixed UTF-8 |
+| 5  | Reserved                | N/A                   |
+| 6  | Reserved                | N/A                   |
+| 7  | Reserved                | N/A                   |
 
 The "Length Prefixed" encoding consists of a single vint64 which indicates
 the number of bytes in the subsequent value, followed by the value.
