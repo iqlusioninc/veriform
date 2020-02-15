@@ -23,23 +23,13 @@ impl<'a> Encoder<'a> {
     /// Write a field containing an unsigned 64-bit integer
     pub fn uint64(&mut self, tag: Tag, value: u64) -> Result<(), Error> {
         self.write_header(tag, WireType::UInt64)?;
-        self.write(vint64::encode(value))?;
-        Ok(())
+        self.write(vint64::encode(value))
     }
 
     /// Write a field containing a signed 64-bit integer
     pub fn sint64(&mut self, tag: Tag, value: i64) -> Result<(), Error> {
         self.write_header(tag, WireType::SInt64)?;
-        self.write(vint64::encode_signed(value))?;
-        Ok(())
-    }
-
-    /// Write a field containing bytes
-    pub fn bytes(&mut self, tag: Tag, bytes: &[u8]) -> Result<(), Error> {
-        self.write_header(tag, WireType::Bytes)?;
-        self.write(vint64::encode(bytes.len() as u64))?;
-        self.write(bytes)?;
-        Ok(())
+        self.write(vint64::encode_signed(value))
     }
 
     /// Write a nested message. Length must be known in advance.
@@ -66,6 +56,18 @@ impl<'a> Encoder<'a> {
         Ok(())
     }
 
+    /// Write a field containing bytes
+    pub fn bytes(&mut self, tag: Tag, bytes: &[u8]) -> Result<(), Error> {
+        self.write_header(tag, WireType::Bytes)?;
+        self.write_value(bytes)
+    }
+
+    /// Write a field containing a string
+    pub fn string(&mut self, tag: Tag, string: &str) -> Result<(), Error> {
+        self.write_header(tag, WireType::String)?;
+        self.write_value(string.as_bytes())
+    }
+
     /// Finish constructing a message, returning a slice of the buffer
     /// containing the serialized message
     pub fn finish(self) -> &'a mut [u8] {
@@ -75,6 +77,12 @@ impl<'a> Encoder<'a> {
     /// Write a field header to the underlying buffer
     fn write_header(&mut self, tag: Tag, wire_type: WireType) -> Result<(), Error> {
         self.write(Header { tag, wire_type }.encode())
+    }
+
+    /// Write a length-delimited value to the underlying buffer
+    fn write_value(&mut self, bytes: &[u8]) -> Result<(), Error> {
+        self.write(vint64::encode(bytes.len() as u64))?;
+        self.write(bytes)
     }
 
     /// Write the given bytes to the underlying buffer.
@@ -102,14 +110,18 @@ mod tests {
     use crate::{decoder::Decoder, field::WireType};
 
     const EXAMPLE_BYTES: &[u8] = b"foobar";
+    const EXAMPLE_STRING: &str = "baz";
 
     #[test]
     fn encode_then_decode() {
         let mut buffer = [0u8; 1024];
         let mut encoder = Encoder::new(&mut buffer);
+
         encoder.uint64(1, 42).unwrap();
         encoder.sint64(2, -1).unwrap();
         encoder.bytes(3, EXAMPLE_BYTES).unwrap();
+        encoder.string(4, EXAMPLE_STRING).unwrap();
+
         let length = encoder.finish().len();
         let mut message = &buffer[..length];
 
@@ -134,6 +146,14 @@ mod tests {
 
         let bytes = decoder.decode_bytes(&mut message).unwrap();
         assert_eq!(bytes, EXAMPLE_BYTES);
+
+        let header = decoder.decode_header(&mut message).unwrap();
+        assert_eq!(header.tag, 4);
+        assert_eq!(header.wire_type, WireType::String);
+
+        let string = decoder.decode_string(&mut message).unwrap();
+        assert_eq!(string, EXAMPLE_STRING);
+
         assert!(message.is_empty());
     }
 }

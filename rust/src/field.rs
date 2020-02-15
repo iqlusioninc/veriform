@@ -30,7 +30,7 @@ impl TryFrom<u64> for Header {
     type Error = Error;
 
     fn try_from(encoded: u64) -> Result<Self, Error> {
-        let wire_type = WireType::try_from(encoded & 0b11)?;
+        let wire_type = WireType::try_from(encoded & 0b111)?;
         let tag = encoded >> 3;
         Ok(Header { tag, wire_type })
     }
@@ -51,13 +51,16 @@ pub enum WireType {
 
     /// Binary data
     Bytes = 3,
+
+    /// Unicode string
+    String = 4,
 }
 
 impl WireType {
     /// Is this a wiretype which is followed by a length delimiter?
     pub fn is_length_delimited(self) -> bool {
         match self {
-            WireType::Message | WireType::Bytes => true,
+            WireType::Message | WireType::Bytes | WireType::String => true,
             _ => false,
         }
     }
@@ -72,6 +75,7 @@ impl TryFrom<u64> for WireType {
             1 => Ok(WireType::SInt64),
             2 => Ok(WireType::Message),
             3 => Ok(WireType::Bytes),
+            4 => Ok(WireType::String),
             _ => Err(Error::WireType),
         }
     }
