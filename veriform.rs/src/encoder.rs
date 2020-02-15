@@ -99,22 +99,9 @@ impl<'a> Encoder<'a> {
 #[cfg(test)]
 mod tests {
     use super::Encoder;
-    use crate::{
-        decoder::{Decoder, Event},
-        field::WireType,
-    };
+    use crate::{decoder::Decoder, field::WireType};
 
-    macro_rules! try_decode {
-        ($decoder:expr, $input:expr, $event:path) => {
-            match $decoder.decode($input).unwrap() {
-                Some($event(event)) => event,
-                other => panic!(
-                    concat!("expected ", stringify!($event), ", got: {:?}"),
-                    other
-                ),
-            }
-        };
-    }
+    const EXAMPLE_BYTES: &[u8] = b"foobar";
 
     #[test]
     fn encode_then_decode() {
@@ -122,40 +109,31 @@ mod tests {
         let mut encoder = Encoder::new(&mut buffer);
         encoder.uint64(1, 42).unwrap();
         encoder.sint64(2, -1).unwrap();
-        encoder.bytes(3, b"foobar").unwrap();
+        encoder.bytes(3, EXAMPLE_BYTES).unwrap();
         let length = encoder.finish().len();
         let mut message = &buffer[..length];
 
         let mut decoder = Decoder::new();
-        let header = try_decode!(decoder, &mut message, Event::FieldHeader);
+        let header = decoder.decode_header(&mut message).unwrap();
         assert_eq!(header.tag, 1);
         assert_eq!(header.wire_type, WireType::UInt64);
 
-        let value = try_decode!(decoder, &mut message, Event::UInt64);
+        let value = decoder.decode_uint64(&mut message).unwrap();
         assert_eq!(value, 42);
 
-        let header = try_decode!(decoder, &mut message, Event::FieldHeader);
+        let header = decoder.decode_header(&mut message).unwrap();
         assert_eq!(header.tag, 2);
         assert_eq!(header.wire_type, WireType::SInt64);
 
-        let value = try_decode!(decoder, &mut message, Event::SInt64);
+        let value = decoder.decode_sint64(&mut message).unwrap();
         assert_eq!(value, -1);
 
-        let header = try_decode!(decoder, &mut message, Event::FieldHeader);
+        let header = decoder.decode_header(&mut message).unwrap();
         assert_eq!(header.tag, 3);
         assert_eq!(header.wire_type, WireType::Bytes);
 
-        let msg_len = try_decode!(decoder, &mut message, Event::BytesLength);
-        assert_eq!(msg_len, 6);
-
-        match decoder.decode(&mut message).unwrap() {
-            Some(Event::BytesChunk { bytes, remaining }) => {
-                assert_eq!(remaining, 0);
-                assert_eq!(bytes, b"foobar");
-            }
-            other => panic!(concat!("expected Event::BytesChunk, got: {:?}"), other),
-        };
-
-        assert_eq!(message.len(), 0);
+        let bytes = decoder.decode_bytes(&mut message).unwrap();
+        assert_eq!(bytes, EXAMPLE_BYTES);
+        assert!(message.is_empty());
     }
 }

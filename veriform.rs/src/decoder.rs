@@ -48,6 +48,62 @@ impl Decoder {
             Err(Error::Failed)
         }
     }
+
+    /// Decode an expected field header, returning an error for anything else
+    pub fn decode_header(&mut self, input: &mut &[u8]) -> Result<Header, Error> {
+        if let Some(Event::FieldHeader(header)) = self.decode(input)? {
+            Ok(header)
+        } else {
+            Err(Error::Decode)
+        }
+    }
+
+    /// Decode an expected `uint64`, returning an error for anything else
+    pub fn decode_uint64(&mut self, input: &mut &[u8]) -> Result<u64, Error> {
+        if let Some(Event::UInt64(value)) = self.decode(input)? {
+            Ok(value)
+        } else {
+            Err(Error::Decode)
+        }
+    }
+
+    /// Decode an expected `sint64`, returning an error for anything else
+    pub fn decode_sint64(&mut self, input: &mut &[u8]) -> Result<i64, Error> {
+        match self.decode(input)? {
+            Some(Event::SInt64(value)) => Ok(value),
+            _ => Err(Error::Decode),
+        }
+    }
+
+    /// Decode an expected `bytes` field, returning an error for anything else
+    pub fn decode_bytes<'a>(&mut self, input: &mut &'a [u8]) -> Result<&'a [u8], Error> {
+        if let Some(Event::BytesLength(length)) = self.decode(input)? {
+            match self.decode(input)? {
+                Some(Event::BytesChunk { bytes, remaining }) if remaining == 0 => {
+                    debug_assert_eq!(length, bytes.len());
+                    return Ok(bytes);
+                }
+                _ => (),
+            }
+        }
+
+        Err(Error::Decode)
+    }
+
+    /// Decode an expected `message` field, returning an error for anything else
+    pub fn decode_message<'a>(&mut self, input: &mut &'a [u8]) -> Result<&'a [u8], Error> {
+        if let Some(Event::MessageLength(length)) = self.decode(input)? {
+            match self.decode(input)? {
+                Some(Event::MessageChunk { bytes, remaining }) if remaining == 0 => {
+                    debug_assert_eq!(length, bytes.len());
+                    return Ok(bytes);
+                }
+                _ => (),
+            }
+        }
+
+        Err(Error::Decode)
+    }
 }
 
 /// Events emitted by Veriform's decoder
@@ -347,20 +403,8 @@ impl VInt64Decoder {
 
 #[cfg(test)]
 mod tests {
-    use super::{Decoder, Event, WireType};
+    use super::{Decoder, WireType};
     use crate::error::Error;
-
-    macro_rules! try_decode {
-        ($decoder:expr, $input:expr, $event:path) => {
-            match $decoder.decode($input).unwrap() {
-                Some($event(event)) => event,
-                other => panic!(
-                    concat!("expected ", stringify!($event), ", got: {:?}"),
-                    other
-                ),
-            }
-        };
-    }
 
     #[test]
     fn decode_uint64() {
@@ -368,12 +412,13 @@ mod tests {
         let mut input_ref = &input[..];
         let mut decoder = Decoder::new();
 
-        let header = try_decode!(decoder, &mut input_ref, Event::FieldHeader);
+        let header = decoder.decode_header(&mut input_ref).unwrap();
         assert_eq!(header.tag, 42);
         assert_eq!(header.wire_type, WireType::UInt64);
 
-        let value = try_decode!(decoder, &mut input_ref, Event::UInt64);
+        let value = decoder.decode_uint64(&mut input_ref).unwrap();
         assert_eq!(value, 42);
+        assert!(input_ref.is_empty());
     }
 
     #[test]
@@ -382,12 +427,13 @@ mod tests {
         let mut input_ref = &input[..];
         let mut decoder = Decoder::new();
 
-        let header = try_decode!(decoder, &mut input_ref, Event::FieldHeader);
+        let header = decoder.decode_header(&mut input_ref).unwrap();
         assert_eq!(header.tag, 43);
         assert_eq!(header.wire_type, WireType::SInt64);
 
-        let value = try_decode!(decoder, &mut input_ref, Event::SInt64);
+        let value = decoder.decode_sint64(&mut input_ref).unwrap();
         assert_eq!(value, -42);
+        assert!(input_ref.is_empty());
     }
 
     #[test]
@@ -396,20 +442,13 @@ mod tests {
         let mut input_ref = &input[..];
         let mut decoder = Decoder::new();
 
-        let header = try_decode!(decoder, &mut input_ref, Event::FieldHeader);
+        let header = decoder.decode_header(&mut input_ref).unwrap();
         assert_eq!(header.tag, 1);
         assert_eq!(header.wire_type, WireType::Message);
 
-        let msg_len = try_decode!(decoder, &mut input_ref, Event::MessageLength);
-        assert_eq!(msg_len, 2);
-
-        match decoder.decode(&mut input_ref).unwrap() {
-            Some(Event::MessageChunk { bytes, remaining }) => {
-                assert_eq!(remaining, 0);
-                assert_eq!(bytes, &[33, 7]);
-            }
-            other => panic!(concat!("expected Event::MessageChunk, got: {:?}"), other),
-        };
+        let message = decoder.decode_message(&mut input_ref).unwrap();
+        assert_eq!(message, &[33, 7]);
+        assert!(input_ref.is_empty());
     }
 
     #[test]
@@ -418,20 +457,13 @@ mod tests {
         let mut input_ref = &input[..];
         let mut decoder = Decoder::new();
 
-        let header = try_decode!(decoder, &mut input_ref, Event::FieldHeader);
+        let header = decoder.decode_header(&mut input_ref).unwrap();
         assert_eq!(header.tag, 2);
         assert_eq!(header.wire_type, WireType::Bytes);
 
-        let msg_len = try_decode!(decoder, &mut input_ref, Event::BytesLength);
-        assert_eq!(msg_len, 5);
-
-        match decoder.decode(&mut input_ref).unwrap() {
-            Some(Event::BytesChunk { bytes, remaining }) => {
-                assert_eq!(remaining, 0);
-                assert_eq!(bytes, &[98, 121, 116, 101, 115]);
-            }
-            other => panic!(concat!("expected Event::BytesChunk, got: {:?}"), other),
-        };
+        let bytes = decoder.decode_bytes(&mut input_ref).unwrap();
+        assert_eq!(bytes, &[98, 121, 116, 101, 115]);
+        assert!(input_ref.is_empty());
     }
 
     #[test]
@@ -440,19 +472,20 @@ mod tests {
         let mut input_ref = &input[..];
         let mut decoder = Decoder::new();
 
-        let header = try_decode!(decoder, &mut input_ref, Event::FieldHeader);
+        let header = decoder.decode_header(&mut input_ref).unwrap();
         assert_eq!(header.tag, 42);
         assert_eq!(header.wire_type, WireType::UInt64);
 
-        let value = try_decode!(decoder, &mut input_ref, Event::UInt64);
+        let value = decoder.decode_uint64(&mut input_ref).unwrap();
         assert_eq!(value, 42);
 
-        let header = try_decode!(decoder, &mut input_ref, Event::FieldHeader);
+        let header = decoder.decode_header(&mut input_ref).unwrap();
         assert_eq!(header.tag, 43);
         assert_eq!(header.wire_type, WireType::SInt64);
 
-        let value = try_decode!(decoder, &mut input_ref, Event::SInt64);
+        let value = decoder.decode_sint64(&mut input_ref).unwrap();
         assert_eq!(value, -42);
+        assert!(input_ref.is_empty());
     }
 
     #[test]
@@ -464,7 +497,7 @@ mod tests {
         assert_eq!(decoder.decode(&mut input_ref).unwrap(), None);
 
         input_ref = &input[1..];
-        let header = try_decode!(decoder, &mut input_ref, Event::FieldHeader);
+        let header = decoder.decode_header(&mut input_ref).unwrap();
         assert_eq!(header.tag, 42);
         assert_eq!(header.wire_type, WireType::UInt64);
     }
@@ -475,11 +508,11 @@ mod tests {
         let mut input_ref = &input[..];
         let mut decoder = Decoder::new();
 
-        let header = try_decode!(decoder, &mut input_ref, Event::FieldHeader);
+        let header = decoder.decode_header(&mut input_ref).unwrap();
         assert_eq!(header.tag, 43);
         assert_eq!(header.wire_type, WireType::SInt64);
 
-        let value = try_decode!(decoder, &mut input_ref, Event::SInt64);
+        let value = decoder.decode_sint64(&mut input_ref).unwrap();
         assert_eq!(value, -42);
 
         let error = decoder.decode(&mut input_ref).err().unwrap();
