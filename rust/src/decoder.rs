@@ -4,7 +4,7 @@ use crate::{
     field::{Header, Tag, WireType},
     Error,
 };
-use core::convert::TryFrom;
+use core::{convert::TryFrom, str};
 
 /// Veriform decoder: zero-copy pull parser which emits events based on
 /// incoming data.
@@ -83,6 +83,14 @@ impl Decoder {
     /// Decode an expected `bytes` field, returning an error for anything else
     pub fn decode_bytes<'a>(&mut self, input: &mut &'a [u8]) -> Result<&'a [u8], Error> {
         self.decode_value(input, WireType::Bytes)
+    }
+
+    /// Decode an expected `string` field, returning an error for anything else
+    pub fn decode_string<'a>(&mut self, input: &mut &'a [u8]) -> Result<&'a str, Error> {
+        let bytes = self.decode_value(input, WireType::String)?;
+        str::from_utf8(bytes).map_err(|e| Error::Utf8 {
+            valid_up_to: e.valid_up_to(),
+        })
     }
 
     /// Decode a length delimited value, expecting the given wire type
@@ -274,10 +282,13 @@ impl ValueDecoder {
             let event = match self.wire_type {
                 WireType::UInt64 => Event::UInt64(value),
                 WireType::SInt64 => Event::SInt64((value >> 1) as i64 ^ -((value & 1) as i64)),
-                WireType::Message | WireType::Bytes => Event::LengthDelimiter {
-                    wire_type: self.wire_type,
-                    length: value as usize,
-                },
+                wire_type => {
+                    debug_assert!(wire_type.is_length_delimited());
+                    Event::LengthDelimiter {
+                        wire_type,
+                        length: value as usize,
+                    }
+                }
             };
 
             let new_state = State::transition(&event);
@@ -476,6 +487,21 @@ mod tests {
 
         let bytes = decoder.decode_bytes(&mut input_ref).unwrap();
         assert_eq!(bytes, &[98, 121, 116, 101, 115]);
+        assert!(input_ref.is_empty());
+    }
+
+    #[test]
+    fn decode_string() {
+        let input = [73, 7, 98, 97, 122];
+        let mut input_ref = &input[..];
+        let mut decoder = Decoder::new();
+
+        let header = decoder.decode_header(&mut input_ref).unwrap();
+        assert_eq!(header.tag, 4);
+        assert_eq!(header.wire_type, WireType::String);
+
+        let string = decoder.decode_string(&mut input_ref).unwrap();
+        assert_eq!(string, "baz");
         assert!(input_ref.is_empty());
     }
 
