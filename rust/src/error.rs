@@ -21,6 +21,12 @@ pub enum Error {
         tag: Tag,
     },
 
+    /// String is not valid UTF-8
+    Utf8 {
+        /// Byte at which UTF-8 encoding failed
+        valid_up_to: usize,
+    },
+
     /// Invalid wire type
     WireType,
 }
@@ -32,6 +38,7 @@ impl Display for Error {
             Error::Failed => write!(f, "operation failed"),
             Error::Length => write!(f, "bad length"),
             Error::Order { tag } => write!(f, "out-of-order field: {}", tag),
+            Error::Utf8 { valid_up_to } => write!(f, "malformed UTF-8 at byte: {}", valid_up_to),
             Error::WireType => write!(f, "invalid wire type"),
         }
     }
