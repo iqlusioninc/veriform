@@ -140,6 +140,9 @@ pub enum Event<'a> {
     /// Consumed field header with the given tag and wire type
     FieldHeader(Header),
 
+    /// Consumed a boolean value
+    Bool(bool),
+
     /// Consumed an unsigned 64-bit integer
     UInt64(u64),
 
@@ -203,7 +206,7 @@ impl State {
             Event::LengthDelimiter { wire_type, length } => {
                 BodyDecoder::new(*wire_type, *length).into()
             }
-            Event::UInt64(_) | Event::SInt64(_) => State::default(),
+            Event::Bool(_) | Event::UInt64(_) | Event::SInt64(_) => State::default(),
             Event::ValueChunk {
                 wire_type,
                 remaining,
@@ -280,6 +283,8 @@ impl ValueDecoder {
     pub fn decode<'a>(mut self, input: &mut &'a [u8]) -> Result<(State, Option<Event<'a>>), Error> {
         if let Some(value) = self.decoder.decode(input)? {
             let event = match self.wire_type {
+                WireType::False => Event::Bool(false),
+                WireType::True => Event::Bool(true),
                 WireType::UInt64 => Event::UInt64(value),
                 WireType::SInt64 => Event::SInt64((value >> 1) as i64 ^ -((value & 1) as i64)),
                 wire_type => {
@@ -431,8 +436,30 @@ mod tests {
     use crate::error::Error;
 
     #[test]
+    fn decode_false() {
+        let input = [66, 5];
+        let mut input_ref = &input[..];
+        let mut decoder = Decoder::new();
+
+        let header = decoder.decode_header(&mut input_ref).unwrap();
+        assert_eq!(header.tag, 42);
+        assert_eq!(header.wire_type, WireType::False);
+    }
+
+    #[test]
+    fn decode_true() {
+        let input = [102, 5];
+        let mut input_ref = &input[..];
+        let mut decoder = Decoder::new();
+
+        let header = decoder.decode_header(&mut input_ref).unwrap();
+        assert_eq!(header.tag, 43);
+        assert_eq!(header.wire_type, WireType::True);
+    }
+
+    #[test]
     fn decode_uint64() {
-        let input = [66, 5, 85];
+        let input = [74, 5, 85];
         let mut input_ref = &input[..];
         let mut decoder = Decoder::new();
 
@@ -447,7 +474,7 @@ mod tests {
 
     #[test]
     fn decode_sint64() {
-        let input = [102, 5, 167];
+        let input = [110, 5, 167];
         let mut input_ref = &input[..];
         let mut decoder = Decoder::new();
 
@@ -462,7 +489,7 @@ mod tests {
 
     #[test]
     fn decode_message() {
-        let input = [21, 5, 33, 7];
+        let input = [25, 5, 69, 7];
         let mut input_ref = &input[..];
         let mut decoder = Decoder::new();
 
@@ -471,13 +498,13 @@ mod tests {
         assert_eq!(header.wire_type, WireType::Message);
 
         let message = decoder.decode_message(&mut input_ref).unwrap();
-        assert_eq!(message, &[33, 7]);
+        assert_eq!(message, &[69, 7]);
         assert!(input_ref.is_empty());
     }
 
     #[test]
     fn decode_bytes() {
-        let input = [39, 11, 98, 121, 116, 101, 115];
+        let input = [43, 11, 98, 121, 116, 101, 115];
         let mut input_ref = &input[..];
         let mut decoder = Decoder::new();
 
@@ -492,7 +519,7 @@ mod tests {
 
     #[test]
     fn decode_string() {
-        let input = [73, 7, 98, 97, 122];
+        let input = [77, 7, 98, 97, 122];
         let mut input_ref = &input[..];
         let mut decoder = Decoder::new();
 
@@ -507,7 +534,7 @@ mod tests {
 
     #[test]
     fn decode_multiple() {
-        let input = [66, 5, 85, 102, 5, 167];
+        let input = [74, 5, 85, 110, 5, 167];
         let mut input_ref = &input[..];
         let mut decoder = Decoder::new();
 
@@ -529,7 +556,7 @@ mod tests {
 
     #[test]
     fn decode_partial_field_header() {
-        let input = [66, 5, 85];
+        let input = [74, 5, 85];
         let mut decoder = Decoder::new();
 
         let mut input_ref = &input[..1];
@@ -543,7 +570,7 @@ mod tests {
 
     #[test]
     fn decode_out_of_order() {
-        let input = [102, 5, 167, 66, 5, 85];
+        let input = [110, 5, 167, 74, 5, 85];
         let mut input_ref = &input[..];
         let mut decoder = Decoder::new();
 
