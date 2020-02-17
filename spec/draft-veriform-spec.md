@@ -112,22 +112,22 @@ value, so the entire integer is encoded as follows:
 
 The following wire types are supported by Veriform:
 
-| ID | Type                    | Encoding              |
-|----|-------------------------|-----------------------|
-| 0  | Unsigned 64-bit integer | vint64                |
-| 1  | Signed 64-bit integer   | vint64 (zigzag)       |
-| 2  | Nested Message          | Length Prefixed       |
-| 3  | Binary Data             | Length Prefixed       |
-| 4  | Unicode String          | Length Prefixed UTF-8 |
-| 5  | Reserved                | N/A                   |
-| 6  | Reserved                | N/A                   |
-| 7  | Reserved                | N/A                   |
+| ID   | Type                    | Encoding              |
+|------|-------------------------|-----------------------|
+| 0    | false                   | none                  |
+| 1    | true                    | none                  |
+| 2    | unsigned 64-bit integer | vint64                |
+| 3    | signed 64-bit integer   | vint64 (zigzag)       |
+| 4    | message (nested)        | length prefixed       |
+| 5    | bytes                   | length prefixed       |
+| 6    | string                  | length prefixed UTF-8 |
+| 7    | reserved                | N/A                   |
 
-The "Length Prefixed" encoding consists of a single vint64 which indicates
+The "length prefixed" encoding consists of a single vint64 which indicates
 the number of bytes in the subsequent value, followed by the value.
 
-Field IDs MUST be unique. Any message containing repeated field IDs MUST be
-rejected by compliant parsers.
+Field IDs MUST be unique and serialized in-order. Any message containing
+repeated or out-of-order field IDs MUST be rejected by compliant parsers.
 
 # Structured Content Hashing (Verihash)
 
