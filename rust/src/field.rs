@@ -40,20 +40,26 @@ impl TryFrom<u64> for Header {
 #[derive(Copy, Clone, Debug, Eq, PartialEq, PartialOrd, Ord)]
 #[repr(u64)]
 pub enum WireType {
+    /// False (boolean)
+    False = 0,
+
+    /// True (boolean)
+    True = 1,
+
     /// 64-bit unsigned integer
-    UInt64 = 0,
+    UInt64 = 2,
 
     /// 64-bit (zigzag) signed integer
-    SInt64 = 1,
+    SInt64 = 3,
 
     /// Nested Veriform message
-    Message = 2,
+    Message = 4,
 
     /// Binary data
-    Bytes = 3,
+    Bytes = 5,
 
     /// Unicode string
-    String = 4,
+    String = 6,
 }
 
 impl WireType {
@@ -71,11 +77,13 @@ impl TryFrom<u64> for WireType {
 
     fn try_from(encoded: u64) -> Result<Self, Error> {
         match encoded {
-            0 => Ok(WireType::UInt64),
-            1 => Ok(WireType::SInt64),
-            2 => Ok(WireType::Message),
-            3 => Ok(WireType::Bytes),
-            4 => Ok(WireType::String),
+            0 => Ok(WireType::False),
+            1 => Ok(WireType::True),
+            2 => Ok(WireType::UInt64),
+            3 => Ok(WireType::SInt64),
+            4 => Ok(WireType::Message),
+            5 => Ok(WireType::Bytes),
+            6 => Ok(WireType::String),
             _ => Err(Error::WireType),
         }
     }
