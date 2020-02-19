@@ -31,16 +31,16 @@ to being a flexible data warehousing format like Protobufs.
 
 It supports five scalar types:
 
-* Unicode Strings (always encoded as UTF-8)
-* Binary Data
-* Integers (signed/unsigned)
-* Timestamps
-* Booleans
+- Unicode Strings (always encoded as UTF-8)
+- Binary Data
+- Integers (signed/unsigned)
+- Timestamps
+- Booleans
 
 It supports two non-scalar types:
 
-* Objects
-* Arrays
+- Objects
+- Vectors
 
 ## Conventions Used in This Document
 
@@ -112,16 +112,16 @@ value, so the entire integer is encoded as follows:
 
 The following wire types are supported by Veriform:
 
-| ID   | Type                    | Encoding              |
-|------|-------------------------|-----------------------|
-| 0    | false                   | none                  |
-| 1    | true                    | none                  |
-| 2    | unsigned 64-bit integer | vint64                |
-| 3    | signed 64-bit integer   | vint64 (zigzag)       |
-| 4    | message (nested)        | length prefixed       |
-| 5    | bytes                   | length prefixed       |
-| 6    | string                  | length prefixed UTF-8 |
-| 7    | reserved                | N/A                   |
+| ID   | Type                    | Encoding               |
+|------|-------------------------|------------------------|
+| 0    | false                   | none                   |
+| 1    | true                    | none                   |
+| 2    | unsigned 64-bit integer | vint64                 |
+| 3    | signed 64-bit integer   | vint64 (zigzag)        |
+| 4    | message (nested)        | length prefixed        |
+| 5    | bytes                   | length prefixed        |
+| 6    | string (unicode)        | length prefixed UTF-8  |
+| 7    | vector                  | length + type prefixed |
 
 The "length prefixed" encoding consists of a single vint64 which indicates
 the number of bytes in the subsequent value, followed by the value.
@@ -181,21 +181,22 @@ functions are explicitly specified in this document, and conforming
 implementations MUST NOT implement any algorithms besides the ones
 specifically enumerated below.
 
-Each algorithm is identified by an all-upper-case alphanumeric short code
+Each algorithm is identified by an all-lower-case alphanumeric short code
 of variable length. These short codes SHOULD be used by all implementations
-as the name of the constant or enum variant identifying these algorithms.
+as the name of the constant or enum variant identifying these algorithms
+(using case conventions of the given language).
 
 Conforming implementations MUST support selectable hash functions, and MUST NOT
 be implemented in such a way that a single hash function is hard coded into
 the implementation in an unselectable/inextensible manner.
 
-### "SHA256"
+### "sha256"
 
 The United States of America (USA) Federal Information Processing Standard
 (FIPS) Secure Hash Algorithms (SHAs) specifies a suite of hash functions
 with varying digest and block sizes.
 
-Of these, SHA-256, as described in [RFC6234], is supported as a hash function
+Of these, SHA-256, as described in [@!RFC6234], is supported as a hash function
 for use with Verihash. This function is mandatory to implement for all confirming
 Verihash implementations, i.e. conforming implementations MUST implement SHA-256.
 
@@ -206,12 +207,12 @@ using this string.
 SHA-256 was selected as the primary hash function for use with Verihash for the
 following reasons:
 
-* The SHA-2 algorithm family is ubiquitous with fast software and hardware
+- The SHA-2 algorithm family is ubiquitous with fast software and hardware
   implementations available for all platforms where Veriform is applicable.
-* The SHA-2 algorithm family has not been subject to a practical or
+- The SHA-2 algorithm family has not been subject to a practical or
   theoretical attack, despite the initial results which lead to the SHA-3
   competition (which were inapplicable to SHA-2).
-* SHA-256 in particular has been selected over alternatives such as SHA-512
+- SHA-256 in particular has been selected over alternatives such as SHA-512
   and SHA-512/256 despite software implementations of the 512-bit versions
   of these functions performing nearly twice as well on 64-bit architectures.
   This is because this standard is considering the performance on
@@ -219,8 +220,8 @@ following reasons:
   SHA-256 will greatly outperform a software SHA-512 implementation. These
   devices increasingly support hardware SHA-256, much more than they support
   hardware SHA-512.
-* In addition to better embedded performance, modern x86 CPUs across multiple
-  vendors will support (or will soon support) the Intel SHA Extensions,
+- In addition to better embedded performance, modern x86 CPUs across multiple
+  vendors will support the Intel SHA Extensions (a.k.a. "SHA-NI"),
   providing a hardware accelerated implementation of SHA-256. The SHA-512
   algorithm is NOT supported by the SHA Extensions.
 
@@ -240,9 +241,6 @@ It should still be noted that it's possible to extend the toplevel message
 with additional fields. No specific mitigation for this potential attack is
 presently provided. When using SHA-256 as a hash function with Verihash, message
 verifiers should be aware that the toplevel message is potentially extensible.
-
-To completely avoid this class of attacks, a hash algorithm which is not
-vulnerable to length extension attacks is recommended.
 
 ## Tagged Hashing
 

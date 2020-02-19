@@ -58,6 +58,28 @@ impl Decoder {
         }
     }
 
+    /// Decode an expected field header, skipping (in-order) unknown fields,
+    /// and returning an error if the field is missing or unexpected
+    pub fn decode_expected_header(
+        &mut self,
+        input: &mut &[u8],
+        tag: Tag,
+        wire_type: WireType,
+    ) -> Result<(), Error> {
+        let header = self.decode_header(input)?;
+
+        // TODO(tarcieri): actually skip unknown fields
+        if header.tag != tag {
+            return Err(Error::Decode);
+        }
+
+        if header.wire_type != wire_type {
+            return Err(Error::WireType);
+        }
+
+        Ok(())
+    }
+
     /// Decode an expected `uint64`, returning an error for anything else
     pub fn decode_uint64(&mut self, input: &mut &[u8]) -> Result<u64, Error> {
         if let Some(Event::UInt64(value)) = self.decode(input)? {
@@ -169,6 +191,15 @@ pub enum Event<'a> {
         /// Remaining bytes in the message
         remaining: usize,
     },
+
+    /// Consumed the header of a vector of the given wiretype
+    VectorHeader {
+        /// Wire type contained in this vector
+        wire_type: WireType,
+
+        /// Length of the vector body
+        length: usize,
+    },
 }
 
 /// Current decoder state
@@ -203,10 +234,21 @@ impl State {
     fn transition(event: &Event<'_>) -> Self {
         match event {
             Event::FieldHeader(header) => ValueDecoder::new(header.wire_type).into(),
-            Event::LengthDelimiter { wire_type, length } => {
-                BodyDecoder::new(*wire_type, *length).into()
-            }
             Event::Bool(_) | Event::UInt64(_) | Event::SInt64(_) => State::default(),
+            Event::LengthDelimiter { wire_type, length } => {
+                if *length > 0 {
+                    BodyDecoder::new(*wire_type, *length).into()
+                } else {
+                    State::default()
+                }
+            }
+            Event::VectorHeader { length, .. } => {
+                if *length > 0 {
+                    BodyDecoder::new(WireType::Vector, *length).into()
+                } else {
+                    State::default()
+                }
+            }
             Event::ValueChunk {
                 wire_type,
                 remaining,
@@ -245,7 +287,7 @@ impl HeaderDecoder {
 
             // Ensure field ordering is monotonically increasing
             if let Some(tag) = last_tag {
-                if header.tag < tag {
+                if header.tag <= tag {
                     return Err(Error::Order { tag: header.tag });
                 }
             }
@@ -287,6 +329,10 @@ impl ValueDecoder {
                 WireType::True => Event::Bool(true),
                 WireType::UInt64 => Event::UInt64(value),
                 WireType::SInt64 => Event::SInt64((value >> 1) as i64 ^ -((value & 1) as i64)),
+                WireType::Vector => Event::VectorHeader {
+                    wire_type: WireType::try_from(value & 0b111)?,
+                    length: (value >> 3) as usize,
+                },
                 wire_type => {
                     debug_assert!(wire_type.is_length_delimited());
                     Event::LengthDelimiter {

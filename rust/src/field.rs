@@ -60,6 +60,9 @@ pub enum WireType {
 
     /// Unicode string
     String = 6,
+
+    /// Vectors
+    Vector = 7,
 }
 
 impl WireType {
@@ -84,6 +87,7 @@ impl TryFrom<u64> for WireType {
             4 => Ok(WireType::Message),
             5 => Ok(WireType::Bytes),
             6 => Ok(WireType::String),
+            7 => Ok(WireType::Vector),
             _ => Err(Error::WireType),
         }
     }
