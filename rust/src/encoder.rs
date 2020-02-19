@@ -1,8 +1,9 @@
 //! Veriform encoder
 
 use crate::{
+    error::Error,
     field::{Header, Tag, WireType},
-    Error,
+    message::Message,
 };
 
 /// Veriform encoder
@@ -32,27 +33,54 @@ impl<'a> Encoder<'a> {
         self.write(vint64::encode_signed(value))
     }
 
-    /// Write a nested message. Length must be known in advance.
-    ///
-    /// Calls the given function to actually write the message, passing the
-    /// current buffer to the other function, and replacing it with the newly
-    /// returned slice upon success.
-    pub fn message<F>(&mut self, tag: Tag, length: usize, f: F) -> Result<(), Error>
-    where
-        F: FnOnce(&mut [u8]) -> Result<(), Error>,
-    {
+    /// Write a message (nested inside of a field)
+    pub fn message(&mut self, tag: Tag, message: &dyn Message) -> Result<(), Error> {
+        let encoded_len = message.encoded_len();
+
         self.write_header(tag, WireType::Message)?;
-        self.write(vint64::encode(length as u64))?;
+        self.write(vint64::encode(encoded_len as u64))?;
 
         // Ensure there's remaining space in the buffer
-        if length > (self.buffer.len() - self.length) {
+        if encoded_len > (self.buffer.len() - self.length) {
             return Err(Error::Length);
         }
 
-        let new_length = self.length.checked_add(length).unwrap();
-        f(&mut self.buffer[self.length..new_length])?;
+        let new_length = self.length.checked_add(encoded_len).unwrap();
+        message.encode(&mut self.buffer[self.length..new_length])?;
         self.length = new_length;
 
+        Ok(())
+    }
+
+    /// Write a vector of messages (nested inside of a field)
+    pub fn message_vec<'m>(
+        &mut self,
+        tag: Tag,
+        length: usize,
+        messages: impl Iterator<Item = &'m dyn Message>,
+    ) -> Result<(), Error> {
+        self.write_header(tag, WireType::Vector)?;
+        self.write(vint64::encode(
+            (length as u64) << 3 | WireType::Message as u64,
+        ))?;
+
+        let orig_length = self.length;
+
+        for message in messages {
+            let encoded_len = message.encoded_len();
+
+            // Ensure there's remaining space in the buffer
+            if encoded_len > (self.buffer.len() - self.length) {
+                return Err(Error::Length);
+            }
+
+            let new_length = self.length.checked_add(encoded_len).unwrap();
+            message.encode(&mut self.buffer[self.length..new_length])?;
+            self.length = new_length;
+        }
+
+        // Ensure we wrote the expected number of bytes
+        debug_assert_eq!(length, self.length - orig_length);
         Ok(())
     }
 
