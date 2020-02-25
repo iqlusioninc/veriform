@@ -110,6 +110,16 @@ value, so the entire integer is encoded as follows:
 
     (field_number << 4) | (critical_bit << 3) | wire_type
 
+### Critical Bit
+
+The "critical bit" is a 1-bit flag used to signal that a field is critical
+to the interpretation of the message and MUST NOT be ignored.
+
+If a message contains an unknown field with the critical bit set, it MUST
+be rejected by the parser. This applies to all fields of unknown messages
+recursively: parsers MUST process the contents of unknown messages to ensure
+that none of them contain critical fields.
+
 ### Wire Types
 
 The following wire types are supported by Veriform:
