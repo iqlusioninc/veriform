@@ -25,7 +25,7 @@ pub fn message(tag: Tag, critical: bool, message: &dyn Message) -> usize {
 }
 
 /// Compute length of a `sequence` of `message` values including the tag and delimiter
-pub fn message_vec<'a>(
+pub fn message_seq<'a>(
     tag: Tag,
     critical: bool,
     messages: impl Iterator<Item = &'a dyn Message>,
