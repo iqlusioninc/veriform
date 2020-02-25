@@ -33,7 +33,7 @@ impl Decoder {
                 WireType::SInt64 => Event::SInt64(vint64::decode_zigzag(value)),
                 WireType::Sequence => Event::SequenceHeader {
                     wire_type: WireType::from_unmasked(value)?,
-                    length: (value >> 3) as usize,
+                    length: (value >> 4) as usize,
                 },
                 wire_type => {
                     debug_assert!(wire_type.is_length_delimited());

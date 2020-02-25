@@ -18,7 +18,7 @@ pub struct Header {
 impl Header {
     /// Encode this header value as a `Vint64`
     pub fn encode(self) -> VInt64 {
-        vint64::encode(self.tag << 3 | self.wire_type as u64)
+        vint64::encode(self.tag << 4 | self.wire_type as u64)
     }
 }
 
@@ -26,8 +26,8 @@ impl TryFrom<u64> for Header {
     type Error = Error;
 
     fn try_from(encoded: u64) -> Result<Self, Error> {
-        let wire_type = WireType::try_from(encoded & 0b111)?;
-        let tag = encoded >> 3;
+        let wire_type = WireType::from_unmasked(encoded)?;
+        let tag = encoded >> 4;
         Ok(Header { tag, wire_type })
     }
 }

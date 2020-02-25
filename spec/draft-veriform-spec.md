@@ -108,7 +108,9 @@ field identifier (the "key" of the key/value pair) along with a wire type
 identifier. The lower 3 bits of this initial varint contain the wire type
 value, so the entire integer is encoded as follows:
 
-    (field_number << 3) | wire_type
+    (field_number << 4) | (critical_bit << 3) | wire_type
+
+### Wire Types
 
 The following wire types are supported by Veriform:
 
@@ -118,9 +120,9 @@ The following wire types are supported by Veriform:
 | 1    | true                    | none                   |
 | 2    | unsigned 64-bit integer | vint64                 |
 | 3    | signed 64-bit integer   | vint64 (zigzag)        |
-| 4    | message (nested)        | length prefixed        |
-| 5    | bytes                   | length prefixed        |
-| 6    | string (unicode)        | length prefixed UTF-8  |
+| 4    | bytes                   | length prefixed        |
+| 5    | string (unicode)        | length prefixed UTF-8  |
+| 6    | message (nested)        | length prefixed        |
 | 7    | sequence                | length + type prefixed |
 
 The "length prefixed" encoding consists of a single vint64 which indicates

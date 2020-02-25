@@ -61,7 +61,7 @@ impl<'a> Encoder<'a> {
     ) -> Result<(), Error> {
         self.write_header(tag, WireType::Sequence)?;
         self.write(vint64::encode(
-            (length as u64) << 3 | WireType::Message as u64,
+            (length as u64) << 4 | WireType::Message as u64,
         ))?;
 
         let orig_length = self.length;

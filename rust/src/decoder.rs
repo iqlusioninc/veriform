@@ -194,7 +194,7 @@ mod tests {
 
     #[test]
     fn decode_false() {
-        let input = [66, 5];
+        let input = [130, 10];
         let mut input_ref = &input[..];
         let mut decoder = Decoder::new();
 
@@ -205,7 +205,7 @@ mod tests {
 
     #[test]
     fn decode_true() {
-        let input = [102, 5];
+        let input = [198, 10];
         let mut input_ref = &input[..];
         let mut decoder = Decoder::new();
 
@@ -216,7 +216,7 @@ mod tests {
 
     #[test]
     fn decode_uint64() {
-        let input = [74, 5, 85];
+        let input = [138, 10, 85];
         let mut input_ref = &input[..];
         let mut decoder = Decoder::new();
 
@@ -231,7 +231,7 @@ mod tests {
 
     #[test]
     fn decode_sint64() {
-        let input = [110, 5, 167];
+        let input = [206, 10, 167];
         let mut input_ref = &input[..];
         let mut decoder = Decoder::new();
 
@@ -245,23 +245,8 @@ mod tests {
     }
 
     #[test]
-    fn decode_message() {
-        let input = [25, 5, 69, 7];
-        let mut input_ref = &input[..];
-        let mut decoder = Decoder::new();
-
-        let header = decoder.decode_header(&mut input_ref).unwrap();
-        assert_eq!(header.tag, 1);
-        assert_eq!(header.wire_type, WireType::Message);
-
-        let message = decoder.decode_message(&mut input_ref).unwrap();
-        assert_eq!(message, &[69, 7]);
-        assert!(input_ref.is_empty());
-    }
-
-    #[test]
     fn decode_bytes() {
-        let input = [43, 11, 98, 121, 116, 101, 115];
+        let input = [73, 11, 98, 121, 116, 101, 115];
         let mut input_ref = &input[..];
         let mut decoder = Decoder::new();
 
@@ -276,7 +261,7 @@ mod tests {
 
     #[test]
     fn decode_string() {
-        let input = [77, 7, 98, 97, 122];
+        let input = [139, 7, 98, 97, 122];
         let mut input_ref = &input[..];
         let mut decoder = Decoder::new();
 
@@ -290,8 +275,23 @@ mod tests {
     }
 
     #[test]
+    fn decode_message() {
+        let input = [45, 5, 69, 7];
+        let mut input_ref = &input[..];
+        let mut decoder = Decoder::new();
+
+        let header = decoder.decode_header(&mut input_ref).unwrap();
+        assert_eq!(header.tag, 1);
+        assert_eq!(header.wire_type, WireType::Message);
+
+        let message = decoder.decode_message(&mut input_ref).unwrap();
+        assert_eq!(message, &[69, 7]);
+        assert!(input_ref.is_empty());
+    }
+
+    #[test]
     fn decode_multiple() {
-        let input = [74, 5, 85, 110, 5, 167];
+        let input = [138, 10, 85, 206, 10, 167];
         let mut input_ref = &input[..];
         let mut decoder = Decoder::new();
 
@@ -313,7 +313,7 @@ mod tests {
 
     #[test]
     fn decode_partial_field_header() {
-        let input = [74, 5, 85];
+        let input = [138, 10, 85];
         let mut decoder = Decoder::new();
 
         let mut input_ref = &input[..1];
@@ -327,7 +327,7 @@ mod tests {
 
     #[test]
     fn decode_out_of_order() {
-        let input = [110, 5, 167, 74, 5, 85];
+        let input = [206, 10, 167, 138, 10, 85];
         let mut input_ref = &input[..];
         let mut decoder = Decoder::new();
 
