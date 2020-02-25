@@ -1,7 +1,7 @@
 [package]
 name        = "veriform"
 description = "Cryptographically verifiable data serialization format inspired by Protocol Buffers"
-version     = "0.0.0"
+version     = "0.0.1"
 license     = "Apache-2.0"
 authors     = ["Tony Arcieri <tony@iqlusion.io>"]
 homepage    = "https://github.com/iqlusioninc/veriform/"
