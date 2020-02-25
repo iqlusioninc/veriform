@@ -146,8 +146,7 @@ impl From<u64> for VInt64 {
 
 impl From<i64> for VInt64 {
     fn from(value: i64) -> VInt64 {
-        // Zigzag encoding
-        (((value << 1) ^ (value >> 63)) as u64).into()
+        encode_zigzag(value).into()
     }
 }
 
@@ -221,8 +220,17 @@ pub fn encode_signed(value: i64) -> VInt64 {
 
 /// Decode a zigzag-encoded `vint64` as a signed integer
 pub fn decode_signed(input: &mut &[u8]) -> Result<i64, Error> {
-    let decoded = decode(input)?;
-    Ok((decoded >> 1) as i64 ^ -((decoded & 1) as i64))
+    decode(input).map(decode_zigzag)
+}
+
+/// Encode a signed 64-bit integer in zigzag encoding
+pub fn encode_zigzag(value: i64) -> u64 {
+    ((value << 1) ^ (value >> 63)) as u64
+}
+
+/// Decode a signed 64-bit integer from zigzag encoding
+pub fn decode_zigzag(encoded: u64) -> i64 {
+    (encoded >> 1) as i64 ^ -((encoded & 1) as i64)
 }
 
 #[cfg(test)]
