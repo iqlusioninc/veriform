@@ -40,7 +40,7 @@ It supports five scalar types:
 It supports two non-scalar types:
 
 - Objects
-- Vectors
+- Sequences
 
 ## Conventions Used in This Document
 
@@ -121,7 +121,7 @@ The following wire types are supported by Veriform:
 | 4    | message (nested)        | length prefixed        |
 | 5    | bytes                   | length prefixed        |
 | 6    | string (unicode)        | length prefixed UTF-8  |
-| 7    | vector                  | length + type prefixed |
+| 7    | sequence                | length + type prefixed |
 
 The "length prefixed" encoding consists of a single vint64 which indicates
 the number of bytes in the subsequent value, followed by the value.
