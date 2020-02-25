@@ -1,2 +1,2 @@
 [workspace]
-members = ["rust", "rust/tai64", "rust/vint64"]
+members = ["rust", "rust/vint64"]
