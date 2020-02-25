@@ -1,3 +1,9 @@
+## [0.2.1] (2020-02-25)
+
+- Add `encode_zigzag` and `decode_zigzag` functions ([#76])
+
+[#76]: https://github.com/iqlusioninc/veriform/pull/76
+
 ## [0.2.0] (2020-02-14)
 
 - Add `VInt64::len()` method ([#63])
