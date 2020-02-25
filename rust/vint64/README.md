@@ -52,12 +52,12 @@ without any additional terms or conditions.
 [docs-image]: https://docs.rs/vint64/badge.svg
 [docs-link]: https://docs.rs/vint64/
 [license-image]: https://img.shields.io/badge/license-Apache2.0-blue.svg
-[license-link]: https://github.com/clasp-lang/veriform/blob/develop/LICENSE
+[license-link]: https://github.com/iqlusioninc/veriform/blob/develop/LICENSE
 [msrv-image]: https://img.shields.io/badge/rustc-1.39+-blue.svg
 [safety-image]: https://img.shields.io/badge/unsafe-forbidden-success.svg
 [safety-link]: https://github.com/rust-secure-code/safety-dance/
-[build-image]: https://github.com/clasp-lang/veriform/workflows/Rust/badge.svg?branch=develop&event=push
-[build-link]: https://github.com/clasp-lang/veriform/actions?query=workflow%3ARust
+[build-image]: https://github.com/iqlusioninc/veriform/workflows/Rust/badge.svg?branch=develop&event=push
+[build-link]: https://github.com/iqlusioninc/veriform/actions?query=workflow%3ARust
 
 [//]: # (general links)
 

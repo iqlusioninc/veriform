@@ -4,10 +4,10 @@
 - Rename `Vint64` -> `VInt64` ([#62])
 - Relocate crate into the Veriform git repo ([#61])
 
-[0.2.0]: https://github.com/clasp-lang/veriform/pull/64
-[#63]: https://github.com/clasp-lang/veriform/pull/63
-[#62]: https://github.com/clasp-lang/veriform/pull/62
-[#61]: https://github.com/clasp-lang/veriform/pull/61
+[0.2.0]: https://github.com/iqlusioninc/veriform/pull/64
+[#63]: https://github.com/iqlusioninc/veriform/pull/63
+[#62]: https://github.com/iqlusioninc/veriform/pull/62
+[#61]: https://github.com/iqlusioninc/veriform/pull/61
 
 ## 0.1.2 (2020-01-31)
 

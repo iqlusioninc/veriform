@@ -1,4 +1,4 @@
-# ![Veriform](https://raw.githubusercontent.com/clasp-lang/veriform/develop/img/veriform.png)
+# ![Veriform](https://raw.githubusercontent.com/iqlusioninc/veriform/develop/img/veriform.png)
 
 [![Build Status][build-image]][build-link]
 [![Apache 2.0 licensed][license-image]][license-link]
@@ -104,21 +104,21 @@ without any additional terms or conditions.
 
 [//]: # (badges)
 
-[build-image]: https://github.com/clasp-lang/veriform/workflows/Rust/badge.svg?branch=develop&event=push
-[build-link]: https://github.com/clasp-lang/veriform/actions?query=workflow%3ARust
+[build-image]: https://github.com/iqlusioninc/veriform/workflows/Rust/badge.svg?branch=develop&event=push
+[build-link]: https://github.com/iqlusioninc/veriform/actions?query=workflow%3ARust
 [license-image]: https://img.shields.io/badge/license-Apache2.0-blue.svg
-[license-link]: https://github.com/clasp-lang/veriform/blob/develop/LICENSE
+[license-link]: https://github.com/iqlusioninc/veriform/blob/develop/LICENSE
 
 [//]: # (general links)
 
-[Specification]: https://github.com/clasp-lang/veriform/blob/develop/spec/draft-veriform-spec.md
+[Specification]: https://github.com/iqlusioninc/veriform/blob/develop/spec/draft-veriform-spec.md
 [ohno]: https://scottlocklin.wordpress.com/2017/04/02/please-stop-writing-new-serialization-protocols/
 [apf]: https://twitter.com/__apf__/status/867751153026482177
 [Obligatory xkcd]: https://xkcd.com/927/
 [Protocol Buffers]: https://developers.google.com/protocol-buffers/
 [protobuf limitations]: https://github.com/google/protobuf/issues/2629
 [TJSON]: https://www.tjson.org/
-[vint64]: https://github.com/clasp-lang/veriform/blob/develop/spec/draft-veriform-spec.md#64-bit-unsigned-variable-width-integers-vint64
+[vint64]: https://github.com/iqlusioninc/veriform/blob/develop/spec/draft-veriform-spec.md#64-bit-unsigned-variable-width-integers-vint64
 
 [//]: # (comparison table links)
 

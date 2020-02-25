@@ -37,11 +37,11 @@ without any additional terms or conditions.
 [docs-image]: https://docs.rs/veriform/badge.svg
 [docs-link]: https://docs.rs/veriform/
 [license-image]: https://img.shields.io/badge/license-Apache2.0-blue.svg
-[license-link]: https://github.com/clasp-lang/veriform/blob/develop/LICENSE
+[license-link]: https://github.com/iqlusioninc/veriform/blob/develop/LICENSE
 [msrv-image]: https://img.shields.io/badge/rustc-1.39+-blue.svg
-[build-image]: https://github.com/clasp-lang/veriform/workflows/Rust/badge.svg?branch=develop&event=push
-[build-link]: https://github.com/clasp-lang/veriform/actions?query=workflow%3ARust
+[build-image]: https://github.com/iqlusioninc/veriform/workflows/Rust/badge.svg?branch=develop&event=push
+[build-link]: https://github.com/iqlusioninc/veriform/actions?query=workflow%3ARust
 
 [//]: # (general links)
 
-[toplevel README.md]: https://github.com/clasp-lang/veriform/blob/develop/README.md
+[toplevel README.md]: https://github.com/iqlusioninc/veriform/blob/develop/README.md
