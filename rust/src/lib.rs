@@ -5,7 +5,7 @@
 //! with a zero-copy pull parser.
 
 #![no_std]
-#![doc(html_root_url = "https://docs.rs/veriform/0.0.0")]
+#![doc(html_root_url = "https://docs.rs/veriform/0.0.1")]
 #![forbid(unsafe_code)]
 #![warn(missing_docs, rust_2018_idioms, unused_qualifications)]
 
