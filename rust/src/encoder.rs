@@ -22,22 +22,27 @@ impl<'a> Encoder<'a> {
     }
 
     /// Write a field containing an unsigned 64-bit integer
-    pub fn uint64(&mut self, tag: Tag, value: u64) -> Result<(), Error> {
-        self.write_header(tag, WireType::UInt64)?;
+    pub fn uint64(&mut self, tag: Tag, critical: bool, value: u64) -> Result<(), Error> {
+        self.write_header(tag, critical, WireType::UInt64)?;
         self.write(vint64::encode(value))
     }
 
     /// Write a field containing a signed 64-bit integer
-    pub fn sint64(&mut self, tag: Tag, value: i64) -> Result<(), Error> {
-        self.write_header(tag, WireType::SInt64)?;
+    pub fn sint64(&mut self, tag: Tag, critical: bool, value: i64) -> Result<(), Error> {
+        self.write_header(tag, critical, WireType::SInt64)?;
         self.write(vint64::encode_signed(value))
     }
 
     /// Write a message (nested inside of a field)
-    pub fn message(&mut self, tag: Tag, message: &dyn Message) -> Result<(), Error> {
+    pub fn message(
+        &mut self,
+        tag: Tag,
+        critical: bool,
+        message: &dyn Message,
+    ) -> Result<(), Error> {
         let encoded_len = message.encoded_len();
 
-        self.write_header(tag, WireType::Message)?;
+        self.write_header(tag, critical, WireType::Message)?;
         self.write(vint64::encode(encoded_len as u64))?;
 
         // Ensure there's remaining space in the buffer
@@ -53,13 +58,14 @@ impl<'a> Encoder<'a> {
     }
 
     /// Write a sequence of messages (nested inside of a field)
-    pub fn message_vec<'m>(
+    pub fn message_seq<'m>(
         &mut self,
         tag: Tag,
+        critical: bool,
         length: usize,
         messages: impl Iterator<Item = &'m dyn Message>,
     ) -> Result<(), Error> {
-        self.write_header(tag, WireType::Sequence)?;
+        self.write_header(tag, critical, WireType::Sequence)?;
         self.write(vint64::encode(
             (length as u64) << 4 | WireType::Message as u64,
         ))?;
@@ -85,14 +91,14 @@ impl<'a> Encoder<'a> {
     }
 
     /// Write a field containing bytes
-    pub fn bytes(&mut self, tag: Tag, bytes: &[u8]) -> Result<(), Error> {
-        self.write_header(tag, WireType::Bytes)?;
+    pub fn bytes(&mut self, tag: Tag, critical: bool, bytes: &[u8]) -> Result<(), Error> {
+        self.write_header(tag, critical, WireType::Bytes)?;
         self.write_value(bytes)
     }
 
     /// Write a field containing a string
-    pub fn string(&mut self, tag: Tag, string: &str) -> Result<(), Error> {
-        self.write_header(tag, WireType::String)?;
+    pub fn string(&mut self, tag: Tag, critical: bool, string: &str) -> Result<(), Error> {
+        self.write_header(tag, critical, WireType::String)?;
         self.write_value(string.as_bytes())
     }
 
@@ -103,8 +109,8 @@ impl<'a> Encoder<'a> {
     }
 
     /// Write a field header to the underlying buffer
-    fn write_header(&mut self, tag: Tag, wire_type: WireType) -> Result<(), Error> {
-        self.write(Header { tag, wire_type }.encode())
+    fn write_header(&mut self, tag: Tag, critical: bool, wire_type: WireType) -> Result<(), Error> {
+        self.write(Header::new(tag, critical, wire_type).encode())
     }
 
     /// Write a length-delimited value to the underlying buffer
@@ -145,10 +151,10 @@ mod tests {
         let mut buffer = [0u8; 1024];
         let mut encoder = Encoder::new(&mut buffer);
 
-        encoder.uint64(1, 42).unwrap();
-        encoder.sint64(2, -1).unwrap();
-        encoder.bytes(3, EXAMPLE_BYTES).unwrap();
-        encoder.string(4, EXAMPLE_STRING).unwrap();
+        encoder.uint64(1, false, 42).unwrap();
+        encoder.sint64(2, false, -1).unwrap();
+        encoder.bytes(3, false, EXAMPLE_BYTES).unwrap();
+        encoder.string(4, false, EXAMPLE_STRING).unwrap();
 
         let length = encoder.finish().len();
         let mut message = &buffer[..length];
