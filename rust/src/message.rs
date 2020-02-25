@@ -24,7 +24,7 @@ pub trait Message {
     /// Get the length of a message after being encoded as Veriform.
     fn encoded_len(&self) -> usize;
 
-    /// Encode this message as Veriform, returning a byte vector on success.
+    /// Encode this message as Veriform, returning a byte sequence on success.
     #[cfg(feature = "alloc")]
     fn encode_vec(&self) -> Result<Vec<u8>, Error> {
         let mut encoded = vec![0; self.encoded_len()];

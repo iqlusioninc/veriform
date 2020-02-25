@@ -52,14 +52,14 @@ impl<'a> Encoder<'a> {
         Ok(())
     }
 
-    /// Write a vector of messages (nested inside of a field)
+    /// Write a sequence of messages (nested inside of a field)
     pub fn message_vec<'m>(
         &mut self,
         tag: Tag,
         length: usize,
         messages: impl Iterator<Item = &'m dyn Message>,
     ) -> Result<(), Error> {
-        self.write_header(tag, WireType::Vector)?;
+        self.write_header(tag, WireType::Sequence)?;
         self.write(vint64::encode(
             (length as u64) << 3 | WireType::Message as u64,
         ))?;

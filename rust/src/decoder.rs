@@ -1,13 +1,24 @@
 //! Veriform decoder
 
+mod body;
+mod event;
+mod header;
+pub mod sequence;
+mod state;
+mod value;
+mod vint64;
+
+pub use self::event::Event;
+
+use self::state::State;
 use crate::{
     field::{Header, Tag, WireType},
     Error,
 };
-use core::{convert::TryFrom, str};
+use core::str;
 
-/// Veriform decoder: zero-copy pull parser which emits events based on
-/// incoming data.
+/// Veriform decoder: streaming zero-copy pull parser which emits events based
+/// on incoming data.
 #[derive(Debug)]
 pub struct Decoder {
     /// Current state of the decoder (or `None` if an error occurred)
@@ -102,6 +113,26 @@ impl Decoder {
         self.decode_value(input, WireType::Message)
     }
 
+    /// Decode an expected `sequence` field, returning an error for anything else
+    pub fn decode_sequence<'a>(
+        &mut self,
+        input: &mut &'a [u8],
+    ) -> Result<(WireType, &'a [u8]), Error> {
+        if let Some(Event::SequenceHeader { wire_type, length }) = self.decode(input)? {
+            if let Some(Event::ValueChunk {
+                bytes, remaining, ..
+            }) = self.decode(input)?
+            {
+                if remaining == 0 {
+                    debug_assert_eq!(length, bytes.len());
+                    return Ok((wire_type, bytes));
+                }
+            }
+        }
+
+        Err(Error::Decode)
+    }
+
     /// Decode an expected `bytes` field, returning an error for anything else
     pub fn decode_bytes<'a>(&mut self, input: &mut &'a [u8]) -> Result<&'a [u8], Error> {
         self.decode_value(input, WireType::Bytes)
@@ -138,7 +169,7 @@ impl Decoder {
         Err(Error::Decode)
     }
 
-    /// Decode the length delimiter, expecting the given wire type
+    /// Decode a length delimiter, expecting the given wire type
     fn decode_length_delimiter(
         &mut self,
         input: &mut &[u8],
@@ -153,326 +184,6 @@ impl Decoder {
         }
 
         Err(Error::Decode)
-    }
-}
-
-/// Events emitted by Veriform's decoder
-#[derive(Clone, Debug, Eq, PartialEq)]
-pub enum Event<'a> {
-    /// Consumed field header with the given tag and wire type
-    FieldHeader(Header),
-
-    /// Consumed a boolean value
-    Bool(bool),
-
-    /// Consumed an unsigned 64-bit integer
-    UInt64(u64),
-
-    /// Consumed a signed 64-bit integer
-    SInt64(i64),
-
-    /// Consumed a length delimiter for the given wire type
-    LengthDelimiter {
-        /// Wire type of the value this length delimits
-        wire_type: WireType,
-
-        /// Length of the field body (sans delimiter)
-        length: usize,
-    },
-
-    /// Consumed a chunk of a length-delimited value
-    ValueChunk {
-        /// Wire type of the value being consumed
-        wire_type: WireType,
-
-        /// Bytes in this chunk
-        bytes: &'a [u8],
-
-        /// Remaining bytes in the message
-        remaining: usize,
-    },
-
-    /// Consumed the header of a vector of the given wiretype
-    VectorHeader {
-        /// Wire type contained in this vector
-        wire_type: WireType,
-
-        /// Length of the vector body
-        length: usize,
-    },
-}
-
-/// Current decoder state
-#[derive(Debug)]
-enum State {
-    /// Reading the initial `vint64` header on a field
-    Header(HeaderDecoder),
-
-    /// Reading the `vint64` value of a field (either value itself or length prefix)
-    Value(ValueDecoder),
-
-    /// Reading the body of a variable-length field
-    Body(BodyDecoder),
-}
-
-impl State {
-    /// Process the given input data, advancing the slice for the amount of
-    /// data processed, and returning the new state.
-    pub fn decode<'a>(
-        self,
-        input: &mut &'a [u8],
-        last_tag: Option<Tag>,
-    ) -> Result<(Self, Option<Event<'a>>), Error> {
-        match self {
-            State::Header(header) => header.decode(input, last_tag),
-            State::Value(value) => value.decode(input),
-            State::Body(body) => body.decode(input),
-        }
-    }
-
-    /// Get the new state to transition to based on a given event
-    fn transition(event: &Event<'_>) -> Self {
-        match event {
-            Event::FieldHeader(header) => ValueDecoder::new(header.wire_type).into(),
-            Event::Bool(_) | Event::UInt64(_) | Event::SInt64(_) => State::default(),
-            Event::LengthDelimiter { wire_type, length } => {
-                if *length > 0 {
-                    BodyDecoder::new(*wire_type, *length).into()
-                } else {
-                    State::default()
-                }
-            }
-            Event::VectorHeader { length, .. } => {
-                if *length > 0 {
-                    BodyDecoder::new(WireType::Vector, *length).into()
-                } else {
-                    State::default()
-                }
-            }
-            Event::ValueChunk {
-                wire_type,
-                remaining,
-                ..
-            } => {
-                if *remaining > 0 {
-                    BodyDecoder::new(*wire_type, *remaining).into()
-                } else {
-                    State::default()
-                }
-            }
-        }
-    }
-}
-
-impl Default for State {
-    fn default() -> State {
-        State::Header(Default::default())
-    }
-}
-
-/// Decoder for field headers
-#[derive(Default, Debug)]
-struct HeaderDecoder(VInt64Decoder);
-
-impl HeaderDecoder {
-    /// Process the given input data, advancing the slice for the amount of
-    /// data processed, and returning the new state.
-    pub fn decode<'a>(
-        mut self,
-        input: &mut &'a [u8],
-        last_tag: Option<Tag>,
-    ) -> Result<(State, Option<Event<'a>>), Error> {
-        if let Some(value) = self.0.decode(input)? {
-            let header = Header::try_from(value)?;
-
-            // Ensure field ordering is monotonically increasing
-            if let Some(tag) = last_tag {
-                if header.tag <= tag {
-                    return Err(Error::Order { tag: header.tag });
-                }
-            }
-
-            let event = Event::FieldHeader(header);
-            let new_state = State::transition(&event);
-            Ok((new_state, Some(event)))
-        } else {
-            Ok((State::Header(self), None))
-        }
-    }
-}
-
-/// Decoder for field values
-#[derive(Debug)]
-struct ValueDecoder {
-    /// Create a new decoder for the `vint64` length prefix or value
-    decoder: VInt64Decoder,
-
-    /// Wire type we're decoding
-    wire_type: WireType,
-}
-
-impl ValueDecoder {
-    /// Create a new value decoder for the given wire type
-    pub fn new(wire_type: WireType) -> Self {
-        Self {
-            decoder: VInt64Decoder::new(),
-            wire_type,
-        }
-    }
-
-    /// Process the given input data, advancing the slice for the amount of
-    /// data processed, and returning the new state.
-    pub fn decode<'a>(mut self, input: &mut &'a [u8]) -> Result<(State, Option<Event<'a>>), Error> {
-        if let Some(value) = self.decoder.decode(input)? {
-            let event = match self.wire_type {
-                WireType::False => Event::Bool(false),
-                WireType::True => Event::Bool(true),
-                WireType::UInt64 => Event::UInt64(value),
-                WireType::SInt64 => Event::SInt64((value >> 1) as i64 ^ -((value & 1) as i64)),
-                WireType::Vector => Event::VectorHeader {
-                    wire_type: WireType::try_from(value & 0b111)?,
-                    length: (value >> 3) as usize,
-                },
-                wire_type => {
-                    debug_assert!(wire_type.is_length_delimited());
-                    Event::LengthDelimiter {
-                        wire_type,
-                        length: value as usize,
-                    }
-                }
-            };
-
-            let new_state = State::transition(&event);
-            Ok((new_state, Some(event)))
-        } else {
-            Ok((State::Value(self), None))
-        }
-    }
-}
-
-impl From<ValueDecoder> for State {
-    fn from(decoder: ValueDecoder) -> State {
-        State::Value(decoder)
-    }
-}
-
-/// Decoder for the bodies of variable-length field values
-#[derive(Debug)]
-struct BodyDecoder {
-    /// Wire type we're decoding
-    wire_type: WireType,
-
-    /// Remaining bytes in this field body
-    remaining: usize,
-}
-
-impl BodyDecoder {
-    /// Create a new field value body decoder for the given wire type.
-    ///
-    /// Panics if the given wire type isn't a length-delimited type (debug-only).
-    pub fn new(wire_type: WireType, length: usize) -> Self {
-        debug_assert!(wire_type.is_length_delimited());
-
-        Self {
-            wire_type,
-            remaining: length,
-        }
-    }
-
-    /// Process the given input data, advancing the slice for the amount of
-    /// data processed, and returning the new state.
-    pub fn decode<'a>(self, input: &mut &'a [u8]) -> Result<(State, Option<Event<'a>>), Error> {
-        if input.is_empty() {
-            return Ok((self.into(), None));
-        }
-
-        let chunk_size = if input.len() >= self.remaining {
-            self.remaining
-        } else {
-            input.len()
-        };
-
-        let bytes = &input[..chunk_size];
-        *input = &input[chunk_size..];
-
-        let remaining = self.remaining.checked_sub(chunk_size).unwrap();
-        let event = Event::ValueChunk {
-            wire_type: self.wire_type,
-            bytes,
-            remaining,
-        };
-        let new_state = State::transition(&event);
-
-        Ok((new_state, Some(event)))
-    }
-}
-
-impl From<BodyDecoder> for State {
-    fn from(decoder: BodyDecoder) -> State {
-        State::Body(decoder)
-    }
-}
-
-/// Decoder for `vint64` values
-#[derive(Clone, Debug, Default)]
-struct VInt64Decoder {
-    /// Length of the field header `vint64` (if known)
-    length: Option<usize>,
-
-    /// Position we are at reading in the input buffer
-    pos: usize,
-
-    /// Incoming data buffer
-    buffer: [u8; 9],
-}
-
-impl VInt64Decoder {
-    /// Create a new [`VInt64Decoder`]
-    pub fn new() -> Self {
-        Self::default()
-    }
-
-    /// Decode a `vint64` from the incoming data
-    pub fn decode(&mut self, input: &mut &[u8]) -> Result<Option<u64>, Error> {
-        if let Some(length) = self.length {
-            self.fill_buffer(length, input);
-            return self.maybe_decode(length);
-        }
-
-        if let Some(&hint) = input.first() {
-            self.length = Some(vint64::length_hint(hint));
-            self.decode(input)
-        } else {
-            Ok(None)
-        }
-    }
-
-    /// Fill the internal buffer with data, returning a [`FieldHeader`] if we're complete
-    fn fill_buffer(&mut self, length: usize, input: &mut &[u8]) {
-        let remaining = length.checked_sub(self.pos).unwrap();
-
-        if input.len() < remaining {
-            let new_pos = self.pos.checked_add(input.len()).unwrap();
-            self.buffer[self.pos..new_pos].copy_from_slice(*input);
-            self.pos = new_pos;
-            *input = &[];
-        } else {
-            self.buffer[self.pos..length].copy_from_slice(&input[..remaining]);
-            self.pos += remaining;
-            *input = &input[remaining..];
-        }
-    }
-
-    /// Attempt to decode the internal buffer if we've read its full contents
-    fn maybe_decode(&self, length: usize) -> Result<Option<u64>, Error> {
-        if self.pos < length {
-            return Ok(None);
-        }
-
-        let mut buffer = &self.buffer[..length];
-        vint64::decode(&mut buffer)
-            .map(Some)
-            .map_err(|_| Error::Decode)
     }
 }
 

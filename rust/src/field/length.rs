@@ -24,10 +24,10 @@ pub fn message(tag: Tag, message: &dyn Message) -> usize {
     length_delimited(tag, WireType::Message, message.encoded_len())
 }
 
-/// Compute length of a `vector` of `message` values including the tag and delimiter
+/// Compute length of a `sequence` of `message` values including the tag and delimiter
 pub fn message_vec<'a>(tag: Tag, messages: impl Iterator<Item = &'a dyn Message>) -> usize {
     let body_len: usize = messages.map(|msg| msg.encoded_len()).sum();
-    header(tag, WireType::Vector)
+    header(tag, WireType::Sequence)
         + VInt64::from((body_len as u64) << 3 | WireType::Message as u64).len()
         + body_len
 }
