@@ -19,14 +19,14 @@ pub enum WireType {
     /// 64-bit (zigzag) signed integer
     SInt64 = 3,
 
-    /// Nested Veriform message
-    Message = 4,
-
     /// Binary data
-    Bytes = 5,
+    Bytes = 4,
 
     /// Unicode string
-    String = 6,
+    String = 5,
+
+    /// Nested Veriform message
+    Message = 6,
 
     /// Sequences
     Sequence = 7,
@@ -56,9 +56,9 @@ impl TryFrom<u64> for WireType {
             1 => Ok(WireType::True),
             2 => Ok(WireType::UInt64),
             3 => Ok(WireType::SInt64),
-            4 => Ok(WireType::Message),
-            5 => Ok(WireType::Bytes),
-            6 => Ok(WireType::String),
+            4 => Ok(WireType::Bytes),
+            5 => Ok(WireType::String),
+            6 => Ok(WireType::Message),
             7 => Ok(WireType::Sequence),
             _ => Err(Error::WireType),
         }

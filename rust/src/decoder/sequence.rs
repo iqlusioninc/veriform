@@ -35,7 +35,7 @@ impl Decoder {
                         WireType::SInt64 => Event::SInt64(vint64::decode_zigzag(value)),
                         WireType::Sequence => Event::SequenceHeader {
                             wire_type: WireType::from_unmasked(value)?,
-                            length: (value >> 3) as usize,
+                            length: (value >> 4) as usize,
                         },
                         WireType::False | WireType::True => {
                             // TODO(tarcieri): support boolean sequences?
