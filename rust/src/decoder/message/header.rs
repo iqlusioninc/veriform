@@ -1,7 +1,11 @@
 //! Decoder for field headers
 
-use super::{vint64, Event, State, Tag};
-use crate::{error::Error, field::Header};
+use super::{State, Tag};
+use crate::{
+    decoder::{vint64, Event},
+    error::Error,
+    field::Header,
+};
 use core::convert::TryFrom;
 
 /// Decoder for field headers

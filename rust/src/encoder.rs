@@ -141,7 +141,10 @@ impl<'a> Encoder<'a> {
 #[cfg(test)]
 mod tests {
     use super::Encoder;
-    use crate::{decoder::Decoder, field::WireType};
+    use crate::{
+        decoder::{Decodable, Decoder},
+        field::WireType,
+    };
 
     const EXAMPLE_BYTES: &[u8] = b"foobar";
     const EXAMPLE_STRING: &str = "baz";

@@ -1,7 +1,11 @@
 //! Decoder for field values
 
-use super::{vint64, Event, State};
-use crate::{error::Error, field::WireType};
+use super::State;
+use crate::{
+    decoder::{vint64, Event},
+    error::Error,
+    field::WireType,
+};
 
 /// Decoder for field values
 #[derive(Debug)]
