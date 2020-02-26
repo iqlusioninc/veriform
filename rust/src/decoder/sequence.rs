@@ -21,7 +21,7 @@ impl Decoder {
         Decoder {
             wire_type,
             remaining: length,
-            state: State::Value(vint64::Decoder::new()),
+            state: State::default(),
         }
     }
 
@@ -49,10 +49,16 @@ impl Decoder {
                 wire_type,
                 remaining,
                 ..
-            } => State::Body {
-                wire_type: *wire_type,
-                remaining: *remaining,
-            },
+            } => {
+                if *remaining > 0 {
+                    State::Body {
+                        wire_type: *wire_type,
+                        remaining: *remaining,
+                    }
+                } else {
+                    State::default()
+                }
+            }
             other => unreachable!("unexpected event: {:?}", other),
         };
     }
@@ -108,6 +114,12 @@ pub(super) enum State {
         /// Remaining data in the value
         remaining: usize,
     },
+}
+
+impl Default for State {
+    fn default() -> State {
+        State::Value(vint64::Decoder::new())
+    }
 }
 
 impl State {
@@ -197,9 +209,38 @@ mod tests {
         let mut input_ref = &input[..];
         let mut decoder = Decoder::new(WireType::SInt64, 3);
 
-        assert_eq!(-1, decoder.decode_sint64(&mut input_ref).unwrap());
-        assert_eq!(-2, decoder.decode_sint64(&mut input_ref).unwrap());
-        assert_eq!(-3, decoder.decode_sint64(&mut input_ref).unwrap());
+        for n in &[-1, -2, -3] {
+            assert_eq!(*n, decoder.decode_sint64(&mut input_ref).unwrap());
+        }
+
+        assert!(input_ref.is_empty());
+    }
+
+    #[test]
+    fn decode_bytes_sequence() {
+        let input = [7, 102, 111, 111, 7, 98, 97, 114, 7, 98, 97, 122];
+        let mut input_ref = &input[..];
+
+        let mut decoder = Decoder::new(WireType::Bytes, 3);
+
+        for &b in &[b"foo", b"bar", b"baz"] {
+            assert_eq!(b, decoder.decode_bytes(&mut input_ref).unwrap());
+        }
+
+        assert!(input_ref.is_empty());
+    }
+
+    #[test]
+    fn decode_string_sequence() {
+        let input = [7, 102, 111, 111, 7, 98, 97, 114, 7, 98, 97, 122];
+        let mut input_ref = &input[..];
+
+        let mut decoder = Decoder::new(WireType::String, 3);
+
+        for &s in &["foo", "bar", "baz"] {
+            assert_eq!(s, decoder.decode_string(&mut input_ref).unwrap());
+        }
+
         assert!(input_ref.is_empty());
     }
 }
