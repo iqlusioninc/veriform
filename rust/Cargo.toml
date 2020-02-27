@@ -12,6 +12,7 @@ categories  = ["authentication", "cryptography", "encoding"]
 keywords    = ["hashing", "merkle", "protobufs", "security", "serialization"]
 
 [dependencies]
+displaydoc = { version = "0.1", default-features = false }
 vint64 = { version = "0.2", path = "vint64" }
 
 [features]
