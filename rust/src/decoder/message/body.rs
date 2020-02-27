@@ -17,7 +17,11 @@ impl Decoder {
     ///
     /// Panics if the given wire type isn't a length-delimited type (debug-only).
     pub fn new(wire_type: WireType, length: usize) -> Self {
-        debug_assert!(wire_type.is_length_delimited());
+        debug_assert!(
+            wire_type.is_length_delimited(),
+            "not a length-delimited wire type: {:?}",
+            wire_type
+        );
 
         Self {
             wire_type,

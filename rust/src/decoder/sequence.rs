@@ -27,7 +27,11 @@ impl Decoder {
 
     /// Decode a length delimiter
     fn decode_length_delimiter(&mut self, input: &mut &[u8]) -> Result<usize, Error> {
-        debug_assert!(self.wire_type.is_length_delimited());
+        debug_assert!(
+            self.wire_type.is_length_delimited(),
+            "not a length-delimited wire type: {:?}",
+            self.wire_type
+        );
 
         if let Some(Event::LengthDelimiter { length, .. }) = self.decode(input)? {
             Ok(length)
@@ -145,7 +149,12 @@ impl State {
                             return Err(Error::Decode);
                         }
                         wire_type => {
-                            debug_assert!(wire_type.is_length_delimited());
+                            debug_assert!(
+                                wire_type.is_length_delimited(),
+                                "not a length-delimited wire type: {:?}",
+                                wire_type
+                            );
+
                             Event::LengthDelimiter {
                                 wire_type,
                                 length: value as usize,

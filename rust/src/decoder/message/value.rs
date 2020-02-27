@@ -40,7 +40,12 @@ impl Decoder {
                     length: (value >> 4) as usize,
                 },
                 wire_type => {
-                    debug_assert!(wire_type.is_length_delimited());
+                    debug_assert!(
+                        wire_type.is_length_delimited(),
+                        "not a length-delimited wire type: {:?}",
+                        wire_type
+                    );
+
                     Event::LengthDelimiter {
                         wire_type,
                         length: value as usize,
