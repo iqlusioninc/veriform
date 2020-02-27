@@ -38,10 +38,10 @@ impl WireType {
         Self::try_from(value & 0b111)
     }
 
-    /// Is this a wiretype which is followed by a length delimiter?
-    pub fn is_length_delimited(self) -> bool {
+    /// Is this a dynamically-sized [`WireType`]?
+    pub fn is_dynamically_sized(self) -> bool {
         match self {
-            WireType::Message | WireType::Bytes | WireType::String => true,
+            WireType::Bytes | WireType::String | WireType::Message | WireType::Sequence => true,
             _ => false,
         }
     }

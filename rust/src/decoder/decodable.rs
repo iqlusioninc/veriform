@@ -12,7 +12,7 @@ pub trait Decodable {
     fn decode<'a>(&mut self, input: &mut &'a [u8]) -> Result<Option<Event<'a>>, Error>;
 
     /// Decode a length delimited value, expecting the given wire type
-    fn decode_length_delimited_value<'a>(
+    fn decode_dynamically_sized_value<'a>(
         &mut self,
         input: &mut &'a [u8],
         expected_type: WireType,
@@ -36,12 +36,12 @@ pub trait Decodable {
 
     /// Decode an expected `bytes` field, returning an error for anything else
     fn decode_bytes<'a>(&mut self, input: &mut &'a [u8]) -> Result<&'a [u8], Error> {
-        self.decode_length_delimited_value(input, WireType::Bytes)
+        self.decode_dynamically_sized_value(input, WireType::Bytes)
     }
 
     /// Decode an expected `string` field, returning an error for anything else
     fn decode_string<'a>(&mut self, input: &mut &'a [u8]) -> Result<&'a str, Error> {
-        let bytes = self.decode_length_delimited_value(input, WireType::String)?;
+        let bytes = self.decode_dynamically_sized_value(input, WireType::String)?;
         str::from_utf8(bytes).map_err(|e| Error::Utf8 {
             valid_up_to: e.valid_up_to(),
         })
@@ -49,7 +49,7 @@ pub trait Decodable {
 
     /// Decode an expected `message` field, returning an error for anything else
     fn decode_message<'a>(&mut self, input: &mut &'a [u8]) -> Result<&'a [u8], Error> {
-        self.decode_length_delimited_value(input, WireType::Message)
+        self.decode_dynamically_sized_value(input, WireType::Message)
     }
 
     /// Decode an expected `sequence` field, returning an error for anything else

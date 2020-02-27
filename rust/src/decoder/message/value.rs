@@ -41,8 +41,8 @@ impl Decoder {
                 },
                 wire_type => {
                     debug_assert!(
-                        wire_type.is_length_delimited(),
-                        "not a length-delimited wire type: {:?}",
+                        wire_type.is_dynamically_sized(),
+                        "not a dynamically sized wire type: {:?}",
                         wire_type
                     );
 
