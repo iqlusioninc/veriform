@@ -66,6 +66,8 @@ impl<'a> Encoder<'a> {
         messages: impl Iterator<Item = &'m dyn Message>,
     ) -> Result<(), Error> {
         self.write_header(tag, critical, WireType::Sequence)?;
+
+        // sequence header (type + length)
         self.write(vint64::encode(
             (length as u64) << 4 | WireType::Message as u64,
         ))?;
@@ -74,9 +76,10 @@ impl<'a> Encoder<'a> {
 
         for message in messages {
             let encoded_len = message.encoded_len();
+            self.write(vint64::encode(encoded_len as u64))?;
 
             // Ensure there's remaining space in the buffer
-            if encoded_len > (self.buffer.len() - self.length) {
+            if encoded_len > self.buffer.len().checked_sub(self.length).unwrap() {
                 return Err(Error::Length);
             }
 
@@ -86,7 +89,7 @@ impl<'a> Encoder<'a> {
         }
 
         // Ensure we wrote the expected number of bytes
-        debug_assert_eq!(length, self.length - orig_length);
+        debug_assert_eq!(length, self.length.checked_sub(orig_length).unwrap());
         Ok(())
     }
 

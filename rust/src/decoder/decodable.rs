@@ -79,13 +79,20 @@ pub trait Decodable {
         match self.decode(input)? {
             Some(Event::ValueChunk {
                 bytes, remaining, ..
-            }) if remaining == 0 => {
-                debug_assert_eq!(length, bytes.len());
-                Ok(bytes)
+            }) => {
+                if remaining == 0 {
+                    debug_assert_eq!(length, bytes.len());
+                    Ok(bytes)
+                } else {
+                    Err(Error::Truncated {
+                        remaining,
+                        wire_type: WireType::Sequence,
+                    })
+                }
             }
             _ => Err(Error::Decode {
                 element: Element::Value,
-                wire_type: expected_type,
+                wire_type: WireType::Sequence,
             }),
         }
     }
