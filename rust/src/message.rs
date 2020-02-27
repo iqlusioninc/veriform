@@ -10,6 +10,22 @@ use crate::Error;
 #[cfg(feature = "alloc")]
 use alloc::vec::Vec;
 
+/// Elements of a message (used for errors)
+#[derive(Copy, Clone, Debug, Eq, PartialEq)]
+pub enum Element {
+    /// Length delimiters for dynamically sized fields
+    LengthDelimiter,
+
+    /// Headers of sequences
+    SequenceHeader,
+
+    /// Tags identify the types of fields
+    Tag,
+
+    /// Field values (i.e. inside the body of a field value)
+    Value,
+}
+
 /// Veriform message
 pub trait Message {
     /// Decode a Veriform message contained in the provided slice.

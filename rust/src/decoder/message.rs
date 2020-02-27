@@ -8,6 +8,7 @@ use super::{Decodable, Event};
 use crate::{
     error::Error,
     field::{Header, Tag, WireType},
+    message::Element,
 };
 
 /// Veriform decoder: streaming zero-copy pull parser which emits events based
@@ -30,6 +31,47 @@ impl Default for Decoder {
             state: Some(State::default()),
             last_tag: None,
             position: 0,
+        }
+    }
+}
+
+impl Decodable for Decoder {
+    fn decode<'a>(&mut self, input: &mut &'a [u8]) -> Result<Option<Event<'a>>, Error> {
+        if let Some(state) = self.state.take() {
+            let (new_state, event) = state.decode(input, self.last_tag)?;
+
+            if let Some(Event::FieldHeader(header)) = &event {
+                self.last_tag = Some(header.tag);
+            }
+
+            self.state = Some(new_state);
+            self.position = self.position.checked_add(input.len()).unwrap();
+            Ok(event)
+        } else {
+            Err(Error::Failed)
+        }
+    }
+
+    fn decode_dynamically_sized_value<'a>(
+        &mut self,
+        expected_type: WireType,
+        input: &mut &'a [u8],
+    ) -> Result<&'a [u8], Error> {
+        let length = self.decode_length_delimiter(input, expected_type)?;
+
+        match self.decode(input)? {
+            Some(Event::ValueChunk {
+                wire_type,
+                bytes,
+                remaining,
+            }) if wire_type == expected_type && remaining == 0 => {
+                debug_assert_eq!(length, bytes.len());
+                Ok(bytes)
+            }
+            _ => Err(Error::Decode {
+                element: Element::Value,
+                wire_type: expected_type,
+            }),
         }
     }
 }
@@ -80,7 +122,10 @@ impl Decoder {
 
         // TODO(tarcieri): actually skip unknown fields
         if header.tag != tag {
-            return Err(Error::Decode { wire_type });
+            return Err(Error::Decode {
+                element: Element::Tag,
+                wire_type,
+            });
         }
 
         if header.wire_type != wire_type {
@@ -109,46 +154,7 @@ impl Decoder {
                 Ok(length)
             }
             _ => Err(Error::Decode {
-                wire_type: expected_type,
-            }),
-        }
-    }
-}
-
-impl Decodable for Decoder {
-    fn decode<'a>(&mut self, input: &mut &'a [u8]) -> Result<Option<Event<'a>>, Error> {
-        if let Some(state) = self.state.take() {
-            let (new_state, event) = state.decode(input, self.last_tag)?;
-
-            if let Some(Event::FieldHeader(header)) = &event {
-                self.last_tag = Some(header.tag);
-            }
-
-            self.state = Some(new_state);
-            self.position = self.position.checked_add(input.len()).unwrap();
-            Ok(event)
-        } else {
-            Err(Error::Failed)
-        }
-    }
-
-    fn decode_dynamically_sized_value<'a>(
-        &mut self,
-        expected_type: WireType,
-        input: &mut &'a [u8],
-    ) -> Result<&'a [u8], Error> {
-        let length = self.decode_length_delimiter(input, expected_type)?;
-
-        match self.decode(input)? {
-            Some(Event::ValueChunk {
-                wire_type,
-                bytes,
-                remaining,
-            }) if wire_type == expected_type && remaining == 0 => {
-                debug_assert_eq!(length, bytes.len());
-                Ok(bytes)
-            }
-            _ => Err(Error::Decode {
+                element: Element::LengthDelimiter,
                 wire_type: expected_type,
             }),
         }
