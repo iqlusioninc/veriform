@@ -1,7 +1,7 @@
 //! Sequence decoder
 
 use super::{vint64, Decodable, Event};
-use crate::{error::Error, field::WireType};
+use crate::{error::Error, field::WireType, message::Element};
 
 /// Sequence decoder
 pub struct Decoder {
@@ -51,6 +51,7 @@ impl Decoder {
         match self.decode(input)? {
             Some(Event::LengthDelimiter { length, .. }) => Ok(length),
             _ => Err(Error::Decode {
+                element: Element::LengthDelimiter,
                 wire_type: self.wire_type,
             }),
         }
@@ -116,6 +117,7 @@ impl Decodable for Decoder {
                 Ok(bytes)
             }
             _ => Err(Error::Decode {
+                element: Element::Value,
                 wire_type: expected_type,
             }),
         }
@@ -164,7 +166,10 @@ impl State {
                         },
                         WireType::False | WireType::True => {
                             // TODO(tarcieri): support boolean sequences?
-                            return Err(Error::Decode { wire_type });
+                            return Err(Error::Decode {
+                                element: Element::Value,
+                                wire_type,
+                            });
                         }
                         wire_type => {
                             debug_assert!(

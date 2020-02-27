@@ -2,7 +2,7 @@
 //! `message` and `sequence` decoders
 
 use super::Event;
-use crate::{error::Error, field::WireType};
+use crate::{error::Error, field::WireType, message::Element};
 use core::str;
 
 /// Common functionality between the `message` and `sequence` decoders
@@ -23,6 +23,7 @@ pub trait Decodable {
         match self.decode(input)? {
             Some(Event::UInt64(value)) => Ok(value),
             _ => Err(Error::Decode {
+                element: Element::Value,
                 wire_type: WireType::UInt64,
             }),
         }
@@ -33,6 +34,7 @@ pub trait Decodable {
         match self.decode(input)? {
             Some(Event::SInt64(value)) => Ok(value),
             _ => Err(Error::Decode {
+                element: Element::Value,
                 wire_type: WireType::SInt64,
             }),
         }
@@ -68,6 +70,7 @@ pub trait Decodable {
             }
             _ => {
                 return Err(Error::Decode {
+                    element: Element::SequenceHeader,
                     wire_type: expected_type,
                 })
             }
@@ -81,6 +84,7 @@ pub trait Decodable {
                 Ok(bytes)
             }
             _ => Err(Error::Decode {
+                element: Element::Value,
                 wire_type: expected_type,
             }),
         }

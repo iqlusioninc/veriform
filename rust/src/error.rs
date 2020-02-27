@@ -1,6 +1,9 @@
 //! Error type
 
-use crate::field::{Tag, WireType};
+use crate::{
+    field::{Tag, WireType},
+    message::Element,
+};
 use displaydoc::Display;
 
 /// Error type
@@ -8,6 +11,9 @@ use displaydoc::Display;
 pub enum Error {
     /// decoding failed: wire_type={wire_type:?}
     Decode {
+        /// element of the message that failed to decode
+        element: Element,
+
         /// wire type we were looking for when decoding failed
         wire_type: WireType,
     },
