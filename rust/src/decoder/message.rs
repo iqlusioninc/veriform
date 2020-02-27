@@ -14,11 +14,14 @@ use crate::{
 /// on incoming data.
 #[derive(Debug)]
 pub struct Decoder {
-    /// Current state of the decoder (or `None` if an error occurred)
-    state: Option<State>,
-
     /// Last field tag that was decoded (to ensure monotonicity)
     last_tag: Option<Tag>,
+
+    /// Current position within the message (i.e. total bytes consumed)
+    position: usize,
+
+    /// Current state of the decoder (or `None` if an error occurred)
+    state: Option<State>,
 }
 
 impl Default for Decoder {
@@ -26,6 +29,7 @@ impl Default for Decoder {
         Self {
             state: Some(State::default()),
             last_tag: None,
+            position: 0,
         }
     }
 }
@@ -34,6 +38,17 @@ impl Decoder {
     /// Create a new decoder in an initial state
     pub fn new() -> Self {
         Self::default()
+    }
+
+    /// Get the tag (i.e. ID) of the last decoded field header
+    pub fn last_tag(&self) -> Option<Tag> {
+        self.last_tag
+    }
+
+    /// Get the current position (i.e. number of bytes processed) in the
+    /// message being decoded
+    pub fn position(&self) -> usize {
+        self.position
     }
 
     /// Decode an expected field header, returning an error for anything else
@@ -110,6 +125,7 @@ impl Decodable for Decoder {
             }
 
             self.state = Some(new_state);
+            self.position = self.position.checked_add(input.len()).unwrap();
             Ok(event)
         } else {
             Err(Error::Failed)
