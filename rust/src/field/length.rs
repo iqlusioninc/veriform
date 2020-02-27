@@ -16,12 +16,12 @@ pub fn sint64(tag: Tag, critical: bool, value: i64) -> usize {
 
 /// Compute length of a `bytes` field
 pub fn bytes(tag: Tag, critical: bool, bytes: &[u8]) -> usize {
-    length_delimited(tag, critical, WireType::Bytes, bytes.len())
+    dynamically_sized(tag, critical, WireType::Bytes, bytes.len())
 }
 
 /// Compute length of a `message` field including the tag and delimiter
 pub fn message(tag: Tag, critical: bool, message: &dyn Message) -> usize {
-    length_delimited(tag, critical, WireType::Message, message.encoded_len())
+    dynamically_sized(tag, critical, WireType::Message, message.encoded_len())
 }
 
 /// Compute length of a `sequence` of `message` values including the tag and delimiter
@@ -41,7 +41,7 @@ fn header(tag: Tag, critical: bool, wire_type: WireType) -> usize {
     Header::new(tag, critical, wire_type).encode().len()
 }
 
-/// Compute length of a length delimited field
-fn length_delimited(tag: Tag, critical: bool, wire_type: WireType, length: usize) -> usize {
+/// Compute length of a dynamically sized field
+fn dynamically_sized(tag: Tag, critical: bool, wire_type: WireType, length: usize) -> usize {
     header(tag, critical, wire_type) + VInt64::from(length as u64).len() + length
 }

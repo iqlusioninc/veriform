@@ -28,8 +28,8 @@ impl Decoder {
     /// Decode a length delimiter
     fn decode_length_delimiter(&mut self, input: &mut &[u8]) -> Result<usize, Error> {
         debug_assert!(
-            self.wire_type.is_length_delimited(),
-            "not a length-delimited wire type: {:?}",
+            self.wire_type.is_dynamically_sized(),
+            "not a dynamically sized wire type: {:?}",
             self.wire_type
         );
 
@@ -79,7 +79,7 @@ impl Decodable for Decoder {
         Ok(maybe_event)
     }
 
-    fn decode_length_delimited_value<'a>(
+    fn decode_dynamically_sized_value<'a>(
         &mut self,
         input: &mut &'a [u8],
         expected_type: WireType,
@@ -150,8 +150,8 @@ impl State {
                         }
                         wire_type => {
                             debug_assert!(
-                                wire_type.is_length_delimited(),
-                                "not a length-delimited wire type: {:?}",
+                                wire_type.is_dynamically_sized(),
+                                "not a dynamically sized wire type: {:?}",
                                 wire_type
                             );
 

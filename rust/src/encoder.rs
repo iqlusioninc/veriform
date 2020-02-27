@@ -113,7 +113,7 @@ impl<'a> Encoder<'a> {
         self.write(Header::new(tag, critical, wire_type).encode())
     }
 
-    /// Write a length-delimited value to the underlying buffer
+    /// Write a dynamically sized value to the underlying buffer
     fn write_value(&mut self, bytes: &[u8]) -> Result<(), Error> {
         self.write(vint64::encode(bytes.len() as u64))?;
         self.write(bytes)

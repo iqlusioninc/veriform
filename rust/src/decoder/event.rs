@@ -26,7 +26,7 @@ pub enum Event<'a> {
         length: usize,
     },
 
-    /// Consumed a chunk of a length-delimited value
+    /// Consumed a chunk of a dynamically sized value
     ValueChunk {
         /// Wire type of the value being consumed
         wire_type: WireType,

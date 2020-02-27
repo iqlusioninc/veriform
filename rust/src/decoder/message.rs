@@ -73,7 +73,11 @@ impl Decoder {
         input: &mut &[u8],
         expected_type: WireType,
     ) -> Result<usize, Error> {
-        debug_assert!(expected_type.is_length_delimited());
+        debug_assert!(
+            expected_type.is_dynamically_sized(),
+            "not a dynamically sized wire type: {:?}",
+            expected_type
+        );
 
         if let Some(Event::LengthDelimiter { wire_type, length }) = self.decode(input)? {
             if wire_type == expected_type {
@@ -101,7 +105,7 @@ impl Decodable for Decoder {
         }
     }
 
-    fn decode_length_delimited_value<'a>(
+    fn decode_dynamically_sized_value<'a>(
         &mut self,
         input: &mut &'a [u8],
         expected_type: WireType,

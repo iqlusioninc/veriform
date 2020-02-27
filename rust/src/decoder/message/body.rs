@@ -15,11 +15,11 @@ pub(super) struct Decoder {
 impl Decoder {
     /// Create a new field value body decoder for the given wire type.
     ///
-    /// Panics if the given wire type isn't a length-delimited type (debug-only).
+    /// Panics if the given wire type isn't dynamically sized (debug-only).
     pub fn new(wire_type: WireType, length: usize) -> Self {
         debug_assert!(
-            wire_type.is_length_delimited(),
-            "not a length-delimited wire type: {:?}",
+            wire_type.is_dynamically_sized(),
+            "not a dynamically sized wire type: {:?}",
             wire_type
         );
 
