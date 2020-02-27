@@ -6,7 +6,6 @@ use crate::{
     error::Error,
     field::Header,
 };
-use core::convert::TryFrom;
 
 /// Decoder for field headers
 #[derive(Default, Debug)]
@@ -21,7 +20,7 @@ impl Decoder {
         last_tag: Option<Tag>,
     ) -> Result<(State, Option<Event<'a>>), Error> {
         if let Some(value) = self.0.decode(input)? {
-            let header = Header::try_from(value)?;
+            let header = Header::from(value);
 
             // Ensure field ordering is monotonically increasing
             if let Some(tag) = last_tag {

@@ -63,6 +63,6 @@ impl Decoder {
         let mut buffer = &self.buffer[..length];
         vint64::decode(&mut buffer)
             .map(Some)
-            .map_err(|_| Error::Decode)
+            .map_err(|_| Error::VInt64)
     }
 }

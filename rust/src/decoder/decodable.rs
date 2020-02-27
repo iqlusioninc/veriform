@@ -14,15 +14,17 @@ pub trait Decodable {
     /// Decode a length delimited value, expecting the given wire type
     fn decode_dynamically_sized_value<'a>(
         &mut self,
-        input: &mut &'a [u8],
         expected_type: WireType,
+        input: &mut &'a [u8],
     ) -> Result<&'a [u8], Error>;
 
     /// Decode an expected `uint64`, returning an error for anything else
     fn decode_uint64(&mut self, input: &mut &[u8]) -> Result<u64, Error> {
         match self.decode(input)? {
             Some(Event::UInt64(value)) => Ok(value),
-            _ => Err(Error::Decode),
+            _ => Err(Error::Decode {
+                wire_type: WireType::UInt64,
+            }),
         }
     }
 
@@ -30,18 +32,20 @@ pub trait Decodable {
     fn decode_sint64(&mut self, input: &mut &[u8]) -> Result<i64, Error> {
         match self.decode(input)? {
             Some(Event::SInt64(value)) => Ok(value),
-            _ => Err(Error::Decode),
+            _ => Err(Error::Decode {
+                wire_type: WireType::SInt64,
+            }),
         }
     }
 
     /// Decode an expected `bytes` field, returning an error for anything else
     fn decode_bytes<'a>(&mut self, input: &mut &'a [u8]) -> Result<&'a [u8], Error> {
-        self.decode_dynamically_sized_value(input, WireType::Bytes)
+        self.decode_dynamically_sized_value(WireType::Bytes, input)
     }
 
     /// Decode an expected `string` field, returning an error for anything else
     fn decode_string<'a>(&mut self, input: &mut &'a [u8]) -> Result<&'a str, Error> {
-        let bytes = self.decode_dynamically_sized_value(input, WireType::String)?;
+        let bytes = self.decode_dynamically_sized_value(WireType::String, input)?;
         str::from_utf8(bytes).map_err(|e| Error::Utf8 {
             valid_up_to: e.valid_up_to(),
         })
@@ -49,23 +53,36 @@ pub trait Decodable {
 
     /// Decode an expected `message` field, returning an error for anything else
     fn decode_message<'a>(&mut self, input: &mut &'a [u8]) -> Result<&'a [u8], Error> {
-        self.decode_dynamically_sized_value(input, WireType::Message)
+        self.decode_dynamically_sized_value(WireType::Message, input)
     }
 
     /// Decode an expected `sequence` field, returning an error for anything else
-    fn decode_sequence<'a>(&mut self, input: &mut &'a [u8]) -> Result<(WireType, &'a [u8]), Error> {
-        if let Some(Event::SequenceHeader { wire_type, length }) = self.decode(input)? {
-            if let Some(Event::ValueChunk {
-                bytes, remaining, ..
-            }) = self.decode(input)?
-            {
-                if remaining == 0 {
-                    debug_assert_eq!(length, bytes.len());
-                    return Ok((wire_type, bytes));
-                }
+    fn decode_sequence<'a>(
+        &mut self,
+        expected_type: WireType,
+        input: &mut &'a [u8],
+    ) -> Result<&'a [u8], Error> {
+        let length = match self.decode(input)? {
+            Some(Event::SequenceHeader { wire_type, length }) if wire_type == expected_type => {
+                length
             }
-        }
+            _ => {
+                return Err(Error::Decode {
+                    wire_type: expected_type,
+                })
+            }
+        };
 
-        Err(Error::Decode)
+        match self.decode(input)? {
+            Some(Event::ValueChunk {
+                bytes, remaining, ..
+            }) if remaining == 0 => {
+                debug_assert_eq!(length, bytes.len());
+                Ok(bytes)
+            }
+            _ => Err(Error::Decode {
+                wire_type: expected_type,
+            }),
+        }
     }
 }

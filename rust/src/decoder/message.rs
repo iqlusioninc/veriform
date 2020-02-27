@@ -38,10 +38,12 @@ impl Decoder {
 
     /// Decode an expected field header, returning an error for anything else
     pub fn decode_header(&mut self, input: &mut &[u8]) -> Result<Header, Error> {
-        if let Some(Event::FieldHeader(header)) = self.decode(input)? {
-            Ok(header)
-        } else {
-            Err(Error::Decode)
+        match self.decode(input)? {
+            Some(Event::FieldHeader(header)) => Ok(header),
+            _ => Err(Error::FieldHeader {
+                tag: None,
+                wire_type: None,
+            }),
         }
     }
 
@@ -53,15 +55,23 @@ impl Decoder {
         tag: Tag,
         wire_type: WireType,
     ) -> Result<(), Error> {
-        let header = self.decode_header(input)?;
+        let header = self.decode_header(input).map_err(|e| match e {
+            Error::FieldHeader { .. } => Error::FieldHeader {
+                tag: Some(tag),
+                wire_type: Some(wire_type),
+            },
+            _ => unreachable!("unexpected decode_header error: {:?}", e),
+        })?;
 
         // TODO(tarcieri): actually skip unknown fields
         if header.tag != tag {
-            return Err(Error::Decode);
+            return Err(Error::Decode { wire_type });
         }
 
         if header.wire_type != wire_type {
-            return Err(Error::WireType);
+            return Err(Error::WireType {
+                wanted: Some(wire_type),
+            });
         }
 
         Ok(())
@@ -79,13 +89,14 @@ impl Decoder {
             expected_type
         );
 
-        if let Some(Event::LengthDelimiter { wire_type, length }) = self.decode(input)? {
-            if wire_type == expected_type {
-                return Ok(length);
+        match self.decode(input)? {
+            Some(Event::LengthDelimiter { wire_type, length }) if wire_type == expected_type => {
+                Ok(length)
             }
+            _ => Err(Error::Decode {
+                wire_type: expected_type,
+            }),
         }
-
-        Err(Error::Decode)
     }
 }
 
@@ -107,24 +118,24 @@ impl Decodable for Decoder {
 
     fn decode_dynamically_sized_value<'a>(
         &mut self,
-        input: &mut &'a [u8],
         expected_type: WireType,
+        input: &mut &'a [u8],
     ) -> Result<&'a [u8], Error> {
         let length = self.decode_length_delimiter(input, expected_type)?;
 
-        if let Some(Event::ValueChunk {
-            wire_type,
-            bytes,
-            remaining,
-        }) = self.decode(input)?
-        {
-            if wire_type == expected_type && remaining == 0 {
+        match self.decode(input)? {
+            Some(Event::ValueChunk {
+                wire_type,
+                bytes,
+                remaining,
+            }) if wire_type == expected_type && remaining == 0 => {
                 debug_assert_eq!(length, bytes.len());
-                return Ok(bytes);
+                Ok(bytes)
             }
+            _ => Err(Error::Decode {
+                wire_type: expected_type,
+            }),
         }
-
-        Err(Error::Decode)
     }
 }
 

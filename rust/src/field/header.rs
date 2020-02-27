@@ -1,8 +1,6 @@
 //! Field headers
 
 use super::{Tag, WireType};
-use crate::error::Error;
-use core::convert::TryFrom;
 use vint64::VInt64;
 
 /// Field headers
@@ -35,13 +33,12 @@ impl Header {
     }
 }
 
-impl TryFrom<u64> for Header {
-    type Error = Error;
-
-    fn try_from(encoded: u64) -> Result<Self, Error> {
-        let wire_type = WireType::from_unmasked(encoded)?;
-        let critical = encoded >> 3 & 1 == 1;
-        let tag = encoded >> 4;
-        Ok(Header::new(tag, critical, wire_type))
+impl From<u64> for Header {
+    fn from(encoded: u64) -> Self {
+        Header {
+            tag: encoded >> 4,
+            critical: encoded >> 3 & 1 == 1,
+            wire_type: WireType::from_unmasked(encoded),
+        }
     }
 }
