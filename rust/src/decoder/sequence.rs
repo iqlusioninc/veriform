@@ -18,6 +18,67 @@ pub struct Decoder {
     state: State,
 }
 
+impl Decodable for Decoder {
+    fn decode<'a>(&mut self, input: &mut &'a [u8]) -> Result<Option<Event<'a>>, Error> {
+        let orig_input_len = input.len();
+        let maybe_event = self.state.decode(self.wire_type, input)?;
+        let consumed = orig_input_len.checked_sub(input.len()).unwrap();
+        self.remaining = self.remaining.checked_sub(consumed).unwrap();
+
+        if let Some(event) = &maybe_event {
+            self.transition(&event);
+        }
+
+        Ok(maybe_event)
+    }
+
+    fn decode_dynamically_sized_value<'a>(
+        &mut self,
+        expected_type: WireType,
+        input: &mut &'a [u8],
+    ) -> Result<&'a [u8], Error> {
+        if expected_type != self.wire_type {
+            return Err(Error::WireType {
+                wanted: Some(expected_type),
+            });
+        }
+
+        debug_assert!(
+            self.wire_type.is_dynamically_sized(),
+            "not a dynamically sized wire type: {:?}",
+            self.wire_type
+        );
+
+        let length = match self.decode(input)? {
+            Some(Event::LengthDelimiter { length, .. }) => Ok(length),
+            _ => Err(Error::Decode {
+                element: Element::LengthDelimiter,
+                wire_type: self.wire_type,
+            }),
+        }?;
+
+        match self.decode(input)? {
+            Some(Event::ValueChunk {
+                bytes, remaining, ..
+            }) => {
+                if remaining == 0 {
+                    debug_assert_eq!(length, bytes.len());
+                    Ok(bytes)
+                } else {
+                    Err(Error::Truncated {
+                        remaining,
+                        wire_type: self.wire_type,
+                    })
+                }
+            }
+            _ => Err(Error::Decode {
+                element: Element::Value,
+                wire_type: self.wire_type,
+            }),
+        }
+    }
+}
+
 impl Decoder {
     /// Create a new sequence decoder for the given wire type
     pub fn new(wire_type: WireType, length: usize) -> Self {
@@ -38,23 +99,6 @@ impl Decoder {
     /// Get the number of bytes remaining in the sequence
     pub fn remaining(&self) -> usize {
         self.remaining
-    }
-
-    /// Decode a length delimiter
-    fn decode_length_delimiter(&mut self, input: &mut &[u8]) -> Result<usize, Error> {
-        debug_assert!(
-            self.wire_type.is_dynamically_sized(),
-            "not a dynamically sized wire type: {:?}",
-            self.wire_type
-        );
-
-        match self.decode(input)? {
-            Some(Event::LengthDelimiter { length, .. }) => Ok(length),
-            _ => Err(Error::Decode {
-                element: Element::LengthDelimiter,
-                wire_type: self.wire_type,
-            }),
-        }
     }
 
     /// Perform a state transition after receiving an event
@@ -85,45 +129,6 @@ impl Decoder {
     }
 }
 
-impl Decodable for Decoder {
-    fn decode<'a>(&mut self, input: &mut &'a [u8]) -> Result<Option<Event<'a>>, Error> {
-        let maybe_event = self.state.decode(self.wire_type, self.remaining, input)?;
-
-        if let Some(event) = &maybe_event {
-            self.transition(&event);
-        }
-
-        Ok(maybe_event)
-    }
-
-    fn decode_dynamically_sized_value<'a>(
-        &mut self,
-        expected_type: WireType,
-        input: &mut &'a [u8],
-    ) -> Result<&'a [u8], Error> {
-        if expected_type != self.wire_type {
-            return Err(Error::WireType {
-                wanted: Some(expected_type),
-            });
-        }
-
-        let length = self.decode_length_delimiter(input)?;
-
-        match self.decode(input)? {
-            Some(Event::ValueChunk {
-                bytes, remaining, ..
-            }) if remaining == 0 => {
-                debug_assert_eq!(length, bytes.len());
-                Ok(bytes)
-            }
-            _ => Err(Error::Decode {
-                element: Element::Value,
-                wire_type: expected_type,
-            }),
-        }
-    }
-}
-
 /// Decoder state machine
 #[derive(Debug)]
 pub(super) enum State {
@@ -151,7 +156,6 @@ impl State {
     pub fn decode<'a>(
         &mut self,
         wire_type: WireType,
-        total_remaining: usize,
         input: &mut &'a [u8],
     ) -> Result<Option<Event<'a>>, Error> {
         let event = match self {
@@ -205,12 +209,10 @@ impl State {
                 let bytes = &input[..chunk_size];
                 *input = &input[chunk_size..];
 
-                let remaining = total_remaining.checked_sub(chunk_size).unwrap();
-
                 Event::ValueChunk {
                     wire_type: *wire_type,
                     bytes,
-                    remaining,
+                    remaining: remaining.checked_sub(chunk_size).unwrap(),
                 }
             }
         };
@@ -227,7 +229,7 @@ mod tests {
     fn decode_uint64_sequence() {
         let input = [3, 5, 7];
         let mut input_ref = &input[..];
-        let mut decoder = Decoder::new(WireType::UInt64, 3);
+        let mut decoder = Decoder::new(WireType::UInt64, input.len());
 
         assert_eq!(1, decoder.decode_uint64(&mut input_ref).unwrap());
         assert_eq!(2, decoder.decode_uint64(&mut input_ref).unwrap());
@@ -239,7 +241,7 @@ mod tests {
     fn decode_sint64_sequence() {
         let input = [3, 7, 11];
         let mut input_ref = &input[..];
-        let mut decoder = Decoder::new(WireType::SInt64, 3);
+        let mut decoder = Decoder::new(WireType::SInt64, input.len());
 
         for n in &[-1, -2, -3] {
             assert_eq!(*n, decoder.decode_sint64(&mut input_ref).unwrap());
@@ -253,7 +255,7 @@ mod tests {
         let input = [7, 102, 111, 111, 7, 98, 97, 114, 7, 98, 97, 122];
         let mut input_ref = &input[..];
 
-        let mut decoder = Decoder::new(WireType::Bytes, 3);
+        let mut decoder = Decoder::new(WireType::Bytes, input.len());
 
         for &b in &[b"foo", b"bar", b"baz"] {
             assert_eq!(b, decoder.decode_bytes(&mut input_ref).unwrap());
@@ -267,7 +269,7 @@ mod tests {
         let input = [7, 102, 111, 111, 7, 98, 97, 114, 7, 98, 97, 122];
         let mut input_ref = &input[..];
 
-        let mut decoder = Decoder::new(WireType::String, 3);
+        let mut decoder = Decoder::new(WireType::String, input.len());
 
         for &s in &["foo", "bar", "baz"] {
             assert_eq!(s, decoder.decode_string(&mut input_ref).unwrap());

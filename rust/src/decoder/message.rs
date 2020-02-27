@@ -64,9 +64,16 @@ impl Decodable for Decoder {
                 wire_type,
                 bytes,
                 remaining,
-            }) if wire_type == expected_type && remaining == 0 => {
-                debug_assert_eq!(length, bytes.len());
-                Ok(bytes)
+            }) if wire_type == expected_type => {
+                if remaining == 0 {
+                    debug_assert_eq!(length, bytes.len());
+                    Ok(bytes)
+                } else {
+                    Err(Error::Truncated {
+                        remaining,
+                        wire_type,
+                    })
+                }
             }
             _ => Err(Error::Decode {
                 element: Element::Value,

@@ -39,6 +39,15 @@ pub enum Error {
         tag: Tag,
     },
 
+    /// truncated message: remaining={remaining:?} wire_type={wire_type:?}
+    Truncated {
+        /// number of bytes of remaining data expected in the message
+        remaining: usize,
+
+        /// wire type of the truncated data
+        wire_type: WireType,
+    },
+
     /// malformed UTF-8 encountered at byte: {valid_up_to:?}
     Utf8 {
         /// byte at which UTF-8 encoding failed
