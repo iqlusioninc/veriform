@@ -8,6 +8,9 @@ pub struct Decoder {
     /// Wire type contained in this sequence
     wire_type: WireType,
 
+    /// Total length of the sequence
+    length: usize,
+
     /// Remaining length in the sequence body
     remaining: usize,
 
@@ -20,9 +23,21 @@ impl Decoder {
     pub fn new(wire_type: WireType, length: usize) -> Self {
         Decoder {
             wire_type,
+            length,
             remaining: length,
             state: State::default(),
         }
+    }
+
+    /// Get the current position (i.e. number of bytes processed) in the
+    /// sequence being decoded
+    pub fn position(&self) -> usize {
+        self.length.checked_sub(self.remaining).unwrap()
+    }
+
+    /// Get the number of bytes remaining in the sequence
+    pub fn remaining(&self) -> usize {
+        self.remaining
     }
 
     /// Decode a length delimiter
@@ -42,7 +57,7 @@ impl Decoder {
     }
 
     /// Perform a state transition after receiving an event
-    pub fn transition<'a>(&mut self, event: &Event<'a>) {
+    fn transition<'a>(&mut self, event: &Event<'a>) {
         self.state = match &event {
             Event::LengthDelimiter { wire_type, length }
             | Event::SequenceHeader { wire_type, length } => State::Body {
