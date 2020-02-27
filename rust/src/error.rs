@@ -1,16 +1,28 @@
 //! Error type
 
-use crate::field::Tag;
+use crate::field::{Tag, WireType};
 use displaydoc::Display;
 
 /// Error type
 #[derive(Copy, Clone, Debug, Display, Eq, PartialEq)]
 pub enum Error {
-    /// decode error
-    Decode,
+    /// decoding failed: wire_type={wire_type:?}
+    Decode {
+        /// wire type we were looking for when decoding failed
+        wire_type: WireType,
+    },
 
     /// operation failed
     Failed,
+
+    /// invalid field header: tag={tag:?} wire_type={wire_type:?}
+    FieldHeader {
+        /// tag which identifies this field
+        tag: Option<Tag>,
+
+        /// expected wire type for field
+        wire_type: Option<WireType>,
+    },
 
     /// bad length
     Length,
@@ -27,8 +39,14 @@ pub enum Error {
         valid_up_to: usize,
     },
 
-    /// invalid wire type
-    WireType,
+    /// `vint64` encoding error
+    VInt64,
+
+    /// invalid wire type: {wanted:?}
+    WireType {
+        /// wire type we were looking for
+        wanted: Option<WireType>,
+    },
 }
 
 #[cfg(feature = "std")]

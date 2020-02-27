@@ -33,10 +33,11 @@ impl Decoder {
             self.wire_type
         );
 
-        if let Some(Event::LengthDelimiter { length, .. }) = self.decode(input)? {
-            Ok(length)
-        } else {
-            Err(Error::Decode)
+        match self.decode(input)? {
+            Some(Event::LengthDelimiter { length, .. }) => Ok(length),
+            _ => Err(Error::Decode {
+                wire_type: self.wire_type,
+            }),
         }
     }
 
@@ -81,26 +82,28 @@ impl Decodable for Decoder {
 
     fn decode_dynamically_sized_value<'a>(
         &mut self,
-        input: &mut &'a [u8],
         expected_type: WireType,
+        input: &mut &'a [u8],
     ) -> Result<&'a [u8], Error> {
         if expected_type != self.wire_type {
-            return Err(Error::WireType);
+            return Err(Error::WireType {
+                wanted: Some(expected_type),
+            });
         }
 
         let length = self.decode_length_delimiter(input)?;
 
-        if let Some(Event::ValueChunk {
-            bytes, remaining, ..
-        }) = self.decode(input)?
-        {
-            if remaining == 0 {
+        match self.decode(input)? {
+            Some(Event::ValueChunk {
+                bytes, remaining, ..
+            }) if remaining == 0 => {
                 debug_assert_eq!(length, bytes.len());
-                return Ok(bytes);
+                Ok(bytes)
             }
+            _ => Err(Error::Decode {
+                wire_type: expected_type,
+            }),
         }
-
-        Err(Error::Decode)
     }
 }
 
@@ -141,12 +144,12 @@ impl State {
                         WireType::UInt64 => Event::UInt64(value),
                         WireType::SInt64 => Event::SInt64(vint64::decode_zigzag(value)),
                         WireType::Sequence => Event::SequenceHeader {
-                            wire_type: WireType::from_unmasked(value)?,
+                            wire_type: WireType::from_unmasked(value),
                             length: (value >> 4) as usize,
                         },
                         WireType::False | WireType::True => {
                             // TODO(tarcieri): support boolean sequences?
-                            return Err(Error::Decode);
+                            return Err(Error::Decode { wire_type });
                         }
                         wire_type => {
                             debug_assert!(

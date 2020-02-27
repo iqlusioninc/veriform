@@ -34,8 +34,9 @@ pub enum WireType {
 
 impl WireType {
     /// Decode a [`WireType`] from an unmasked u64
-    pub fn from_unmasked(value: u64) -> Result<Self, Error> {
-        Self::try_from(value & 0b111)
+    pub fn from_unmasked(value: u64) -> Self {
+        // Never panics because all 3-bit wire types are valid
+        Self::try_from(value & 0b111).unwrap()
     }
 
     /// Is this a dynamically-sized [`WireType`]?
@@ -60,7 +61,7 @@ impl TryFrom<u64> for WireType {
             5 => Ok(WireType::String),
             6 => Ok(WireType::Message),
             7 => Ok(WireType::Sequence),
-            _ => Err(Error::WireType),
+            _ => Err(Error::WireType { wanted: None }),
         }
     }
 }
