@@ -38,7 +38,7 @@ without any additional terms or conditions.
 [docs-link]: https://docs.rs/veriform/
 [license-image]: https://img.shields.io/badge/license-Apache2.0-blue.svg
 [license-link]: https://github.com/iqlusioninc/veriform/blob/develop/LICENSE
-[msrv-image]: https://img.shields.io/badge/rustc-1.39+-blue.svg
+[msrv-image]: https://img.shields.io/badge/rustc-1.40+-blue.svg
 [build-image]: https://github.com/iqlusioninc/veriform/workflows/Rust/badge.svg?branch=develop&event=push
 [build-link]: https://github.com/iqlusioninc/veriform/actions?query=workflow%3ARust
 
