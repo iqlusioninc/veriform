@@ -3,15 +3,14 @@
 //! # About
 //!
 //! This crate implements a variable-length encoding for 64-bit little endian
-//! integers with a number of properties which make it superior in almost every
-//! way to other variable-length integer encodings like [LEB128], SQLite "Varuints",
-//! or CBOR:
+//! integers (sometimes also referred to as a variable-length quantity, or "VLQ")
+//! with a number of properties which make it superior in almost every way to other
+//! variable-length integer encodings like [LEB128], SQLite "Varuints", or CBOR:
 //!
 //! - Capable of expressing the full 64-bit integer range with a maximum of 9-bytes
 //! - Total length of a `vint64` can be determined via the first byte alone
 //! - Provides the most compact encoding possible for every value in range
-//! - No loops involved in decoding: just (unaligned) loads, masks, and shifts
-//! - No complex branch-heavy logic: decoding is CTZ + shifts and sanity checks
+//! - No loops required to encode/decode
 //!
 //! Integers serialized as unsigned `vint64` are (up to) 64-bit unsigned little
 //! endian integers, with the `[0, (2⁶⁴)−1]` range supported.
@@ -54,7 +53,7 @@
 //!
 //! // Get the length of a `vint64` from its first byte.
 //! // NOTE: this is inclusive of the first byte itself.
-//! let encoded_len = vint64::length_hint(encoded.as_ref()[0]);
+//! let encoded_len = vint64::decoded_len(encoded.as_ref()[0]);
 //!
 //! // Decode an encoded vint64 with trailing data
 //! let mut slice: &[u8] = &[0x55, 0xde, 0xad, 0xbe, 0xef];
@@ -85,16 +84,43 @@ use core::{
 /// Maximum length of a `vint64` in bytes
 pub const MAX_BYTES: usize = 9;
 
+/// Get the length of an encoded `vint64` for the given value in bytes
+pub fn encoded_len(value: u64) -> usize {
+    match value {
+        0..=0x7f => 1,
+        0x80..=0x3fff => 2,
+        0x4000..=0xfffff => 3,
+        0x10_0000..=0xfff_ffff => 4,
+        0x1000_0000..=0x7_ffff_ffff => 5,
+        0x8_0000_0000..=0x3ff_ffff_ffff => 6,
+        0x400_0000_0000..=0x1_ffff_ffff_ffff => 7,
+        0x2_0000_0000_0000..=0xff_ffff_ffff_ffff => 8,
+        0x100_0000_0000_0000..=0xffff_ffff_ffff_ffff => 9,
+    }
+}
+
 /// Get the length of a `vint64` from the first byte.
 ///
 /// NOTE: The returned value is inclusive of the first byte itself.
-pub fn length_hint(byte: u8) -> usize {
+pub fn decoded_len(byte: u8) -> usize {
     byte.trailing_zeros() as usize + 1
 }
 
 /// Encode an unsigned 64-bit integer as `vint64`
 pub fn encode(value: u64) -> VInt64 {
-    value.into()
+    let mut bytes = [0u8; MAX_BYTES];
+    let length = encoded_len(value);
+
+    // 9-byte special case
+    if length == 9 {
+        // length byte is zero in this case
+        bytes[1..].copy_from_slice(&value.to_le_bytes());
+    } else {
+        let encoded = (value << 1 | 1) << (length as u64 - 1);
+        bytes[..8].copy_from_slice(&encoded.to_le_bytes());
+    }
+
+    VInt64 { bytes, length }
 }
 
 /// Decode a `vint64`-encoded unsigned 64-bit integer.
@@ -104,39 +130,28 @@ pub fn encode(value: u64) -> VInt64 {
 /// after the encoded `vint64`.
 pub fn decode(input: &mut &[u8]) -> Result<u64, Error> {
     let bytes = *input;
-    let length = length_hint(*bytes.first().ok_or_else(|| Error::Truncated)?);
-
-    if length == 9 {
-        if bytes.len() < 9 {
-            return Err(Error::Truncated);
-        }
-
-        let result = u64::from_le_bytes(bytes[1..9].try_into().unwrap());
-
-        // Ensure there are no superfluous leading (little-endian) zeros
-        if result < (1 << 56) {
-            return Err(Error::LeadingZeroes);
-        }
-
-        *input = &bytes[9..];
-        return Ok(result);
-    }
+    let length = decoded_len(*bytes.first().ok_or_else(|| Error::Truncated)?);
 
     if bytes.len() < length {
         return Err(Error::Truncated);
     }
 
-    let mut encoded = [0u8; 8];
-    encoded[..length].copy_from_slice(&bytes[..length]);
-    let result = u64::from_le_bytes(encoded) >> length;
+    let result = if length == 9 {
+        // 9-byte special case
+        u64::from_le_bytes(bytes[1..9].try_into().unwrap())
+    } else {
+        let mut encoded = [0u8; 8];
+        encoded[..length].copy_from_slice(&bytes[..length]);
+        u64::from_le_bytes(encoded) >> length
+    };
 
     // Ensure there are no superfluous leading (little-endian) zeros
-    if length > 1 && result < (1 << (7 * (length - 1))) {
-        return Err(Error::LeadingZeroes);
+    if length == 1 || result >= (1 << (7 * (length - 1))) {
+        *input = &bytes[length..];
+        Ok(result)
+    } else {
+        Err(Error::LeadingZeroes)
     }
-
-    *input = &bytes[length..];
-    Ok(result)
 }
 
 /// Support for encoding signed integers as `vint64`
@@ -151,6 +166,11 @@ pub mod signed {
     /// Decode a zigzag-encoded `vint64` as a signed integer
     pub fn decode(input: &mut &[u8]) -> Result<i64, Error> {
         super::decode(input).map(zigzag::decode)
+    }
+
+    /// Get the length of a zigzag encoded `vint64` for the given value in bytes
+    pub fn encoded_len(value: i64) -> usize {
+        super::encoded_len(zigzag::encode(value))
     }
 }
 
@@ -196,14 +216,6 @@ pub struct VInt64 {
     length: usize,
 }
 
-#[allow(clippy::len_without_is_empty)]
-impl VInt64 {
-    /// Get the length of this value in bytes
-    pub fn len(self) -> usize {
-        self.length
-    }
-}
-
 impl AsRef<[u8]> for VInt64 {
     fn as_ref(&self) -> &[u8] {
         &self.bytes[..self.length]
@@ -213,31 +225,13 @@ impl AsRef<[u8]> for VInt64 {
 impl Debug for VInt64 {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         let mut bytes_ref = self.as_ref();
-        write!(f, "Vint64({})", decode(&mut bytes_ref).unwrap())
+        write!(f, "VInt64({})", decode(&mut bytes_ref).unwrap())
     }
 }
 
 impl From<u64> for VInt64 {
     fn from(value: u64) -> VInt64 {
-        let mut length = 1;
-        let mut result = (value << 1) | 1;
-        let mut max = 1 << 7;
-        let mut bytes = [0u8; MAX_BYTES];
-
-        while value >= max {
-            // 9-byte special case
-            if length == 8 {
-                bytes[1..].copy_from_slice(&value.to_le_bytes());
-                return Self { bytes, length: 9 };
-            }
-
-            result <<= 1;
-            max <<= 7;
-            length += 1;
-        }
-
-        bytes[..8].copy_from_slice(&result.to_le_bytes());
-        Self { bytes, length }
+        encode(value)
     }
 }
 

@@ -5,12 +5,12 @@ use crate::message::Message;
 
 /// Compute length of a `uint64` field
 pub fn uint64(tag: Tag, value: u64) -> usize {
-    header(tag, WireType::UInt64) + vint64::encode(value).len()
+    header(tag, WireType::UInt64) + vint64::encoded_len(value)
 }
 
 /// Compute length of an `sint64` field
 pub fn sint64(tag: Tag, value: i64) -> usize {
-    header(tag, WireType::SInt64) + vint64::signed::encode(value).len()
+    header(tag, WireType::SInt64) + vint64::signed::encoded_len(value)
 }
 
 /// Compute length of a `bytes` field
@@ -33,24 +33,24 @@ pub fn message_seq<'a>(tag: Tag, messages: impl Iterator<Item = &'a dyn Message>
     let body_len: usize = messages
         .map(|msg| {
             let encoded_len = msg.encoded_len();
-            vint64::encode(encoded_len as u64).len() + encoded_len
+            vint64::encoded_len(encoded_len as u64) + encoded_len
         })
         .sum();
 
     header(tag, WireType::Sequence)
-        + vint64::encode((body_len as u64) << 4 | WireType::Message as u64).len()
+        + vint64::encoded_len((body_len as u64) << 4 | WireType::Message as u64)
         + body_len
 }
 
 /// Compute length of a field header
 fn header(tag: Tag, wire_type: WireType) -> usize {
     // Note: there shouldn't be any cases where the critical bit affects length
-    Header::new(tag, false, wire_type).encode().len()
+    Header::new(tag, false, wire_type).encoded_len()
 }
 
 /// Compute length of a dynamically sized field
 fn dynamically_sized(tag: Tag, wire_type: WireType, length: usize) -> usize {
-    header(tag, wire_type) + vint64::encode(length as u64).len() + length
+    header(tag, wire_type) + vint64::encoded_len(length as u64) + length
 }
 
 #[cfg(test)]

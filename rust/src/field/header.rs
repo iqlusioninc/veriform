@@ -27,9 +27,14 @@ impl Header {
         }
     }
 
-    /// Encode this header value as a `Vint64`
+    /// Encode this header value as a `vint64`
     pub fn encode(self) -> VInt64 {
-        vint64::encode(self.tag << 4 | (self.critical as u64) << 3 | self.wire_type as u64)
+        vint64::encode(self.into())
+    }
+
+    /// Get the length of this header when encoded as `vint64`
+    pub fn encoded_len(self) -> usize {
+        vint64::encoded_len(self.into())
     }
 }
 
@@ -40,5 +45,11 @@ impl From<u64> for Header {
             critical: encoded >> 3 & 1 == 1,
             wire_type: WireType::from_unmasked(encoded),
         }
+    }
+}
+
+impl From<Header> for u64 {
+    fn from(header: Header) -> u64 {
+        header.tag << 4 | (header.critical as u64) << 3 | header.wire_type as u64
     }
 }
