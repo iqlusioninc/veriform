@@ -79,7 +79,7 @@
 
 use core::{
     convert::{TryFrom, TryInto},
-    fmt::{self, Debug},
+    fmt::{self, Debug, Display},
 };
 
 /// Maximum length of a `vint64` in bytes
@@ -104,18 +104,18 @@ pub fn encode(value: u64) -> VInt64 {
 /// after the encoded `vint64`.
 pub fn decode(input: &mut &[u8]) -> Result<u64, Error> {
     let bytes = *input;
-    let length = length_hint(*bytes.first().ok_or_else(|| Error)?);
+    let length = length_hint(*bytes.first().ok_or_else(|| Error::Truncated)?);
 
     if length == 9 {
         if bytes.len() < 9 {
-            return Err(Error);
+            return Err(Error::Truncated);
         }
 
         let result = u64::from_le_bytes(bytes[1..9].try_into().unwrap());
 
-        // Ensure there are no superfluous trailing zeros
+        // Ensure there are no superfluous leading (little-endian) zeros
         if result < (1 << 56) {
-            return Err(Error);
+            return Err(Error::LeadingZeroes);
         }
 
         *input = &bytes[9..];
@@ -123,16 +123,16 @@ pub fn decode(input: &mut &[u8]) -> Result<u64, Error> {
     }
 
     if bytes.len() < length {
-        return Err(Error);
+        return Err(Error::Truncated);
     }
 
     let mut encoded = [0u8; 8];
     encoded[..length].copy_from_slice(&bytes[..length]);
     let result = u64::from_le_bytes(encoded) >> length;
 
-    // Ensure there are no superfluous trailing zeros
+    // Ensure there are no superfluous leading (little-endian) zeros
     if length > 1 && result < (1 << (7 * (length - 1))) {
-        return Err(Error);
+        return Err(Error::LeadingZeroes);
     }
 
     *input = &bytes[length..];
@@ -167,9 +167,24 @@ pub mod zigzag {
     }
 }
 
-/// Error type: indicates decoding failure
+/// Error type
 #[derive(Copy, Clone, Debug)]
-pub struct Error;
+pub enum Error {
+    /// Value contains unnecessary leading zeroes
+    LeadingZeroes,
+
+    /// Value is truncated / malformed
+    Truncated,
+}
+
+impl Display for Error {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        f.write_str(match self {
+            Error::LeadingZeroes => "vint64 contains leading zeroes",
+            Error::Truncated => "vint64 is truncated",
+        })
+    }
+}
 
 /// `vint64`: serialized variable-width 64-bit integers
 #[derive(Copy, Clone, Eq, PartialEq)]
