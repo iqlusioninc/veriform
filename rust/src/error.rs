@@ -39,6 +39,9 @@ pub enum Error {
         tag: Tag,
     },
 
+    /// unexpected trailing data
+    TrailingData,
+
     /// truncated message: remaining={remaining:?} wire_type={wire_type:?}
     Truncated {
         /// number of bytes of remaining data expected in the message
