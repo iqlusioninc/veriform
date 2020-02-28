@@ -10,7 +10,7 @@ pub fn uint64(tag: Tag, value: u64) -> usize {
 
 /// Compute length of an `sint64` field
 pub fn sint64(tag: Tag, value: i64) -> usize {
-    header(tag, WireType::SInt64) + vint64::encode_signed(value).len()
+    header(tag, WireType::SInt64) + vint64::signed::encode(value).len()
 }
 
 /// Compute length of a `bytes` field

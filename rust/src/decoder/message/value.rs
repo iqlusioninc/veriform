@@ -2,7 +2,10 @@
 
 use super::State;
 use crate::{
-    decoder::{vint64, Event},
+    decoder::{
+        vint64::{self, zigzag},
+        Event,
+    },
     error::Error,
     field::WireType,
 };
@@ -34,7 +37,7 @@ impl Decoder {
                 WireType::False => Event::Bool(false),
                 WireType::True => Event::Bool(true),
                 WireType::UInt64 => Event::UInt64(value),
-                WireType::SInt64 => Event::SInt64(vint64::decode_zigzag(value)),
+                WireType::SInt64 => Event::SInt64(zigzag::decode(value)),
                 WireType::Sequence => Event::SequenceHeader {
                     wire_type: WireType::from_unmasked(value),
                     length: (value >> 4) as usize,

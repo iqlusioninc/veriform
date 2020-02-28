@@ -1,6 +1,9 @@
 //! Sequence decoder
 
-use super::{vint64, Decodable, Event};
+use super::{
+    vint64::{self, zigzag},
+    Decodable, Event,
+};
 use crate::{error::Error, field::WireType, message::Element};
 
 /// Sequence decoder
@@ -163,7 +166,7 @@ impl State {
                 if let Some(value) = decoder.decode(input)? {
                     match wire_type {
                         WireType::UInt64 => Event::UInt64(value),
-                        WireType::SInt64 => Event::SInt64(vint64::decode_zigzag(value)),
+                        WireType::SInt64 => Event::SInt64(zigzag::decode(value)),
                         WireType::Sequence => Event::SequenceHeader {
                             wire_type: WireType::from_unmasked(value),
                             length: (value >> 4) as usize,
