@@ -1,6 +1,6 @@
 //! Decoder for `vint64` values
 
-pub(crate) use vint64::decode_zigzag;
+pub(crate) use vint64::zigzag;
 
 use crate::error::Error;
 

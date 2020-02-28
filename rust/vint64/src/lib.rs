@@ -64,7 +64,7 @@
 //!
 //! // Zigzag encoding can be used to encode signed vint64s.
 //! // Decode with `vint64::decode_signed`.
-//! let signed = vint64::encode_signed(-42);
+//! let signed = vint64::signed::encode(-42);
 //! assert_eq!(signed.as_ref(), &[0xa7]);
 //! ```
 //!
@@ -84,6 +84,88 @@ use core::{
 
 /// Maximum length of a `vint64` in bytes
 pub const MAX_BYTES: usize = 9;
+
+/// Get the length of a `vint64` from the first byte.
+///
+/// NOTE: The returned value is inclusive of the first byte itself.
+pub fn length_hint(byte: u8) -> usize {
+    byte.trailing_zeros() as usize + 1
+}
+
+/// Encode an unsigned 64-bit integer as `vint64`
+pub fn encode(value: u64) -> VInt64 {
+    value.into()
+}
+
+/// Decode a `vint64`-encoded unsigned 64-bit integer.
+///
+/// Accepts a mutable reference to a slice containing the `vint64`.
+/// Upon success, the reference is updated to begin at the byte immediately
+/// after the encoded `vint64`.
+pub fn decode(input: &mut &[u8]) -> Result<u64, Error> {
+    let bytes = *input;
+    let length = length_hint(*bytes.first().ok_or_else(|| Error)?);
+
+    if length == 9 {
+        if bytes.len() < 9 {
+            return Err(Error);
+        }
+
+        let result = u64::from_le_bytes(bytes[1..9].try_into().unwrap());
+
+        // Ensure there are no superfluous trailing zeros
+        if result < (1 << 56) {
+            return Err(Error);
+        }
+
+        *input = &bytes[9..];
+        return Ok(result);
+    }
+
+    if bytes.len() < length {
+        return Err(Error);
+    }
+
+    let mut encoded = [0u8; 8];
+    encoded[..length].copy_from_slice(&bytes[..length]);
+    let result = u64::from_le_bytes(encoded) >> length;
+
+    // Ensure there are no superfluous trailing zeros
+    if length > 1 && result < (1 << (7 * (length - 1))) {
+        return Err(Error);
+    }
+
+    *input = &bytes[length..];
+    Ok(result)
+}
+
+/// Support for encoding signed integers as `vint64`
+pub mod signed {
+    use crate::{zigzag, Error, VInt64};
+
+    /// Encode a signed integer as a zigzag-encoded `vint64`
+    pub fn encode(value: i64) -> VInt64 {
+        value.into()
+    }
+
+    /// Decode a zigzag-encoded `vint64` as a signed integer
+    pub fn decode(input: &mut &[u8]) -> Result<i64, Error> {
+        super::decode(input).map(zigzag::decode)
+    }
+}
+
+/// Zigzag encoding for signed integers
+pub mod zigzag {
+    /// Encode a signed 64-bit integer in zigzag encoding
+    pub fn encode(value: i64) -> u64 {
+        ((value << 1) ^ (value >> 63)) as u64
+    }
+
+    /// Decode a signed 64-bit integer from zigzag encoding
+    pub fn decode(encoded: u64) -> i64 {
+        (encoded >> 1) as i64 ^ -((encoded & 1) as i64)
+    }
+}
 
 /// Error type: indicates decoding failure
 #[derive(Copy, Clone, Debug)]
@@ -146,7 +228,7 @@ impl From<u64> for VInt64 {
 
 impl From<i64> for VInt64 {
     fn from(value: i64) -> VInt64 {
-        encode_zigzag(value).into()
+        zigzag::encode(value).into()
     }
 }
 
@@ -159,83 +241,9 @@ impl TryFrom<&[u8]> for VInt64 {
     }
 }
 
-/// Get the length of a `vint64` from the first byte.
-///
-/// NOTE: The returned value is inclusive of the first byte itself.
-pub fn length_hint(byte: u8) -> usize {
-    byte.trailing_zeros() as usize + 1
-}
-
-/// Encode an unsigned 64-bit integer as `vint64`
-pub fn encode(value: u64) -> VInt64 {
-    value.into()
-}
-
-/// Decode a `vint64`-encoded unsigned 64-bit integer.
-///
-/// Accepts a mutable reference to a slice containing the `vint64`.
-/// Upon success, the reference is updated to begin at the byte immediately
-/// after the encoded `vint64`.
-pub fn decode(input: &mut &[u8]) -> Result<u64, Error> {
-    let bytes = *input;
-    let length = length_hint(*bytes.first().ok_or_else(|| Error)?);
-
-    if length == 9 {
-        if bytes.len() < 9 {
-            return Err(Error);
-        }
-
-        let result = u64::from_le_bytes(bytes[1..9].try_into().unwrap());
-
-        // Ensure there are no superfluous trailing zeros
-        if result < (1 << 56) {
-            return Err(Error);
-        }
-
-        *input = &bytes[9..];
-        return Ok(result);
-    }
-
-    if bytes.len() < length {
-        return Err(Error);
-    }
-
-    let mut encoded = [0u8; 8];
-    encoded[..length].copy_from_slice(&bytes[..length]);
-    let result = u64::from_le_bytes(encoded) >> length;
-
-    // Ensure there are no superfluous trailing zeros
-    if length > 1 && result < (1 << (7 * (length - 1))) {
-        return Err(Error);
-    }
-
-    *input = &bytes[length..];
-    Ok(result)
-}
-
-/// Encode a signed integer as a zigzag-encoded `vint64`
-pub fn encode_signed(value: i64) -> VInt64 {
-    value.into()
-}
-
-/// Decode a zigzag-encoded `vint64` as a signed integer
-pub fn decode_signed(input: &mut &[u8]) -> Result<i64, Error> {
-    decode(input).map(decode_zigzag)
-}
-
-/// Encode a signed 64-bit integer in zigzag encoding
-pub fn encode_zigzag(value: i64) -> u64 {
-    ((value << 1) ^ (value >> 63)) as u64
-}
-
-/// Decode a signed 64-bit integer from zigzag encoding
-pub fn decode_zigzag(encoded: u64) -> i64 {
-    (encoded >> 1) as i64 ^ -((encoded & 1) as i64)
-}
-
 #[cfg(test)]
 mod tests {
-    use super::{decode, decode_signed, encode, encode_signed};
+    use super::{decode, encode, signed};
 
     #[test]
     fn encode_zero() {
@@ -267,12 +275,12 @@ mod tests {
     #[test]
     fn encode_signed_values() {
         assert_eq!(
-            encode_signed(0x0f0f_f0f0).as_ref(),
+            signed::encode(0x0f0f_f0f0).as_ref(),
             &[0x10, 0x3c, 0xfc, 0xc3, 0x03]
         );
 
         assert_eq!(
-            encode_signed(-0x0f0f_f0f0).as_ref(),
+            signed::encode(-0x0f0f_f0f0).as_ref(),
             &[0xf0, 0x3b, 0xfc, 0xc3, 0x03]
         );
     }
@@ -334,9 +342,9 @@ mod tests {
     #[test]
     fn decode_signed_values() {
         let mut slice = [0x10, 0x3c, 0xfc, 0xc3, 0x03].as_ref();
-        assert_eq!(decode_signed(&mut slice).unwrap(), 0x0f0f_f0f0);
+        assert_eq!(signed::decode(&mut slice).unwrap(), 0x0f0f_f0f0);
 
         let mut slice = [0xf0, 0x3b, 0xfc, 0xc3, 0x03].as_ref();
-        assert_eq!(decode_signed(&mut slice).unwrap(), -0x0f0f_f0f0);
+        assert_eq!(signed::decode(&mut slice).unwrap(), -0x0f0f_f0f0);
     }
 }

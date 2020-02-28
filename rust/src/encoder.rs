@@ -30,7 +30,7 @@ impl<'a> Encoder<'a> {
     /// Write a field containing a signed 64-bit integer
     pub fn sint64(&mut self, tag: Tag, critical: bool, value: i64) -> Result<(), Error> {
         self.write_header(tag, critical, WireType::SInt64)?;
-        self.write(vint64::encode_signed(value))
+        self.write(vint64::signed::encode(value))
     }
 
     /// Write a message (nested inside of a field)
