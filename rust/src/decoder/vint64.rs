@@ -30,8 +30,8 @@ impl Decoder {
             return self.maybe_decode(length);
         }
 
-        if let Some(&hint) = input.first() {
-            self.length = Some(vint64::length_hint(hint));
+        if let Some(&first_byte) = input.first() {
+            self.length = Some(vint64::decoded_len(first_byte));
             self.decode(input)
         } else {
             Ok(None)
