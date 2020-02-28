@@ -9,6 +9,9 @@ use displaydoc::Display;
 /// Error type
 #[derive(Copy, Clone, Debug, Display, Eq, PartialEq)]
 pub enum Error {
+    /// error decoding builtin type
+    Builtin,
+
     /// decoding failed: wire_type={wire_type:?}
     Decode {
         /// element of the message that failed to decode

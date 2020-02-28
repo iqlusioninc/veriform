@@ -16,6 +16,8 @@ extern crate alloc;
 #[cfg(feature = "std")]
 extern crate std;
 
+#[cfg(any(feature = "tai64", feature = "uuid"))]
+pub mod builtins;
 pub mod decoder;
 pub mod encoder;
 pub mod error;
