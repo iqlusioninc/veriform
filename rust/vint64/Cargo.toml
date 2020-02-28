@@ -1,6 +1,9 @@
 [package]
 name        = "vint64"
-description = "Simple and efficient variable-length integer encoding"
+description = """
+Simple and efficient variable-length integer encoding compatible with some
+variants of VLQ (Variable-Length Quantity)
+"""
 version     = "0.2.1" # Also update html_root_url in lib.rs when bumping this
 authors     = ["Tony Arcieri <tony@iqlusion.io>"]
 license     = "Apache-2.0"
@@ -9,7 +12,7 @@ homepage    = "https://github.com/iqlusioninc/veriform/"
 repository  = "https://github.com/iqlusioninc/veriform/tree/develop/rust/vint64/"
 readme      = "README.md"
 categories  = ["no-std", "parser-implementations"]
-keywords    = ["encoding", "integer", "leb128", "variable", "varint"]
+keywords    = ["encoding", "integer", "leb128", "varint", "vlq"]
 
 [dev-dependencies]
 criterion = "0.3"
