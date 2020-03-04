@@ -107,8 +107,8 @@ impl<'a> Encoder<'a> {
 
     /// Finish constructing a message, returning a slice of the buffer
     /// containing the serialized message
-    pub fn finish(self) -> &'a mut [u8] {
-        &mut self.buffer[..self.length]
+    pub fn finish(self) -> &'a [u8] {
+        &self.buffer[..self.length]
     }
 
     /// Write a field header to the underlying buffer
