@@ -41,7 +41,7 @@ impl Message for TAI64N {
         bytes.try_into().map_err(|_| Error::Builtin)
     }
 
-    fn encode<'a>(&self, buffer: &'a mut [u8]) -> Result<&'a mut [u8], Error> {
+    fn encode<'a>(&self, buffer: &'a mut [u8]) -> Result<&'a [u8], Error> {
         let mut encoder = Encoder::new(buffer);
         let (secs, nanos) = tai64_to_ints(self);
         encoder.uint64(0, true, secs)?;

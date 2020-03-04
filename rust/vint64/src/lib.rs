@@ -120,7 +120,10 @@ pub fn encode(value: u64) -> VInt64 {
         bytes[..8].copy_from_slice(&encoded.to_le_bytes());
     }
 
-    VInt64 { bytes, length }
+    VInt64 {
+        bytes,
+        length: length as u8,
+    }
 }
 
 /// Decode a `vint64`-encoded unsigned 64-bit integer.
@@ -209,16 +212,16 @@ impl Display for Error {
 /// `vint64`: serialized variable-width 64-bit integers
 #[derive(Copy, Clone, Eq, PartialEq)]
 pub struct VInt64 {
+    /// Encoded length in bytes
+    length: u8,
+
     /// Serialized variable-width integer
     bytes: [u8; MAX_BYTES],
-
-    /// Encoded length in bytes
-    length: usize,
 }
 
 impl AsRef<[u8]> for VInt64 {
     fn as_ref(&self) -> &[u8] {
-        &self.bytes[..self.length]
+        &self.bytes[..self.length as usize]
     }
 }
 

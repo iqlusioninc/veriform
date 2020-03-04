@@ -31,16 +31,21 @@ to being a flexible data warehousing format like Protobufs.
 
 It supports five scalar types:
 
-- Unicode Strings (always encoded as UTF-8)
-- Binary Data
-- Integers (signed/unsigned)
-- Timestamps
 - Booleans
+- Integers (unsigned/signed)
+- Binary Data
+- Unicode Strings (always encoded as UTF-8)
 
 It supports two non-scalar types:
 
-- Objects
+- Objects (a.k.a. "messages")
 - Sequences
+
+It also supports a small number of "built-in types" (ala Protobufs'
+"well-known types) which are constructed from the types above:
+
+- Timestamps (TAI64)
+- UUIDs
 
 ## Conventions Used in This Document
 

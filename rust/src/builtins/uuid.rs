@@ -4,7 +4,7 @@
 //!
 //! ```text
 //! message UUID {
-//!     value[0]: !bytes(size = 16),
+//!     value![0]: bytes(size = 16),
 //! }
 //! ```
 
@@ -33,7 +33,7 @@ impl Message for Uuid {
             .map_err(|_| Error::Builtin)
     }
 
-    fn encode<'a>(&self, buffer: &'a mut [u8]) -> Result<&'a mut [u8], Error> {
+    fn encode<'a>(&self, buffer: &'a mut [u8]) -> Result<&'a [u8], Error> {
         let mut encoder = Encoder::new(buffer);
         encoder.bytes(0, true, self.as_bytes())?;
         Ok(encoder.finish())
