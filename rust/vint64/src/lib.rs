@@ -76,6 +76,9 @@
 #![forbid(unsafe_code)]
 #![warn(missing_docs, rust_2018_idioms, unused_qualifications)]
 
+#[cfg(feature = "std")]
+extern crate std;
+
 mod error;
 pub mod signed;
 
@@ -88,6 +91,50 @@ use core::{
 
 /// Maximum length of a `vint64` in bytes
 pub const MAX_BYTES: usize = 9;
+
+/// `vint64`: serialized variable-width 64-bit integers.
+#[derive(Copy, Clone, Eq, PartialEq)]
+pub struct VInt64 {
+    /// Encoded length in bytes
+    length: u8,
+
+    /// Serialized variable-width integer
+    bytes: [u8; MAX_BYTES],
+}
+
+impl AsRef<[u8]> for VInt64 {
+    fn as_ref(&self) -> &[u8] {
+        &self.bytes[..self.length as usize]
+    }
+}
+
+impl Debug for VInt64 {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        let mut bytes_ref = self.as_ref();
+        write!(f, "VInt64({})", decode(&mut bytes_ref).unwrap())
+    }
+}
+
+impl From<u64> for VInt64 {
+    fn from(value: u64) -> VInt64 {
+        encode(value)
+    }
+}
+
+impl From<i64> for VInt64 {
+    fn from(value: i64) -> VInt64 {
+        signed::zigzag::encode(value).into()
+    }
+}
+
+impl TryFrom<&[u8]> for VInt64 {
+    type Error = Error;
+
+    fn try_from(slice: &[u8]) -> Result<Self, Error> {
+        let mut slice_ref = slice;
+        decode(&mut slice_ref).map(VInt64::from)
+    }
+}
 
 /// Get the length of an encoded `vint64` for the given value in bytes.
 pub fn encoded_len(value: u64) -> usize {
@@ -159,50 +206,6 @@ pub fn decode(input: &mut &[u8]) -> Result<u64, Error> {
         Ok(result)
     } else {
         Err(Error::LeadingZeroes)
-    }
-}
-
-/// `vint64`: serialized variable-width 64-bit integers.
-#[derive(Copy, Clone, Eq, PartialEq)]
-pub struct VInt64 {
-    /// Encoded length in bytes
-    length: u8,
-
-    /// Serialized variable-width integer
-    bytes: [u8; MAX_BYTES],
-}
-
-impl AsRef<[u8]> for VInt64 {
-    fn as_ref(&self) -> &[u8] {
-        &self.bytes[..self.length as usize]
-    }
-}
-
-impl Debug for VInt64 {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        let mut bytes_ref = self.as_ref();
-        write!(f, "VInt64({})", decode(&mut bytes_ref).unwrap())
-    }
-}
-
-impl From<u64> for VInt64 {
-    fn from(value: u64) -> VInt64 {
-        encode(value)
-    }
-}
-
-impl From<i64> for VInt64 {
-    fn from(value: i64) -> VInt64 {
-        signed::zigzag::encode(value).into()
-    }
-}
-
-impl TryFrom<&[u8]> for VInt64 {
-    type Error = Error;
-
-    fn try_from(slice: &[u8]) -> Result<Self, Error> {
-        let mut slice_ref = slice;
-        decode(&mut slice_ref).map(VInt64::from)
     }
 }
 
