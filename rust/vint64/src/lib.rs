@@ -76,15 +76,20 @@
 #![forbid(unsafe_code)]
 #![warn(missing_docs, rust_2018_idioms, unused_qualifications)]
 
+mod error;
+pub mod signed;
+
+pub use self::error::Error;
+
 use core::{
     convert::{TryFrom, TryInto},
-    fmt::{self, Debug, Display},
+    fmt::{self, Debug},
 };
 
 /// Maximum length of a `vint64` in bytes
 pub const MAX_BYTES: usize = 9;
 
-/// Get the length of an encoded `vint64` for the given value in bytes
+/// Get the length of an encoded `vint64` for the given value in bytes.
 pub fn encoded_len(value: u64) -> usize {
     match value {
         0..=0x7f => 1,
@@ -106,7 +111,7 @@ pub fn decoded_len(byte: u8) -> usize {
     byte.trailing_zeros() as usize + 1
 }
 
-/// Encode an unsigned 64-bit integer as `vint64`
+/// Encode an unsigned 64-bit integer as `vint64`.
 pub fn encode(value: u64) -> VInt64 {
     let mut bytes = [0u8; MAX_BYTES];
     let length = encoded_len(value);
@@ -157,59 +162,7 @@ pub fn decode(input: &mut &[u8]) -> Result<u64, Error> {
     }
 }
 
-/// Support for encoding signed integers as `vint64`
-pub mod signed {
-    use crate::{zigzag, Error, VInt64};
-
-    /// Encode a signed integer as a zigzag-encoded `vint64`
-    pub fn encode(value: i64) -> VInt64 {
-        value.into()
-    }
-
-    /// Decode a zigzag-encoded `vint64` as a signed integer
-    pub fn decode(input: &mut &[u8]) -> Result<i64, Error> {
-        super::decode(input).map(zigzag::decode)
-    }
-
-    /// Get the length of a zigzag encoded `vint64` for the given value in bytes
-    pub fn encoded_len(value: i64) -> usize {
-        super::encoded_len(zigzag::encode(value))
-    }
-}
-
-/// Zigzag encoding for signed integers
-pub mod zigzag {
-    /// Encode a signed 64-bit integer in zigzag encoding
-    pub fn encode(value: i64) -> u64 {
-        ((value << 1) ^ (value >> 63)) as u64
-    }
-
-    /// Decode a signed 64-bit integer from zigzag encoding
-    pub fn decode(encoded: u64) -> i64 {
-        (encoded >> 1) as i64 ^ -((encoded & 1) as i64)
-    }
-}
-
-/// Error type
-#[derive(Copy, Clone, Debug)]
-pub enum Error {
-    /// Value contains unnecessary leading zeroes
-    LeadingZeroes,
-
-    /// Value is truncated / malformed
-    Truncated,
-}
-
-impl Display for Error {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        f.write_str(match self {
-            Error::LeadingZeroes => "vint64 contains leading zeroes",
-            Error::Truncated => "vint64 is truncated",
-        })
-    }
-}
-
-/// `vint64`: serialized variable-width 64-bit integers
+/// `vint64`: serialized variable-width 64-bit integers.
 #[derive(Copy, Clone, Eq, PartialEq)]
 pub struct VInt64 {
     /// Encoded length in bytes
@@ -240,7 +193,7 @@ impl From<u64> for VInt64 {
 
 impl From<i64> for VInt64 {
     fn from(value: i64) -> VInt64 {
-        zigzag::encode(value).into()
+        signed::zigzag::encode(value).into()
     }
 }
 
