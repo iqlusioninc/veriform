@@ -18,6 +18,9 @@ keywords    = ["encoding", "integer", "leb128", "varint", "vlq"]
 criterion = "0.3"
 criterion-cycles-per-byte = "0.1"
 
+[features]
+std = []
+
 [[bench]]
 name = "vint64"
 harness = false
