@@ -1,3 +1,12 @@
+## [1.0.0] (2020-03-17)
+
+- Add off-by-default `std` feature ([#108])
+- Move `zigzag` module under `signed` ([#107])
+
+[1.0.0]: https://github.com/iqlusioninc/veriform/pull/109
+[#108]: https://github.com/iqlusioninc/veriform/pull/108
+[#107]: https://github.com/iqlusioninc/veriform/pull/107
+
 ## [0.3.0] (2020-02-28)
 
 - Add `encoded_len()`/`decoded_len()` helpers; loop-free encoder ([#103])

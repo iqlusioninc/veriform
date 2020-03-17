@@ -520,7 +520,7 @@ dependencies = [
 
 [[package]]
 name = "vint64"
-version = "0.3.0"
+version = "1.0.0"
 dependencies = [
  "criterion",
  "criterion-cycles-per-byte",
