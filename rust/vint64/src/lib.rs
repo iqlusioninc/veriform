@@ -143,26 +143,17 @@ impl TryFrom<&[u8]> for VInt64 {
 /// Get the length of an encoded `vint64` for the given value in bytes.
 pub fn encoded_len(value: u64) -> usize {
     match value.leading_zeros() {
-        // 0x0100_0000_0000_0000..=0xffff_ffff_ffff_ffff => 9,
         0..=7 => 9,
-        // 0x0002_0000_0000_0000..=0x00ff_ffff_ffff_ffff => 8,
         8..=14 => 8,
-        // 0x0000_0400_0000_0000..=0x0001_ffff_ffff_ffff => 7,
         15..=21 => 7,
-        // 0x0000_0008_0000_0000..=0x0000_03ff_ffff_ffff => 6,
         22..=28 => 6,
-        // 0x0000_0000_1000_0000..=0x0000_0007_ffff_ffff => 5,
         29..=35 => 5,
-        // 0x0000_0000_0010_0000..=0x0000_0000_0fff_ffff => 4,
         36..=42 => 4,
-        // 0x0000_0000_0000_4000..=0x0000_0000_000f_ffff => 3,
         43..=49 => 3,
-        // 0x0000_0000_0000_0080..=0x0000_0000_0000_3fff => 2,
         50..=56 => 2,
-        // 0x0000_0000_0000_0000..=0x0000_0000_0000_007f => 1,
         57..=64 => 1,
-        _ => unsafe { core::hint::unreachable_unchecked() }
-,    }
+        _ => unsafe { core::hint::unreachable_unchecked() },
+    }
 }
 
 /// Get the length of a `vint64` from the first byte.
