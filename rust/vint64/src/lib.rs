@@ -73,7 +73,7 @@
 
 #![no_std]
 #![doc(html_root_url = "https://docs.rs/vint64/1.0.0")]
-#![forbid(unsafe_code)]
+// #![forbid(unsafe_code)]
 #![warn(missing_docs, rust_2018_idioms, unused_qualifications)]
 
 #[cfg(feature = "std")]
@@ -160,9 +160,9 @@ pub fn encoded_len(value: u64) -> usize {
         // 0x0000_0000_0000_0080..=0x0000_0000_0000_3fff => 2,
         50..=56 => 2,
         // 0x0000_0000_0000_0000..=0x0000_0000_0000_007f => 1,
-        _ => 1,
-        // _ => #[allow(unsafe)] unsafe { core::hint::unreachable_unchecked() }
-    }
+        57..=64 => 1,
+        _ => unsafe { core::hint::unreachable_unchecked() }
+,    }
 }
 
 /// Get the length of a `vint64` from the first byte.
