@@ -161,8 +161,10 @@ pub fn encoded_len(value: u64) -> usize {
             // this, we mark the "uncovered" part of the match as unreachable
             // for performance reasons.
             #[allow(unsafe_code)]
-            unsafe { core::hint::unreachable_unchecked() }
-        },
+            unsafe {
+                core::hint::unreachable_unchecked()
+            }
+        }
     }
 }
 
