@@ -73,8 +73,7 @@
 
 #![no_std]
 #![doc(html_root_url = "https://docs.rs/vint64/1.0.0")]
-// #![forbid(unsafe_code)]
-#![warn(missing_docs, rust_2018_idioms, unused_qualifications)]
+#![warn(missing_docs, rust_2018_idioms, unused_qualifications, unsafe_code)]
 
 #[cfg(feature = "std")]
 extern crate std;
@@ -152,7 +151,18 @@ pub fn encoded_len(value: u64) -> usize {
         43..=49 => 3,
         50..=56 => 2,
         57..=64 => 1,
-        _ => unsafe { core::hint::unreachable_unchecked() },
+        _ => {
+            // SAFETY:
+            //
+            // The `leading_zeros` intrinsic returns the number of bits that
+            // contain a zero bit. The result will always be in the range of
+            // 0..=64 for a `u64`, so the above pattern is exhaustive, however
+            // it is not exhaustive over the return type of `u32`. Because of
+            // this, we mark the "uncovered" part of the match as unreachable
+            // for performance reasons.
+            #[allow(unsafe_code)]
+            unsafe { core::hint::unreachable_unchecked() }
+        },
     }
 }
 
