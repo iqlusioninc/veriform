@@ -103,6 +103,7 @@ pub struct VInt64 {
 }
 
 impl AsRef<[u8]> for VInt64 {
+    #[inline]
     fn as_ref(&self) -> &[u8] {
         &self.bytes[..self.length as usize]
     }
@@ -116,12 +117,14 @@ impl Debug for VInt64 {
 }
 
 impl From<u64> for VInt64 {
+    #[inline]
     fn from(value: u64) -> VInt64 {
         encode(value)
     }
 }
 
 impl From<i64> for VInt64 {
+    #[inline]
     fn from(value: i64) -> VInt64 {
         signed::zigzag::encode(value).into()
     }
@@ -130,6 +133,7 @@ impl From<i64> for VInt64 {
 impl TryFrom<&[u8]> for VInt64 {
     type Error = Error;
 
+    #[inline]
     fn try_from(slice: &[u8]) -> Result<Self, Error> {
         let mut slice_ref = slice;
         decode(&mut slice_ref).map(VInt64::from)
@@ -154,11 +158,13 @@ pub fn encoded_len(value: u64) -> usize {
 /// Get the length of a `vint64` from the first byte.
 ///
 /// NOTE: The returned value is inclusive of the first byte itself.
+#[inline]
 pub fn decoded_len(byte: u8) -> usize {
     byte.trailing_zeros() as usize + 1
 }
 
 /// Encode an unsigned 64-bit integer as `vint64`.
+#[inline]
 pub fn encode(value: u64) -> VInt64 {
     let mut bytes = [0u8; MAX_BYTES];
     let length = encoded_len(value);
@@ -183,6 +189,7 @@ pub fn encode(value: u64) -> VInt64 {
 /// Accepts a mutable reference to a slice containing the `vint64`.
 /// Upon success, the reference is updated to begin at the byte immediately
 /// after the encoded `vint64`.
+#[inline]
 pub fn decode(input: &mut &[u8]) -> Result<u64, Error> {
     let bytes = *input;
     let length = decoded_len(*bytes.first().ok_or_else(|| Error::Truncated)?);
