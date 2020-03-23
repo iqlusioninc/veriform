@@ -73,8 +73,7 @@
 
 #![no_std]
 #![doc(html_root_url = "https://docs.rs/vint64/1.0.0")]
-#![forbid(unsafe_code)]
-#![warn(missing_docs, rust_2018_idioms, unused_qualifications)]
+#![warn(missing_docs, rust_2018_idioms, unused_qualifications, unsafe_code)]
 
 #[cfg(feature = "std")]
 extern crate std;
@@ -142,16 +141,30 @@ impl TryFrom<&[u8]> for VInt64 {
 
 /// Get the length of an encoded `vint64` for the given value in bytes.
 pub fn encoded_len(value: u64) -> usize {
-    match value {
-        0..=0x7f => 1,
-        0x80..=0x3fff => 2,
-        0x4000..=0xfffff => 3,
-        0x10_0000..=0xfff_ffff => 4,
-        0x1000_0000..=0x7_ffff_ffff => 5,
-        0x8_0000_0000..=0x3ff_ffff_ffff => 6,
-        0x400_0000_0000..=0x1_ffff_ffff_ffff => 7,
-        0x2_0000_0000_0000..=0xff_ffff_ffff_ffff => 8,
-        0x100_0000_0000_0000..=0xffff_ffff_ffff_ffff => 9,
+    match value.leading_zeros() {
+        0..=7 => 9,
+        8..=14 => 8,
+        15..=21 => 7,
+        22..=28 => 6,
+        29..=35 => 5,
+        36..=42 => 4,
+        43..=49 => 3,
+        50..=56 => 2,
+        57..=64 => 1,
+        _ => {
+            // SAFETY:
+            //
+            // The `leading_zeros` intrinsic returns the number of bits that
+            // contain a zero bit. The result will always be in the range of
+            // 0..=64 for a `u64`, so the above pattern is exhaustive, however
+            // it is not exhaustive over the return type of `u32`. Because of
+            // this, we mark the "uncovered" part of the match as unreachable
+            // for performance reasons.
+            #[allow(unsafe_code)]
+            unsafe {
+                core::hint::unreachable_unchecked()
+            }
+        }
     }
 }
 
@@ -321,5 +334,12 @@ mod tests {
 
         let mut slice = [0xf0, 0x3b, 0xfc, 0xc3, 0x03].as_ref();
         assert_eq!(signed::decode(&mut slice).unwrap(), -0x0f0f_f0f0);
+    }
+
+    #[test]
+    fn roundtrip_problem() {
+        let x = encode(1048576);
+        let y = decode(&mut x.as_ref()).unwrap();
+        assert_eq!(y, 1048576);
     }
 }
