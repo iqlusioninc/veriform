@@ -232,6 +232,7 @@ pub fn decode(input: &mut &[u8]) -> Result<u64, Error> {
 #[cfg(test)]
 mod tests {
     use super::{decode, encode, signed};
+    use proptest::{num::u64::ANY, prelude::*};
 
     #[test]
     fn encode_zero() {
@@ -336,10 +337,13 @@ mod tests {
         assert_eq!(signed::decode(&mut slice).unwrap(), -0x0f0f_f0f0);
     }
 
-    #[test]
-    fn roundtrip_problem() {
-        let x = encode(1048576);
-        let y = decode(&mut x.as_ref()).unwrap();
-        assert_eq!(y, 1048576);
+    proptest! {
+        /// Ensure `vint64` values successfully round-trip
+        #[test]
+        fn roundtrip(n in ANY) {
+            let encoded = encode(n);
+            let decoded = decode(&mut encoded.as_ref()).unwrap();
+            assert_eq!(n, decoded);
+        }
     }
 }
