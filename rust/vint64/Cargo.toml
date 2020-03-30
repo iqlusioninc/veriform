@@ -4,7 +4,7 @@ description = """
 Simple and efficient variable-length integer encoding compatible with some
 variants of VLQ (Variable-Length Quantity)
 """
-version     = "1.0.0" # Also update html_root_url in lib.rs when bumping this
+version     = "1.0.1" # Also update html_root_url in lib.rs when bumping this
 authors     = ["Tony Arcieri <tony@iqlusion.io>"]
 license     = "Apache-2.0"
 edition     = "2018"
