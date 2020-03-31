@@ -1,3 +1,14 @@
+## [1.0.1] (2020-03-30)
+
+- Use `proptest` crate to check round-trip behavior ([#114])
+- Use leading zeroes intrinsic - fixes critical bug ([#112])
+- Add `#[inline]` attributes ([#110])
+
+[1.0.1]: https://github.com/iqlusioninc/veriform/pull/115
+[#114]: https://github.com/iqlusioninc/veriform/pull/114
+[#112]: https://github.com/iqlusioninc/veriform/pull/112
+[#110]: https://github.com/iqlusioninc/veriform/pull/110
+
 ## [1.0.0] (2020-03-17)
 
 - Add off-by-default `std` feature ([#108])
