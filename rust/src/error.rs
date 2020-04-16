@@ -33,8 +33,14 @@ pub enum Error {
         wire_type: Option<WireType>,
     },
 
+    /// invalid wire type
+    InvalidWireType,
+
     /// bad length
     Length,
+
+    /// maximum message nesting depth exceeded
+    NestingDepth,
 
     /// field {tag:?} is out-of-order
     Order {
@@ -54,6 +60,15 @@ pub enum Error {
         wire_type: WireType,
     },
 
+    /// unexpected wire type: actual={actual:?} wanted={wanted:?}
+    UnexpectedWireType {
+        /// actual wire type found in message
+        actual: WireType,
+
+        /// wire type we were looking for
+        wanted: WireType,
+    },
+
     /// malformed UTF-8 encountered at byte: {valid_up_to:?}
     Utf8 {
         /// byte at which UTF-8 encoding failed
@@ -62,12 +77,6 @@ pub enum Error {
 
     /// `vint64` encoding error
     VInt64,
-
-    /// invalid wire type: {wanted:?}
-    WireType {
-        /// wire type we were looking for
-        wanted: Option<WireType>,
-    },
 }
 
 #[cfg(feature = "std")]

@@ -1,5 +1,9 @@
 //! Sequence decoder
 
+mod iter;
+
+pub use self::iter::Iter;
+
 use super::{
     vint64::{self, zigzag},
     Decodable, Event,
@@ -41,8 +45,9 @@ impl Decodable for Decoder {
         input: &mut &'a [u8],
     ) -> Result<&'a [u8], Error> {
         if expected_type != self.wire_type {
-            return Err(Error::WireType {
-                wanted: Some(expected_type),
+            return Err(Error::UnexpectedWireType {
+                actual: self.wire_type,
+                wanted: expected_type,
             });
         }
 

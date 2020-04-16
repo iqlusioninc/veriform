@@ -5,7 +5,7 @@
 //
 // Copyright (c) 2017 Dan Burkert and released under the Apache 2.0 license.
 
-use crate::Error;
+use crate::{Decoder, Error};
 
 #[cfg(feature = "alloc")]
 use alloc::vec::Vec;
@@ -26,10 +26,11 @@ pub enum Element {
     Value,
 }
 
-/// Veriform message
+/// Veriform messages
 pub trait Message {
-    /// Decode a Veriform message contained in the provided slice.
-    fn decode(bytes: impl AsRef<[u8]>) -> Result<Self, Error>
+    /// Decode a Veriform message contained in the provided slice using the
+    /// given [`Decoder`].
+    fn decode(decoder: &mut Decoder, input: &[u8]) -> Result<Self, Error>
     where
         Self: Sized;
 
@@ -40,7 +41,8 @@ pub trait Message {
     /// Get the length of a message after being encoded as Veriform.
     fn encoded_len(&self) -> usize;
 
-    /// Encode this message as Veriform, returning a byte sequence on success.
+    /// Encode this message as Veriform, allocating returning a byte vector
+    /// on success.
     #[cfg(feature = "alloc")]
     fn encode_vec(&self) -> Result<Vec<u8>, Error> {
         let mut encoded = vec![0; self.encoded_len()];

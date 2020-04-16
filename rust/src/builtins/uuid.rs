@@ -11,23 +11,16 @@
 pub use uuid::Uuid;
 
 use crate::{
-    decoder::{Decodable, Decoder},
-    encoder::Encoder,
-    error::Error,
-    field::{self, WireType},
-    message::Message,
+    decoder::{DecodeRef, Decoder},
+    field, Encoder, Error, Message,
 };
 use core::convert::TryInto;
 
 impl Message for Uuid {
-    fn decode(bytes: impl AsRef<[u8]>) -> Result<Self, Error> {
-        let mut bytes = bytes.as_ref();
-        let mut decoder = Decoder::new();
+    fn decode(decoder: &mut Decoder, mut input: &[u8]) -> Result<Self, Error> {
+        let bytes: &[u8] = decoder.decode_ref(0, &mut input)?;
 
-        decoder.decode_expected_header(&mut bytes, 0, WireType::String)?;
-        let uuid_bytes = decoder.decode_bytes(&mut bytes)?;
-
-        uuid_bytes
+        bytes
             .try_into()
             .map(Uuid::from_bytes)
             .map_err(|_| Error::Builtin)

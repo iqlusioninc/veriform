@@ -113,7 +113,7 @@ impl Decoder {
 
     /// Decode an expected field header, skipping (in-order) unknown fields,
     /// and returning an error if the field is missing or unexpected
-    pub fn decode_expected_header(
+    pub fn expect_header(
         &mut self,
         input: &mut &[u8],
         tag: Tag,
@@ -136,8 +136,9 @@ impl Decoder {
         }
 
         if header.wire_type != wire_type {
-            return Err(Error::WireType {
-                wanted: Some(wire_type),
+            return Err(Error::UnexpectedWireType {
+                actual: header.wire_type,
+                wanted: wire_type,
             });
         }
 

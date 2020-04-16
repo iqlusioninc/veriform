@@ -3,33 +3,21 @@
 //! In Veriform these are encoded as:
 //!
 //! ```text
-//! message TAI64N {
+//! message Timestamp {
 //!     secs[0]: !bytes(size = 8),
 //!     nanos[1]: bytes(size = 4)
 //! }
 //! ```
 
-pub use tai64::TAI64N;
+pub use tai64::TAI64N as Timestamp;
 
-use crate::{
-    decoder::{Decodable, Decoder},
-    encoder::Encoder,
-    error::Error,
-    field::{self, WireType},
-    message::Message,
-};
+use crate::{decoder::Decode, field, Decoder, Encoder, Error, Message};
 use core::convert::TryInto;
 
-impl Message for TAI64N {
-    fn decode(bytes: impl AsRef<[u8]>) -> Result<Self, Error> {
-        let mut bytes = bytes.as_ref();
-        let mut decoder = Decoder::new();
-
-        decoder.decode_expected_header(&mut bytes, 0, WireType::UInt64)?;
-        let secs = decoder.decode_uint64(&mut bytes)?;
-
-        decoder.decode_expected_header(&mut bytes, 1, WireType::UInt64)?;
-        let nanos = decoder.decode_uint64(&mut bytes)?;
+impl Message for Timestamp {
+    fn decode(decoder: &mut Decoder, mut input: &[u8]) -> Result<Self, Error> {
+        let secs: u64 = decoder.decode(0, &mut input)?;
+        let nanos: u64 = decoder.decode(1, &mut input)?;
 
         if nanos > core::u32::MAX as u64 {
             return Err(Error::Length);
@@ -55,8 +43,8 @@ impl Message for TAI64N {
     }
 }
 
-/// Convert a TAI64N timestamp to two integers
-fn tai64_to_ints(tai64n: &TAI64N) -> (u64, u32) {
+/// Convert a Timestamp timestamp to two integers
+fn tai64_to_ints(tai64n: &Timestamp) -> (u64, u32) {
     let encoded = tai64n.to_bytes();
     let secs = u64::from_le_bytes(encoded[..8].try_into().unwrap());
     let nanos = u32::from_le_bytes(encoded[8..].try_into().unwrap());
