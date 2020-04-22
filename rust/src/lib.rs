@@ -24,10 +24,12 @@ pub mod error;
 pub mod field;
 pub mod message;
 
+// Re-export the `vint64` crate
+pub use vint64;
+
 pub use crate::{
     decoder::{Decodable, Decoder},
     encoder::Encoder,
     error::Error,
     message::Message,
 };
-pub use vint64;

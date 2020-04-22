@@ -61,7 +61,7 @@ impl TryFrom<u64> for WireType {
             5 => Ok(WireType::String),
             6 => Ok(WireType::Message),
             7 => Ok(WireType::Sequence),
-            _ => Err(Error::WireType { wanted: None }),
+            _ => Err(Error::InvalidWireType),
         }
     }
 }

@@ -145,7 +145,7 @@ impl<'a> Encoder<'a> {
 mod tests {
     use super::Encoder;
     use crate::{
-        decoder::{Decodable, Decoder},
+        decoder::{message::Decoder, Decodable},
         field::WireType,
     };
 
