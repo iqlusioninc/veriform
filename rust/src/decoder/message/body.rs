@@ -1,6 +1,7 @@
-/// Decoder for the bodies of variable-length field values
-use super::{Event, State};
-use crate::{error::Error, field::WireType};
+//! Decoder for the bodies of variable-length field values
+
+use super::state::State;
+use crate::{decoder::Event, error::Error, field::WireType};
 
 /// Decoder for the bodies of variable-length field values
 #[derive(Debug)]

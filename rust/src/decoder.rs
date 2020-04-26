@@ -1,6 +1,6 @@
 //! Veriform decoder
 
-pub mod message;
+pub(crate) mod message;
 pub mod sequence;
 
 mod decodable;
