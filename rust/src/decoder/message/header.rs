@@ -1,10 +1,10 @@
 //! Decoder for field headers
 
-use super::{State, Tag};
+use super::state::State;
 use crate::{
     decoder::{vint64, Event},
     error::Error,
-    field::Header,
+    field::{Header, Tag},
 };
 
 /// Decoder for field headers

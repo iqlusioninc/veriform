@@ -1,6 +1,6 @@
 //! Decoder for field values
 
-use super::State;
+use super::state::State;
 use crate::{
     decoder::{
         vint64::{self, zigzag},
