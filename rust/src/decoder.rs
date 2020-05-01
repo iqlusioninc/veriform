@@ -5,41 +5,38 @@ pub mod sequence;
 
 mod decodable;
 mod event;
+mod hasher;
+mod traits;
 mod vint64;
 
-pub use self::{decodable::Decodable, event::Event};
+#[cfg(feature = "log")]
+#[macro_use]
+mod trace;
+
+pub use self::{
+    decodable::Decodable,
+    event::Event,
+    hasher::Hasher,
+    traits::{Decode, DecodeRef, DecodeSeq},
+};
 
 use crate::{
     field::{Tag, WireType},
     Error, Message,
 };
+use digest::Digest;
 use heapless::consts::U16;
 
-#[cfg(feature = "log")]
-macro_rules! trace {
-    ($decoder:expr, $c:expr, $msg:expr, $($arg:tt)*) => {
-        let mut prefix: heapless::String<heapless::consts::U128> = heapless::String::new();
-        for _ in 0..$decoder.depth() {
-            prefix.push($c).unwrap();
-        }
-        log::trace!(concat!("{}", $msg), &prefix, $($arg)*);
-    }
-}
-
-#[cfg(feature = "log")]
-macro_rules! begin {
-    ($decoder:expr, $msg:expr, $($arg:tt)*) => {
-        trace!($decoder, '+', $msg, $($arg)*);
-    }
-}
-
 /// Veriform decoder
-pub struct Decoder {
+pub struct Decoder<D: Digest> {
     /// Stack of message decoders (max nesting depth 16)
-    stack: heapless::Vec<message::Decoder, U16>,
+    stack: heapless::Vec<message::Decoder<D>, U16>,
 }
 
-impl Default for Decoder {
+impl<D> Default for Decoder<D>
+where
+    D: Digest,
+{
     fn default() -> Self {
         let mut stack = heapless::Vec::new();
         stack.push(message::Decoder::new()).unwrap();
@@ -47,7 +44,10 @@ impl Default for Decoder {
     }
 }
 
-impl Decoder {
+impl<D> Decoder<D>
+where
+    D: Digest,
+{
     /// Initialize decoder
     pub fn new() -> Self {
         Self::default()
@@ -71,7 +71,7 @@ impl Decoder {
 
     /// Peek at the message decoder on the top of the stack
     // TODO(tarcieri): remove this implementation detail from public API
-    pub fn peek(&mut self) -> &mut message::Decoder {
+    pub fn peek(&mut self) -> &mut message::Decoder<D> {
         self.stack.last_mut().unwrap()
     }
 
@@ -82,36 +82,12 @@ impl Decoder {
     }
 }
 
-/// Try to decode a field to a value of the given type.
-///
-/// This trait is intended to be impl'd by the [`Decoder`] type.
-pub trait Decode<T> {
-    /// Try to decode a value of type `T`
-    fn decode(&mut self, tag: Tag, input: &mut &[u8]) -> Result<T, Error>;
-}
-
-/// Try to decode a field to a reference of the given type.
-///
-/// This trait is intended to be impl'd by the [`Decoder`] type.
-pub trait DecodeRef<T: ?Sized> {
-    /// Try to decode a reference to type `T`
-    fn decode_ref<'a>(&mut self, tag: Tag, input: &mut &'a [u8]) -> Result<&'a T, Error>;
-}
-
-/// Decode a sequence of values to a [`sequence::Iter`].
-///
-/// This trait is intended to be impl'd by the [`Decoder`] type.
-pub trait DecodeSeq<T> {
-    /// Try to decode a sequence of values of type `T`
-    fn decode_seq<'a>(
-        &mut self,
-        tag: Tag,
-        input: &mut &'a [u8],
-    ) -> Result<sequence::Iter<'a, T>, Error>;
-}
-
-impl<T: Message> Decode<T> for Decoder {
-    fn decode(&mut self, tag: Tag, input: &mut &[u8]) -> Result<T, Error> {
+impl<D, M> Decode<M> for Decoder<D>
+where
+    D: Digest,
+    M: Message,
+{
+    fn decode(&mut self, tag: Tag, input: &mut &[u8]) -> Result<M, Error> {
         #[cfg(feature = "log")]
         begin!(self, "[{}]: msg?", tag);
 
@@ -119,15 +95,17 @@ impl<T: Message> Decode<T> for Decoder {
         let msg_bytes = self.peek().decode_message(input)?;
 
         self.push()?;
-        let msg = T::decode(self, msg_bytes)?;
-        //begin!(self, "[{}]", tag);
-
+        let msg = M::decode(self, msg_bytes)?;
         self.pop();
+
         Ok(msg)
     }
 }
 
-impl Decode<u64> for Decoder {
+impl<D> Decode<u64> for Decoder<D>
+where
+    D: Digest,
+{
     fn decode(&mut self, tag: Tag, input: &mut &[u8]) -> Result<u64, Error> {
         #[cfg(feature = "log")]
         begin!(self, "[{}]: uint64?", tag);
@@ -137,7 +115,10 @@ impl Decode<u64> for Decoder {
     }
 }
 
-impl Decode<i64> for Decoder {
+impl<D> Decode<i64> for Decoder<D>
+where
+    D: Digest,
+{
     fn decode(&mut self, tag: Tag, input: &mut &[u8]) -> Result<i64, Error> {
         #[cfg(feature = "log")]
         begin!(self, "[{}]: sint64?", tag);
@@ -147,7 +128,10 @@ impl Decode<i64> for Decoder {
     }
 }
 
-impl DecodeRef<[u8]> for Decoder {
+impl<D> DecodeRef<[u8]> for Decoder<D>
+where
+    D: Digest,
+{
     fn decode_ref<'a>(&mut self, tag: Tag, input: &mut &'a [u8]) -> Result<&'a [u8], Error> {
         #[cfg(feature = "log")]
         begin!(self, "[{}]: bytes?", tag);
@@ -157,7 +141,10 @@ impl DecodeRef<[u8]> for Decoder {
     }
 }
 
-impl DecodeRef<str> for Decoder {
+impl<D> DecodeRef<str> for Decoder<D>
+where
+    D: Digest,
+{
     fn decode_ref<'a>(&mut self, tag: Tag, input: &mut &'a [u8]) -> Result<&'a str, Error> {
         #[cfg(feature = "log")]
         begin!(self, "[{}]: string?", tag);
@@ -167,12 +154,16 @@ impl DecodeRef<str> for Decoder {
     }
 }
 
-impl<T: Message> DecodeSeq<T> for Decoder {
+impl<D, M> DecodeSeq<M> for Decoder<D>
+where
+    D: Digest,
+    M: Message,
+{
     fn decode_seq<'a>(
         &mut self,
         tag: Tag,
         input: &mut &'a [u8],
-    ) -> Result<sequence::Iter<'a, T>, Error> {
+    ) -> Result<sequence::Iter<'a, M>, Error> {
         #[cfg(feature = "log")]
         begin!(self, "[{}]: seq<msg>?", tag);
 
@@ -184,7 +175,10 @@ impl<T: Message> DecodeSeq<T> for Decoder {
     }
 }
 
-impl DecodeSeq<u64> for Decoder {
+impl<D> DecodeSeq<u64> for Decoder<D>
+where
+    D: Digest,
+{
     fn decode_seq<'a>(
         &mut self,
         tag: Tag,
@@ -201,7 +195,10 @@ impl DecodeSeq<u64> for Decoder {
     }
 }
 
-impl DecodeSeq<i64> for Decoder {
+impl<D> DecodeSeq<i64> for Decoder<D>
+where
+    D: Digest,
+{
     fn decode_seq<'a>(
         &mut self,
         tag: Tag,
@@ -218,9 +215,10 @@ impl DecodeSeq<i64> for Decoder {
     }
 }
 
-#[cfg(test)]
+#[cfg(all(test, feature = "sha2"))]
 mod tests {
-    use super::*;
+    use super::{Decode, DecodeRef};
+    use crate::Decoder;
 
     #[test]
     fn decode_uint64() {

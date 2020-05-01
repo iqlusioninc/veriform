@@ -5,7 +5,8 @@
 //
 // Copyright (c) 2017 Dan Burkert and released under the Apache 2.0 license.
 
-use crate::{Decoder, Error};
+use crate::{decoder::Decoder, Error};
+use digest::Digest;
 
 #[cfg(feature = "alloc")]
 use alloc::vec::Vec;
@@ -30,8 +31,9 @@ pub enum Element {
 pub trait Message {
     /// Decode a Veriform message contained in the provided slice using the
     /// given [`Decoder`].
-    fn decode(decoder: &mut Decoder, input: &[u8]) -> Result<Self, Error>
+    fn decode<D>(decoder: &mut Decoder<D>, input: &[u8]) -> Result<Self, Error>
     where
+        D: Digest,
         Self: Sized;
 
     /// Encode this message as Veriform into the provided buffer, returning

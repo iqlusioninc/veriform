@@ -12,15 +12,17 @@ categories  = ["authentication", "cryptography", "encoding"]
 keywords    = ["hashing", "merkle", "protobufs", "security", "serialization"]
 
 [dependencies]
+digest = { version = "0.8", default-features = false }
 displaydoc = { version = "0.1", default-features = false }
 heapless = "0.5"
 log = { version = "0.4", optional = true }
+sha2 = { version = "0.8", optional = true, default-features = false }
 tai64 = { version = "3", optional = true, default-features = false }
 uuid = { version = "0.8", optional = true, default-features = false }
 vint64 = { version = "1", path = "vint64" }
 
 [features]
-default = ["builtins-std"]
+default = ["builtins-std", "sha2"]
 alloc = []
 builtins = ["tai64", "uuid"]
 builtins-std = ["std", "tai64/std", "uuid/std"]

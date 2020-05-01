@@ -4,6 +4,10 @@ use super::Decoder;
 use crate::{decoder::Decodable, Error, Message};
 use core::marker::PhantomData;
 
+// TODO(tarcieri): make this (and `sequence::Decoder`) generic around digest
+#[cfg(not(feature = "sha2"))]
+compile_error!("TODO: support disabling `sha2` feature");
+
 /// Sequence iterator: iterates over a sequence of values in a Veriform
 /// message, decoding each one.
 pub struct Iter<'a, T> {
@@ -38,7 +42,7 @@ impl<'a, T: Message> Iterator for Iter<'a, T> {
 
         let mut input = &self.data[self.decoder.position()..];
 
-        // TODO(tarcieri): reuse decoder
+        // TODO(tarcieri): reuse decoder; support disabling `sha2` feature
         let mut decoder = crate::Decoder::new();
 
         let result = self

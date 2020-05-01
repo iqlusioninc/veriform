@@ -141,13 +141,13 @@ impl<'a> Encoder<'a> {
     }
 }
 
-#[cfg(test)]
+#[cfg(all(test, feature = "sha2"))]
 mod tests {
     use super::Encoder;
-    use crate::{
-        decoder::{message::Decoder, Decodable},
-        field::WireType,
-    };
+    use crate::{decoder::Decodable, field::WireType};
+
+    // TODO(tarcieri): rewrite tests with `crate::Decoder`
+    type Decoder = crate::decoder::message::Decoder<sha2::Sha256>;
 
     const EXAMPLE_BYTES: &[u8] = b"foobar";
     const EXAMPLE_STRING: &str = "baz";
