@@ -2,16 +2,17 @@
 
 use super::state::State;
 use crate::{
-    decoder::{Decodable, Event},
+    decoder::{Decodable, Event, Hasher},
     error::Error,
     field::{Header, Tag, WireType},
     message::Element,
 };
+use core::fmt::{self, Debug};
+use digest::Digest;
 
 /// Veriform message decoder: streaming zero-copy pull parser which emits
 /// events based on incoming data.
-#[derive(Debug)]
-pub struct Decoder {
+pub struct Decoder<D: Digest> {
     /// Last field tag that was decoded (to ensure monotonicity)
     last_tag: Option<Tag>,
 
@@ -20,67 +21,15 @@ pub struct Decoder {
 
     /// Current state of the decoder (or `None` if an error occurred)
     state: Option<State>,
+
+    /// Verihash message hasher
+    hasher: Option<Hasher<D>>,
 }
 
-impl Default for Decoder {
-    fn default() -> Self {
-        Self {
-            state: Some(State::default()),
-            last_tag: None,
-            position: 0,
-        }
-    }
-}
-
-impl Decodable for Decoder {
-    fn decode<'a>(&mut self, input: &mut &'a [u8]) -> Result<Option<Event<'a>>, Error> {
-        if let Some(state) = self.state.take() {
-            let (new_state, event) = state.decode(input, self.last_tag)?;
-
-            if let Some(Event::FieldHeader(header)) = &event {
-                self.last_tag = Some(header.tag);
-            }
-
-            self.state = Some(new_state);
-            self.position = self.position.checked_add(input.len()).unwrap();
-            Ok(event)
-        } else {
-            Err(Error::Failed)
-        }
-    }
-
-    fn decode_dynamically_sized_value<'a>(
-        &mut self,
-        expected_type: WireType,
-        input: &mut &'a [u8],
-    ) -> Result<&'a [u8], Error> {
-        let length = self.decode_length_delimiter(input, expected_type)?;
-
-        match self.decode(input)? {
-            Some(Event::ValueChunk {
-                wire_type,
-                bytes,
-                remaining,
-            }) if wire_type == expected_type => {
-                if remaining == 0 {
-                    debug_assert_eq!(length, bytes.len());
-                    Ok(bytes)
-                } else {
-                    Err(Error::Truncated {
-                        remaining,
-                        wire_type,
-                    })
-                }
-            }
-            _ => Err(Error::Decode {
-                element: Element::Value,
-                wire_type: expected_type,
-            }),
-        }
-    }
-}
-
-impl Decoder {
+impl<D> Decoder<D>
+where
+    D: Digest,
+{
     /// Create a new decoder in an initial state
     pub fn new() -> Self {
         Self::default()
@@ -166,10 +115,98 @@ impl Decoder {
     }
 }
 
-#[cfg(test)]
+impl<D> Default for Decoder<D>
+where
+    D: Digest,
+{
+    fn default() -> Self {
+        Self {
+            state: Some(State::default()),
+            last_tag: None,
+            position: 0,
+            hasher: Some(Hasher::new()),
+        }
+    }
+}
+
+impl<D> Decodable for Decoder<D>
+where
+    D: Digest,
+{
+    fn decode<'a>(&mut self, input: &mut &'a [u8]) -> Result<Option<Event<'a>>, Error> {
+        if let Some(state) = self.state.take() {
+            let (new_state, event) = state.decode(input, self.last_tag)?;
+
+            if let Some(Event::FieldHeader(header)) = &event {
+                self.last_tag = Some(header.tag);
+            }
+
+            self.state = Some(new_state);
+            self.position = self.position.checked_add(input.len()).unwrap();
+
+            if let Some(ev) = &event {
+                if let Some(hasher) = &mut self.hasher {
+                    hasher.hash_event(ev)?;
+                }
+            }
+
+            Ok(event)
+        } else {
+            Err(Error::Failed)
+        }
+    }
+
+    fn decode_dynamically_sized_value<'a>(
+        &mut self,
+        expected_type: WireType,
+        input: &mut &'a [u8],
+    ) -> Result<&'a [u8], Error> {
+        let length = self.decode_length_delimiter(input, expected_type)?;
+
+        match self.decode(input)? {
+            Some(Event::ValueChunk {
+                wire_type,
+                bytes,
+                remaining,
+            }) if wire_type == expected_type => {
+                if remaining == 0 {
+                    debug_assert_eq!(length, bytes.len());
+                    Ok(bytes)
+                } else {
+                    Err(Error::Truncated {
+                        remaining,
+                        wire_type,
+                    })
+                }
+            }
+            _ => Err(Error::Decode {
+                element: Element::Value,
+                wire_type: expected_type,
+            }),
+        }
+    }
+}
+
+impl<D> Debug for Decoder<D>
+where
+    D: Digest,
+{
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        f.debug_struct("Decoder")
+            .field("last_tag", &self.last_tag)
+            .field("position", &self.position)
+            .field("state", &self.state)
+            .field("hasher", &self.hasher)
+            .finish()
+    }
+}
+
+#[cfg(all(test, feature = "sha2"))]
 mod tests {
-    use super::{Decodable, Decoder, WireType};
+    use super::{Decodable, WireType};
     use crate::error::Error;
+
+    type Decoder = super::Decoder<sha2::Sha256>;
 
     #[test]
     fn decode_false() {

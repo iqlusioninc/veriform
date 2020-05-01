@@ -11,11 +11,18 @@
 
 pub use tai64::TAI64N as Timestamp;
 
-use crate::{decoder::Decode, field, Decoder, Encoder, Error, Message};
+use crate::{
+    decoder::{Decode, Decoder},
+    digest::Digest,
+    field, Encoder, Error, Message,
+};
 use core::convert::TryInto;
 
 impl Message for Timestamp {
-    fn decode(decoder: &mut Decoder, mut input: &[u8]) -> Result<Self, Error> {
+    fn decode<D>(decoder: &mut Decoder<D>, mut input: &[u8]) -> Result<Self, Error>
+    where
+        D: Digest,
+    {
         let secs: u64 = decoder.decode(0, &mut input)?;
         let nanos: u64 = decoder.decode(1, &mut input)?;
 

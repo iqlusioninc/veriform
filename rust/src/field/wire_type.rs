@@ -46,6 +46,11 @@ impl WireType {
             _ => false,
         }
     }
+
+    /// Convert a [`WireType`] to a byte representation
+    pub const fn to_u8(self) -> u8 {
+        self as u8
+    }
 }
 
 impl TryFrom<u64> for WireType {

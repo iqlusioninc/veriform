@@ -24,12 +24,14 @@ pub mod error;
 pub mod field;
 pub mod message;
 
+// Re-export the `digest` crate
+pub use digest;
+
 // Re-export the `vint64` crate
 pub use vint64;
 
-pub use crate::{
-    decoder::{Decodable, Decoder},
-    encoder::Encoder,
-    error::Error,
-    message::Message,
-};
+pub use crate::{encoder::Encoder, error::Error, message::Message};
+
+/// Veriform decoder with the default SHA-256 hash
+#[cfg(feature = "sha2")]
+pub type Decoder = crate::decoder::Decoder<sha2::Sha256>;

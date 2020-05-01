@@ -33,6 +33,10 @@ pub enum Error {
         wire_type: Option<WireType>,
     },
 
+    /// hashing operation failed
+    // TODO(tarcieri): collect more info
+    Hashing,
+
     /// invalid wire type
     InvalidWireType,
 

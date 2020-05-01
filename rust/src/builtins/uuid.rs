@@ -12,12 +12,16 @@ pub use uuid::Uuid;
 
 use crate::{
     decoder::{DecodeRef, Decoder},
+    digest::Digest,
     field, Encoder, Error, Message,
 };
 use core::convert::TryInto;
 
 impl Message for Uuid {
-    fn decode(decoder: &mut Decoder, mut input: &[u8]) -> Result<Self, Error> {
+    fn decode<D>(decoder: &mut Decoder<D>, mut input: &[u8]) -> Result<Self, Error>
+    where
+        D: Digest,
+    {
         let bytes: &[u8] = decoder.decode_ref(0, &mut input)?;
 
         bytes
