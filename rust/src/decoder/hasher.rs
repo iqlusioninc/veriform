@@ -2,6 +2,11 @@
 //!
 //! WARNING: this is an experimental PoC-quality implementation!
 //! It is NOT suitable for production use!
+//!
+//! # TODO
+//!
+//! - Nested message hashing
+//! - Sequence hashing
 
 // TODO(tarcieri): tests and test vectors!!!
 
@@ -88,7 +93,10 @@ enum State {
     Message { remaining: usize },
 
     /// Hashing a sequence value
-    Sequence { remaining: usize },
+    Sequence {
+        wire_type: WireType,
+        remaining: usize,
+    },
 }
 
 impl Default for State {
@@ -144,7 +152,6 @@ impl State {
                 WireType::Bytes => State::Bytes { remaining: length },
                 WireType::String => State::String { remaining: length },
                 WireType::Message => State::Message { remaining: length },
-                WireType::Sequence => State::Sequence { remaining: length },
                 _ => unreachable!(),
             };
 
@@ -222,20 +229,22 @@ impl State {
                 if new_remaining == 0 {
                     return Ok(State::Initial);
                 } else {
-                    return Ok(State::Bytes {
+                    return Ok(State::Message {
                         remaining: new_remaining,
                     });
                 }
             }
-            State::Sequence { remaining } => {
+            State::Sequence {
+                wire_type: value_type,
+                remaining,
+            } => {
                 if wire_type != WireType::Sequence || remaining - bytes.len() != new_remaining {
                     return Err(Error::Hashing);
-                }
-
-                if new_remaining == 0 {
+                } else if new_remaining == 0 {
                     return Ok(State::Initial);
                 } else {
-                    return Ok(State::Bytes {
+                    return Ok(State::Sequence {
+                        wire_type: value_type,
                         remaining: new_remaining,
                     });
                 }
@@ -250,9 +259,19 @@ impl State {
     }
 
     /// Handle an incoming sequence header
-    fn handle_sequence_header(self, _wire_type: WireType, _length: usize) -> Result<Self, Error> {
-        // TODO(tarcieri): handle sequence headers correctly!
-        Ok(self)
+    fn handle_sequence_header(self, wire_type: WireType, length: usize) -> Result<Self, Error> {
+        if let State::Header(header) = self {
+            if header.wire_type != WireType::Sequence {
+                return Err(Error::Hashing);
+            }
+
+            Ok(State::Sequence {
+                wire_type,
+                remaining: length,
+            })
+        } else {
+            Err(Error::Hashing)
+        }
     }
 }
 
