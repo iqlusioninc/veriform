@@ -24,7 +24,7 @@ use crate::{
     field::{Tag, WireType},
     Error, Message,
 };
-use digest::Digest;
+use digest::{generic_array::GenericArray, Digest};
 use heapless::consts::U16;
 
 /// Veriform decoder
@@ -63,10 +63,12 @@ where
 
     /// Pop the message decoder from the stack when we've finished a message.
     ///
+    /// Returns a digest of the nested message if message hashing is enabled.
+    ///
     /// Panics if the decoder's stack underflows.
     // TODO(tarcieri): panic-free higher-level API, possibly RAII-based?
-    pub fn pop(&mut self) {
-        self.stack.pop().unwrap();
+    pub fn pop(&mut self) -> Option<GenericArray<u8, D::OutputSize>> {
+        self.stack.pop().unwrap().finish_digest()
     }
 
     /// Peek at the message decoder on the top of the stack
@@ -96,7 +98,10 @@ where
 
         self.push()?;
         let msg = M::decode(self, msg_bytes)?;
-        self.pop();
+
+        if let Some(digest) = self.pop() {
+            self.peek().hash_message_digest(tag, &digest)?;
+        }
 
         Ok(msg)
     }
