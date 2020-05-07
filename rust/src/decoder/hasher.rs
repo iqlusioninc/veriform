@@ -16,7 +16,7 @@ use crate::{
     field::{self, Tag, WireType},
 };
 use core::fmt::{self, Debug};
-use digest::Digest;
+use digest::{generic_array::GenericArray, Digest};
 
 /// Verihash prefix used by tags (unsigned integer)
 const TAG_PREFIX: u8 = WireType::UInt64.to_u8();
@@ -50,6 +50,31 @@ where
             Ok(())
         } else {
             Err(Error::Failed)
+        }
+    }
+
+    /// Hash a digest of a nested message within this message
+    pub fn hash_message_digest(
+        &mut self,
+        tag: Tag,
+        digest: &GenericArray<u8, D::OutputSize>,
+    ) -> Result<(), Error> {
+        match self.state {
+            Some(State::Message { remaining }) if remaining == 0 => {
+                hash_fixed(&mut self.digest, tag, WireType::Message, digest);
+                self.state = Some(State::Initial);
+                Ok(())
+            }
+            _ => Err(Error::Hashing),
+        }
+    }
+
+    /// Finish computing digest
+    pub fn finish(self) -> Result<GenericArray<u8, D::OutputSize>, Error> {
+        if self.state == Some(State::Initial) {
+            Ok(self.digest.result())
+        } else {
+            Err(Error::Hashing)
         }
     }
 }
@@ -226,13 +251,9 @@ impl State {
                     return Err(Error::Hashing);
                 }
 
-                if new_remaining == 0 {
-                    return Ok(State::Initial);
-                } else {
-                    return Ok(State::Message {
-                        remaining: new_remaining,
-                    });
-                }
+                return Ok(State::Message {
+                    remaining: new_remaining,
+                });
             }
             State::Sequence {
                 wire_type: value_type,

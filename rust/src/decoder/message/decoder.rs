@@ -8,7 +8,7 @@ use crate::{
     message::Element,
 };
 use core::fmt::{self, Debug};
-use digest::Digest;
+use digest::{generic_array::GenericArray, Digest};
 
 /// Veriform message decoder: streaming zero-copy pull parser which emits
 /// events based on incoming data.
@@ -89,6 +89,26 @@ where
         }
 
         Ok(())
+    }
+
+    /// Hash a digest of a nested message within this message
+    pub fn hash_message_digest(
+        &mut self,
+        tag: Tag,
+        digest: &GenericArray<u8, D::OutputSize>,
+    ) -> Result<(), Error> {
+        if let Some(hasher) = &mut self.hasher {
+            hasher.hash_message_digest(tag, digest)?;
+        }
+
+        Ok(())
+    }
+
+    /// Finish producing a digest of a message, if we're configured to hash.
+    ///
+    /// Panics if the hasher is in a bad state.
+    pub fn finish_digest(self) -> Option<GenericArray<u8, D::OutputSize>> {
+        self.hasher.map(|hasher| hasher.finish().unwrap())
     }
 
     /// Decode a length delimiter, expecting the given wire type
