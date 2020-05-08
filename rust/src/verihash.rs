@@ -1,51 +1,98 @@
 //! Verihash core hashing primitives
 
+// TODO(tarcieri): refactor/DRY out message/sequence hashers into this module
+
 use crate::field::{Tag, WireType};
-use digest::Digest;
+use digest::{generic_array::GenericArray, Digest};
 
 /// Verihash prefix used by tags (unsigned integer)
 // TODO(tarcieri): support string tags?
 const TAG_PREFIX: u8 = WireType::UInt64.to_u8();
 
-/// Hash a boolean
-pub fn hash_boolean<D: Digest>(digest: &mut D, tag: Tag, value: bool) {
-    let (wire_type, body) = if value {
-        (WireType::True, b"\x01")
-    } else {
-        (WireType::False, b"\x00")
-    };
+/// Verihash hasher: computes digests of both messages and sequences
+pub(crate) struct Hasher<D: Digest>(D);
 
-    hash_tag(digest, tag);
-    hash_fixed(digest, wire_type, body);
+impl<D> Hasher<D>
+where
+    D: Digest,
+{
+    /// Create a new Verihash hasher
+    pub fn new() -> Self {
+        Hasher(D::new())
+    }
+
+    /// Hash a tagged boolean value
+    pub fn tagged_boolean(&mut self, tag: Tag, value: bool) {
+        self.tag(tag);
+        self.boolean(value);
+    }
+
+    /// Hash a boolean
+    pub fn boolean(&mut self, value: bool) {
+        if value {
+            self.fixed_size_value(WireType::True, b"\x01")
+        } else {
+            self.fixed_size_value(WireType::False, b"\x00")
+        }
+    }
+
+    /// Hash a tagged unsigned 64-bit integer
+    pub fn tagged_uint64(&mut self, tag: Tag, value: u64) {
+        self.tag(tag);
+        self.uint64(value);
+    }
+
+    /// Hash an unsigned 64-bit integer
+    pub fn uint64(&mut self, value: u64) {
+        self.fixed_size_value(WireType::UInt64, &value.to_le_bytes());
+    }
+
+    /// Hash a tagged signed 64-bit integer
+    pub fn tagged_sint64(&mut self, tag: Tag, value: i64) {
+        self.tag(tag);
+        self.sint64(value);
+    }
+
+    /// Hash a signed 64-bit integer
+    pub fn sint64(&mut self, value: i64) {
+        self.fixed_size_value(WireType::SInt64, &value.to_le_bytes());
+    }
+
+    /// Hash a numerical tag
+    // TODO(tarcieri): support string tags?
+    pub fn tag(&mut self, tag: Tag) {
+        self.input(&[TAG_PREFIX]);
+        self.input(&tag.to_le_bytes());
+    }
+
+    /// Hash a dynamically sized value
+    pub fn dynamically_sized_value(&mut self, wire_type: WireType, length: usize) {
+        self.input(&[wire_type.to_u8()]);
+        self.input(&(length as u64).to_le_bytes());
+    }
+
+    /// Hash an untagged value
+    pub fn fixed_size_value(&mut self, wire_type: WireType, body: &[u8]) {
+        self.input(&[wire_type.to_u8()]);
+        self.input(body);
+    }
+
+    /// Input data directly into the underlying hash function
+    pub fn input(&mut self, data: &[u8]) {
+        self.0.input(data);
+    }
+
+    /// Finish computing the digest, returning the output value
+    pub fn finish(self) -> GenericArray<u8, D::OutputSize> {
+        self.0.result()
+    }
 }
 
-/// Hash an unsigned integer
-pub fn hash_uint64<D: Digest>(digest: &mut D, tag: Tag, value: u64) {
-    hash_tag(digest, tag);
-    hash_fixed(digest, WireType::UInt64, &value.to_le_bytes());
-}
-
-/// Hash a signed integer
-pub fn hash_sint64<D: Digest>(digest: &mut D, tag: Tag, value: i64) {
-    hash_tag(digest, tag);
-    hash_fixed(digest, WireType::SInt64, &value.to_le_bytes());
-}
-
-/// Hash a numerical tag
-// TODO(tarcieri): support string tags?
-pub fn hash_tag<D: Digest>(digest: &mut D, tag: Tag) {
-    digest.input(&[TAG_PREFIX]);
-    digest.input(&tag.to_le_bytes());
-}
-
-/// Hash a dynamically sized value
-pub fn hash_dynamically_sized_value<D: Digest>(digest: &mut D, wire_type: WireType, length: usize) {
-    digest.input(&[wire_type.to_u8()]);
-    digest.input(&(length as u64).to_le_bytes());
-}
-
-/// Hash an untagged value
-pub fn hash_fixed<D: Digest>(digest: &mut D, wire_type: WireType, body: &[u8]) {
-    digest.input(&[wire_type.to_u8()]);
-    digest.input(body);
+impl<D> Default for Hasher<D>
+where
+    D: Digest,
+{
+    fn default() -> Self {
+        Self::new()
+    }
 }

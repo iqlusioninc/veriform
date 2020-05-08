@@ -15,7 +15,7 @@ use crate::{
     decoder::Event,
     error::Error,
     field::{self, Tag, WireType},
-    verihash::*,
+    verihash,
 };
 use core::fmt::{self, Debug};
 use digest::{generic_array::GenericArray, Digest};
@@ -25,8 +25,8 @@ use digest::{generic_array::GenericArray, Digest};
 /// This type computes a hash-based transcript of how a message was
 /// decoded, driven by incoming decoding events.
 pub struct Hasher<D: Digest> {
-    /// Computed digest in-progress
-    digest: D,
+    /// Verihash hasher
+    verihash: verihash::Hasher<D>,
 
     /// Current state of the decoder (or `None` if an error occurred)
     state: Option<State>,
@@ -38,13 +38,16 @@ where
 {
     /// Create a new [`Hasher`]
     pub fn new() -> Self {
-        Self::default()
+        Self {
+            verihash: verihash::Hasher::new(),
+            state: Some(State::default()),
+        }
     }
 
     /// Hash an incoming event
     pub fn hash_event(&mut self, event: &Event<'_>) -> Result<(), Error> {
         if let Some(state) = self.state.take() {
-            let new_state = state.transition(event, &mut self.digest)?;
+            let new_state = state.transition(event, &mut self.verihash)?;
             self.state = Some(new_state);
             Ok(())
         } else {
@@ -60,8 +63,8 @@ where
     ) -> Result<(), Error> {
         match self.state {
             Some(State::Message { remaining }) if remaining == 0 => {
-                hash_tag(&mut self.digest, tag);
-                hash_fixed(&mut self.digest, WireType::Message, digest);
+                self.verihash.tag(tag);
+                self.verihash.fixed_size_value(WireType::Message, digest);
                 self.state = Some(State::Initial);
                 Ok(())
             }
@@ -72,7 +75,7 @@ where
     /// Finish computing digest
     pub fn finish(self) -> Result<GenericArray<u8, D::OutputSize>, Error> {
         if self.state == Some(State::Initial) {
-            Ok(self.digest.result())
+            Ok(self.verihash.finish())
         } else {
             Err(Error::Hashing)
         }
@@ -84,10 +87,7 @@ where
     D: Digest,
 {
     fn default() -> Self {
-        Self {
-            digest: D::new(),
-            state: Some(State::default()),
-        }
+        Self::new()
     }
 }
 
@@ -96,7 +96,7 @@ where
     D: Digest,
 {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        f.debug_struct("Hasher").finish()
+        f.debug_struct("message::Hasher").finish()
     }
 }
 
@@ -132,20 +132,24 @@ impl Default for State {
 
 impl State {
     /// Transition to a new state based on an incoming event or return an error
-    pub fn transition<D: Digest>(self, event: &Event<'_>, digest: &mut D) -> Result<Self, Error> {
+    pub fn transition<D: Digest>(
+        self,
+        event: &Event<'_>,
+        verihash: &mut verihash::Hasher<D>,
+    ) -> Result<Self, Error> {
         match event {
             Event::FieldHeader(header) => self.handle_field_header(header),
             Event::LengthDelimiter { wire_type, length } => {
-                self.handle_length_delimiter(*wire_type, *length, digest)
+                self.handle_length_delimiter(*wire_type, *length, verihash)
             }
             Event::Bool(_) | Event::UInt64(_) | Event::SInt64(_) => {
-                self.handle_fixed_sized_value(event, digest)
+                self.handle_fixed_sized_value(event, verihash)
             }
             Event::ValueChunk {
                 wire_type,
                 bytes,
                 remaining,
-            } => self.handle_value_chunk(*wire_type, bytes, *remaining, digest),
+            } => self.handle_value_chunk(*wire_type, bytes, *remaining, verihash),
             Event::SequenceHeader { wire_type, length } => {
                 self.handle_sequence_header(*wire_type, *length)
             }
@@ -166,7 +170,7 @@ impl State {
         self,
         wire_type: WireType,
         length: usize,
-        digest: &mut D,
+        verihash: &mut verihash::Hasher<D>,
     ) -> Result<Self, Error> {
         if let State::Header(header) = self {
             if wire_type != header.wire_type {
@@ -180,8 +184,8 @@ impl State {
                 _ => unreachable!(),
             };
 
-            hash_tag(digest, header.tag);
-            hash_dynamically_sized_value(digest, wire_type, length);
+            verihash.tag(header.tag);
+            verihash.dynamically_sized_value(wire_type, length);
 
             Ok(new_state)
         } else {
@@ -193,13 +197,13 @@ impl State {
     fn handle_fixed_sized_value<D: Digest>(
         self,
         value: &Event<'_>,
-        digest: &mut D,
+        verihash: &mut verihash::Hasher<D>,
     ) -> Result<Self, Error> {
         if let State::Header(header) = self {
             match value {
-                Event::Bool(value) => hash_boolean(digest, header.tag, *value),
-                Event::UInt64(value) => hash_uint64(digest, header.tag, *value),
-                Event::SInt64(value) => hash_sint64(digest, header.tag, *value),
+                Event::Bool(value) => verihash.tagged_boolean(header.tag, *value),
+                Event::UInt64(value) => verihash.tagged_uint64(header.tag, *value),
+                Event::SInt64(value) => verihash.tagged_sint64(header.tag, *value),
                 _ => unreachable!(),
             }
         } else {
@@ -215,7 +219,7 @@ impl State {
         wire_type: WireType,
         bytes: &[u8],
         new_remaining: usize,
-        digest: &mut D,
+        verihash: &mut verihash::Hasher<D>,
     ) -> Result<Self, Error> {
         // TODO(tarcieri): DRY this out
         let new_state = match self {
@@ -276,7 +280,7 @@ impl State {
             }
         };
 
-        digest.input(bytes);
+        verihash.input(bytes);
         Ok(new_state)
     }
 
