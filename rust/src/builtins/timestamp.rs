@@ -14,7 +14,8 @@ pub use tai64::TAI64N as Timestamp;
 use crate::{
     decoder::{Decode, Decoder},
     digest::Digest,
-    field, Encoder, Error, Message,
+    error::{self, Error},
+    field, Encoder, Message,
 };
 use core::convert::TryInto;
 
@@ -27,13 +28,13 @@ impl Message for Timestamp {
         let nanos: u64 = decoder.decode(1, &mut input)?;
 
         if nanos > core::u32::MAX as u64 {
-            return Err(Error::Length);
+            return Err(error::Kind::Length.into());
         }
 
         let mut bytes = [0u8; 12];
         bytes[..8].copy_from_slice(&secs.to_le_bytes());
         bytes[8..].copy_from_slice(&(nanos as u32).to_le_bytes());
-        bytes.try_into().map_err(|_| Error::Builtin)
+        bytes.try_into().map_err(|_| error::Kind::Builtin.into())
     }
 
     fn encode<'a>(&self, buffer: &'a mut [u8]) -> Result<&'a [u8], Error> {

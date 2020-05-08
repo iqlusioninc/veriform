@@ -13,7 +13,8 @@ pub use uuid::Uuid;
 use crate::{
     decoder::{DecodeRef, Decoder},
     digest::Digest,
-    field, Encoder, Error, Message,
+    error::{self, Error},
+    field, Encoder, Message,
 };
 use core::convert::TryInto;
 
@@ -27,7 +28,7 @@ impl Message for Uuid {
         bytes
             .try_into()
             .map(Uuid::from_bytes)
-            .map_err(|_| Error::Builtin)
+            .map_err(|_| error::Kind::Builtin.into())
     }
 
     fn encode<'a>(&self, buffer: &'a mut [u8]) -> Result<&'a [u8], Error> {

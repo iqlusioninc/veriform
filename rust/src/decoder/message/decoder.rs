@@ -3,7 +3,7 @@
 use super::{hasher::Hasher, state::State};
 use crate::{
     decoder::{Decodable, Event},
-    error::Error,
+    error::{self, Error},
     field::{Header, Tag, WireType},
     message::Element,
 };
@@ -50,10 +50,11 @@ where
     pub fn decode_header(&mut self, input: &mut &[u8]) -> Result<Header, Error> {
         match self.decode(input)? {
             Some(Event::FieldHeader(header)) => Ok(header),
-            _ => Err(Error::FieldHeader {
+            _ => Err(error::Kind::FieldHeader {
                 tag: None,
                 wire_type: None,
-            }),
+            }
+            .into()),
         }
     }
 
@@ -65,27 +66,30 @@ where
         tag: Tag,
         wire_type: WireType,
     ) -> Result<(), Error> {
-        let header = self.decode_header(input).map_err(|e| match e {
-            Error::FieldHeader { .. } => Error::FieldHeader {
+        let header = self.decode_header(input).map_err(|e| match e.kind() {
+            error::Kind::FieldHeader { .. } => error::Kind::FieldHeader {
                 tag: Some(tag),
                 wire_type: Some(wire_type),
-            },
+            }
+            .position(self.position),
             _ => unreachable!("unexpected decode_header error: {:?}", e),
         })?;
 
-        // TODO(tarcieri): actually skip unknown fields
+        // TODO(tarcieri): actually skip unrecognized/unknown fields
         if header.tag != tag {
-            return Err(Error::Decode {
+            return Err(error::Kind::Decode {
                 element: Element::Tag,
                 wire_type,
-            });
+            }
+            .into());
         }
 
         if header.wire_type != wire_type {
-            return Err(Error::UnexpectedWireType {
+            return Err(error::Kind::UnexpectedWireType {
                 actual: header.wire_type,
                 wanted: wire_type,
-            });
+            }
+            .into());
         }
 
         Ok(())
@@ -127,10 +131,11 @@ where
             Some(Event::LengthDelimiter { wire_type, length }) if wire_type == expected_type => {
                 Ok(length)
             }
-            _ => Err(Error::Decode {
+            _ => Err(error::Kind::Decode {
                 element: Element::LengthDelimiter,
                 wire_type: expected_type,
-            }),
+            }
+            .into()),
         }
     }
 }
@@ -172,7 +177,7 @@ where
 
             Ok(event)
         } else {
-            Err(Error::Failed)
+            Err(error::Kind::Failed.into())
         }
     }
 
@@ -193,16 +198,18 @@ where
                     debug_assert_eq!(length, bytes.len());
                     Ok(bytes)
                 } else {
-                    Err(Error::Truncated {
+                    Err(error::Kind::Truncated {
                         remaining,
                         wire_type,
-                    })
+                    }
+                    .into())
                 }
             }
-            _ => Err(Error::Decode {
+            _ => Err(error::Kind::Decode {
                 element: Element::Value,
                 wire_type: expected_type,
-            }),
+            }
+            .into()),
         }
     }
 }
@@ -224,7 +231,7 @@ where
 #[cfg(all(test, feature = "sha2"))]
 mod tests {
     use super::{Decodable, WireType};
-    use crate::error::Error;
+    use crate::error;
 
     type Decoder = super::Decoder<sha2::Sha256>;
 
@@ -375,6 +382,6 @@ mod tests {
         assert_eq!(value, -42);
 
         let error = decoder.decode(&mut input_ref).err().unwrap();
-        assert_eq!(error, Error::Order { tag: 42 })
+        assert_eq!(error.kind(), error::Kind::Order { tag: 42 })
     }
 }

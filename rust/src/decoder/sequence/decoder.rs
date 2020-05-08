@@ -3,7 +3,7 @@
 use super::{hasher::Hasher, state::State};
 use crate::{
     decoder::{vint64, Decodable, Event},
-    error::Error,
+    error::{self, Error},
     field::WireType,
     message::Element,
 };
@@ -108,10 +108,11 @@ where
         input: &mut &'a [u8],
     ) -> Result<&'a [u8], Error> {
         if expected_type != self.wire_type {
-            return Err(Error::UnexpectedWireType {
+            return Err(error::Kind::UnexpectedWireType {
                 actual: self.wire_type,
                 wanted: expected_type,
-            });
+            }
+            .into());
         }
 
         debug_assert!(
@@ -122,10 +123,11 @@ where
 
         let length = match self.decode(input)? {
             Some(Event::LengthDelimiter { length, .. }) => Ok(length),
-            _ => Err(Error::Decode {
+            _ => Err(error::Kind::Decode {
                 element: Element::LengthDelimiter,
                 wire_type: self.wire_type,
-            }),
+            }
+            .position(self.length.checked_sub(self.remaining).unwrap())),
         }?;
 
         match self.decode(input)? {
@@ -136,16 +138,18 @@ where
                     debug_assert_eq!(length, bytes.len());
                     Ok(bytes)
                 } else {
-                    Err(Error::Truncated {
+                    Err(error::Kind::Truncated {
                         remaining,
                         wire_type: self.wire_type,
-                    })
+                    }
+                    .into())
                 }
             }
-            _ => Err(Error::Decode {
+            _ => Err(error::Kind::Decode {
                 element: Element::Value,
                 wire_type: self.wire_type,
-            }),
+            }
+            .into()),
         }
     }
 }
