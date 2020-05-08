@@ -1,8 +1,8 @@
 //! Veriform message decoder
 
-use super::state::State;
+use super::{hasher::Hasher, state::State};
 use crate::{
-    decoder::{Decodable, Event, Hasher},
+    decoder::{Decodable, Event},
     error::Error,
     field::{Header, Tag, WireType},
     message::Element,
@@ -144,7 +144,7 @@ where
             state: Some(State::default()),
             last_tag: None,
             position: 0,
-            hasher: Some(Hasher::new()),
+            hasher: Some(Hasher::new()), // TODO(tarcieri): support for disabling hasher
         }
     }
 }

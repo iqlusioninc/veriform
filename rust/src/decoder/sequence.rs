@@ -1,6 +1,7 @@
 //! Sequence decoder
 
 mod decoder;
+mod hasher;
 mod iter;
 mod state;
 

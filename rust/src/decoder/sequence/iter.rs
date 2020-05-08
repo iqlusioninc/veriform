@@ -3,16 +3,13 @@
 use super::Decoder;
 use crate::{decoder::Decodable, Error, Message};
 use core::marker::PhantomData;
-
-// TODO(tarcieri): make this (and `sequence::Decoder`) generic around digest
-#[cfg(not(feature = "sha2"))]
-compile_error!("TODO: support disabling `sha2` feature");
+use digest::Digest;
 
 /// Sequence iterator: iterates over a sequence of values in a Veriform
 /// message, decoding each one.
-pub struct Iter<'a, T> {
+pub struct Iter<'a, T, D: Digest> {
     /// Sequence decoder
-    decoder: Decoder,
+    decoder: Decoder<D>,
 
     /// Input data
     data: &'a [u8],
@@ -21,9 +18,12 @@ pub struct Iter<'a, T> {
     decodable: PhantomData<T>,
 }
 
-impl<'a, T> Iter<'a, T> {
+impl<'a, T, D> Iter<'a, T, D>
+where
+    D: Digest,
+{
     /// Create a new sequence iterator from a sequence decoder
-    pub(crate) fn new(decoder: Decoder, data: &'a [u8]) -> Self {
+    pub(crate) fn new(decoder: Decoder<D>, data: &'a [u8]) -> Self {
         Self {
             decoder,
             data,
@@ -32,7 +32,11 @@ impl<'a, T> Iter<'a, T> {
     }
 }
 
-impl<'a, T: Message> Iterator for Iter<'a, T> {
+impl<'a, T, D> Iterator for Iter<'a, T, D>
+where
+    T: Message,
+    D: Digest,
+{
     type Item = Result<T, Error>;
 
     fn next(&mut self) -> Option<Result<T, Error>> {
@@ -42,8 +46,8 @@ impl<'a, T: Message> Iterator for Iter<'a, T> {
 
         let mut input = &self.data[self.decoder.position()..];
 
-        // TODO(tarcieri): reuse decoder; support disabling `sha2` feature
-        let mut decoder = crate::Decoder::new();
+        // TODO(tarcieri): reuse decoder!
+        let mut decoder: crate::decoder::Decoder<D> = crate::decoder::Decoder::new();
 
         let result = self
             .decoder
@@ -54,7 +58,10 @@ impl<'a, T: Message> Iterator for Iter<'a, T> {
     }
 }
 
-impl<'a> Iterator for Iter<'a, u64> {
+impl<'a, D> Iterator for Iter<'a, u64, D>
+where
+    D: Digest,
+{
     type Item = Result<u64, Error>;
 
     fn next(&mut self) -> Option<Result<u64, Error>> {
@@ -67,7 +74,10 @@ impl<'a> Iterator for Iter<'a, u64> {
     }
 }
 
-impl<'a> Iterator for Iter<'a, i64> {
+impl<'a, D> Iterator for Iter<'a, i64, D>
+where
+    D: Digest,
+{
     type Item = Result<i64, Error>;
 
     fn next(&mut self) -> Option<Result<i64, Error>> {

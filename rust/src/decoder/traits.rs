@@ -6,6 +6,7 @@
 
 use super::sequence;
 use crate::{error::Error, field::Tag};
+use digest::Digest;
 
 /// Try to decode a field to a value of the given type.
 ///
@@ -26,11 +27,14 @@ pub trait DecodeRef<T: ?Sized> {
 /// Decode a sequence of values to a [`sequence::Iter`].
 ///
 /// This trait is intended to be impl'd by the [`Decoder`] type.
-pub trait DecodeSeq<T> {
+pub trait DecodeSeq<T, D>
+where
+    D: Digest,
+{
     /// Try to decode a sequence of values of type `T`
     fn decode_seq<'a>(
         &mut self,
         tag: Tag,
         input: &mut &'a [u8],
-    ) -> Result<sequence::Iter<'a, T>, Error>;
+    ) -> Result<sequence::Iter<'a, T, D>, Error>;
 }
