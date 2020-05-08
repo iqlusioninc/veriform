@@ -5,6 +5,7 @@
 //! with a zero-copy pull parser.
 
 #![no_std]
+#![cfg_attr(docsrs, feature(doc_cfg))]
 #![doc(html_root_url = "https://docs.rs/veriform/0.0.1")]
 #![forbid(unsafe_code)]
 #![warn(missing_docs, rust_2018_idioms, unused_qualifications)]
@@ -35,4 +36,5 @@ pub use crate::{encoder::Encoder, error::Error, message::Message};
 
 /// Veriform decoder with the default SHA-256 hash
 #[cfg(feature = "sha2")]
+#[cfg_attr(docsrs, doc(cfg(feature = "sha2")))]
 pub type Decoder = crate::decoder::Decoder<sha2::Sha256>;

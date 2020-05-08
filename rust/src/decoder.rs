@@ -19,8 +19,9 @@ pub use self::{
 };
 
 use crate::{
+    error::{self, Error},
     field::{Tag, WireType},
-    Error, Message,
+    Message,
 };
 use digest::{generic_array::GenericArray, Digest};
 use heapless::consts::U16;
@@ -56,7 +57,7 @@ where
     pub fn push(&mut self) -> Result<(), Error> {
         self.stack
             .push(message::Decoder::new())
-            .map_err(|_| Error::NestingDepth)
+            .map_err(|_| error::Kind::NestingDepth.into())
     }
 
     /// Pop the message decoder from the stack when we've finished a message.

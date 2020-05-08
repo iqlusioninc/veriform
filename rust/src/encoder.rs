@@ -1,7 +1,7 @@
 //! Veriform encoder
 
 use crate::{
-    error::Error,
+    error::{self, Error},
     field::{Header, Tag, WireType},
     message::Message,
 };
@@ -47,7 +47,7 @@ impl<'a> Encoder<'a> {
 
         // Ensure there's remaining space in the buffer
         if encoded_len > (self.buffer.len() - self.length) {
-            return Err(Error::Length);
+            return Err(error::Kind::Length.into());
         }
 
         let new_length = self.length.checked_add(encoded_len).unwrap();
@@ -80,7 +80,7 @@ impl<'a> Encoder<'a> {
 
             // Ensure there's remaining space in the buffer
             if encoded_len > self.buffer.len().checked_sub(self.length).unwrap() {
-                return Err(Error::Length);
+                return Err(error::Kind::Length.into());
             }
 
             let new_length = self.length.checked_add(encoded_len).unwrap();
@@ -130,7 +130,7 @@ impl<'a> Encoder<'a> {
 
         // Ensure there's remaining space in the buffer
         if bytes.len() > (self.buffer.len() - self.length) {
-            return Err(Error::Length);
+            return Err(error::Kind::Length.into());
         }
 
         let new_length = self.length.checked_add(bytes.len()).unwrap();

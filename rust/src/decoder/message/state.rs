@@ -3,7 +3,7 @@
 use super::{body, header, value};
 use crate::{
     decoder::Event,
-    error::Error,
+    error::Kind,
     field::{Tag, WireType},
 };
 
@@ -27,7 +27,7 @@ impl State {
         self,
         input: &mut &'a [u8],
         last_tag: Option<Tag>,
-    ) -> Result<(Self, Option<Event<'a>>), Error> {
+    ) -> Result<(Self, Option<Event<'a>>), Kind> {
         match self {
             State::Header(header) => header.decode(input, last_tag),
             State::Value(value) => value.decode(input),

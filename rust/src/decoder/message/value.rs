@@ -6,7 +6,7 @@ use crate::{
         vint64::{self, zigzag},
         Event,
     },
-    error::Error,
+    error::Kind,
     field::WireType,
 };
 
@@ -31,7 +31,7 @@ impl Decoder {
 
     /// Process the given input data, advancing the slice for the amount of
     /// data processed, and returning the new state.
-    pub fn decode<'a>(mut self, input: &mut &'a [u8]) -> Result<(State, Option<Event<'a>>), Error> {
+    pub fn decode<'a>(mut self, input: &mut &'a [u8]) -> Result<(State, Option<Event<'a>>), Kind> {
         if let Some(value) = self.decoder.decode(input)? {
             let event = match self.wire_type {
                 WireType::False => Event::Bool(false),

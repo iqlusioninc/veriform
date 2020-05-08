@@ -2,7 +2,11 @@
 //! `message` and `sequence` decoders
 
 use super::Event;
-use crate::{error::Error, field::WireType, message::Element};
+use crate::{
+    error::{self, Error},
+    field::WireType,
+    message::Element,
+};
 use core::str;
 
 /// Common functionality between the `message` and `sequence` decoders
@@ -22,10 +26,11 @@ pub trait Decodable {
     fn decode_uint64(&mut self, input: &mut &[u8]) -> Result<u64, Error> {
         match self.decode(input)? {
             Some(Event::UInt64(value)) => Ok(value),
-            _ => Err(Error::Decode {
+            _ => Err(error::Kind::Decode {
                 element: Element::Value,
                 wire_type: WireType::UInt64,
-            }),
+            }
+            .into()),
         }
     }
 
@@ -33,10 +38,11 @@ pub trait Decodable {
     fn decode_sint64(&mut self, input: &mut &[u8]) -> Result<i64, Error> {
         match self.decode(input)? {
             Some(Event::SInt64(value)) => Ok(value),
-            _ => Err(Error::Decode {
+            _ => Err(error::Kind::Decode {
                 element: Element::Value,
                 wire_type: WireType::SInt64,
-            }),
+            }
+            .into()),
         }
     }
 
@@ -48,8 +54,11 @@ pub trait Decodable {
     /// Decode an expected `string` field, returning an error for anything else
     fn decode_string<'a>(&mut self, input: &mut &'a [u8]) -> Result<&'a str, Error> {
         let bytes = self.decode_dynamically_sized_value(WireType::String, input)?;
-        str::from_utf8(bytes).map_err(|e| Error::Utf8 {
-            valid_up_to: e.valid_up_to(),
+        str::from_utf8(bytes).map_err(|e| {
+            error::Kind::Utf8 {
+                valid_up_to: e.valid_up_to(),
+            }
+            .into()
         })
     }
 
@@ -69,10 +78,11 @@ pub trait Decodable {
                 length
             }
             _ => {
-                return Err(Error::Decode {
+                return Err(error::Kind::Decode {
                     element: Element::SequenceHeader,
                     wire_type: expected_type,
-                })
+                }
+                .into())
             }
         };
 
@@ -84,16 +94,18 @@ pub trait Decodable {
                     debug_assert_eq!(length, bytes.len());
                     Ok(bytes)
                 } else {
-                    Err(Error::Truncated {
+                    Err(error::Kind::Truncated {
                         remaining,
                         wire_type: WireType::Sequence,
-                    })
+                    }
+                    .into())
                 }
             }
-            _ => Err(Error::Decode {
+            _ => Err(error::Kind::Decode {
                 element: Element::Value,
                 wire_type: WireType::Sequence,
-            }),
+            }
+            .into()),
         }
     }
 }

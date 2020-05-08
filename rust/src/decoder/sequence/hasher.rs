@@ -6,7 +6,7 @@
 // TODO(tarcieri): tests and test vectors!!!
 // TODO(tarcieri): DRY out repeated message/sequence code into `verihash::Hasher`
 
-use crate::{decoder::Event, error::Error, field::WireType, verihash};
+use crate::{decoder::Event, error::Kind, field::WireType, verihash};
 use core::fmt::{self, Debug};
 use digest::Digest;
 
@@ -35,13 +35,13 @@ where
     }
 
     /// Hash an incoming event
-    pub fn hash_event(&mut self, event: &Event<'_>) -> Result<(), Error> {
+    pub fn hash_event(&mut self, event: &Event<'_>) -> Result<(), Kind> {
         if let Some(state) = self.state.take() {
             let new_state = state.transition(event, &mut self.verihash)?;
             self.state = Some(new_state);
             Ok(())
         } else {
-            Err(Error::Failed)
+            Err(Kind::Failed)
         }
     }
 }
@@ -91,7 +91,7 @@ impl State {
         self,
         event: &Event<'_>,
         verihash: &mut verihash::Hasher<D>,
-    ) -> Result<Self, Error> {
+    ) -> Result<Self, Kind> {
         match event {
             Event::LengthDelimiter { wire_type, length } => {
                 self.handle_length_delimiter(*wire_type, *length, verihash)
@@ -102,7 +102,7 @@ impl State {
                 bytes,
                 remaining,
             } => self.handle_value_chunk(*wire_type, bytes, *remaining, verihash),
-            _ => Err(Error::Hashing),
+            _ => Err(Kind::Hashing),
         }
     }
 
@@ -112,9 +112,9 @@ impl State {
         wire_type: WireType,
         length: usize,
         verihash: &mut verihash::Hasher<D>,
-    ) -> Result<Self, Error> {
+    ) -> Result<Self, Kind> {
         if self != State::Initial {
-            return Err(Error::Hashing);
+            return Err(Kind::Hashing);
         }
 
         let new_state = match wire_type {
@@ -133,9 +133,9 @@ impl State {
         self,
         value: &Event<'_>,
         verihash: &mut verihash::Hasher<D>,
-    ) -> Result<Self, Error> {
+    ) -> Result<Self, Kind> {
         if self != State::Initial {
-            return Err(Error::Hashing);
+            return Err(Kind::Hashing);
         }
 
         match value {
@@ -157,12 +157,12 @@ impl State {
         bytes: &[u8],
         new_remaining: usize,
         verihash: &mut verihash::Hasher<D>,
-    ) -> Result<Self, Error> {
+    ) -> Result<Self, Kind> {
         // TODO(tarcieri): DRY this out (especially with the message decoder)
         let new_state = match self {
             State::Bytes { remaining } => {
                 if wire_type != WireType::Bytes || remaining - bytes.len() != new_remaining {
-                    return Err(Error::Hashing);
+                    return Err(Kind::Hashing);
                 }
 
                 if new_remaining == 0 {
@@ -177,7 +177,7 @@ impl State {
                 // TODO(tarcieri): use `unicode-normalization`?
 
                 if wire_type != WireType::String || remaining - bytes.len() != new_remaining {
-                    return Err(Error::Hashing);
+                    return Err(Kind::Hashing);
                 }
 
                 if new_remaining == 0 {
@@ -190,7 +190,7 @@ impl State {
             }
             State::Message { remaining } => {
                 if wire_type != WireType::Message || remaining - bytes.len() != new_remaining {
-                    return Err(Error::Hashing);
+                    return Err(Kind::Hashing);
                 }
 
                 // TODO(tarcieri): handle nested message digests in sequences
@@ -202,7 +202,7 @@ impl State {
                     });
                 }
             }
-            _ => return Err(Error::Hashing),
+            _ => return Err(Kind::Hashing),
         };
 
         verihash.input(bytes);
