@@ -5,7 +5,6 @@ pub mod sequence;
 
 mod decodable;
 mod event;
-mod hasher;
 mod traits;
 mod vint64;
 
@@ -16,7 +15,6 @@ mod trace;
 pub use self::{
     decodable::Decodable,
     event::Event,
-    hasher::Hasher,
     traits::{Decode, DecodeRef, DecodeSeq},
 };
 
@@ -159,7 +157,7 @@ where
     }
 }
 
-impl<D, M> DecodeSeq<M> for Decoder<D>
+impl<D, M> DecodeSeq<M, D> for Decoder<D>
 where
     D: Digest,
     M: Message,
@@ -168,7 +166,7 @@ where
         &mut self,
         tag: Tag,
         input: &mut &'a [u8],
-    ) -> Result<sequence::Iter<'a, M>, Error> {
+    ) -> Result<sequence::Iter<'a, M, D>, Error> {
         #[cfg(feature = "log")]
         begin!(self, "[{}]: seq<msg>?", tag);
 
@@ -180,7 +178,7 @@ where
     }
 }
 
-impl<D> DecodeSeq<u64> for Decoder<D>
+impl<D> DecodeSeq<u64, D> for Decoder<D>
 where
     D: Digest,
 {
@@ -188,7 +186,7 @@ where
         &mut self,
         tag: Tag,
         input: &mut &'a [u8],
-    ) -> Result<sequence::Iter<'a, u64>, Error> {
+    ) -> Result<sequence::Iter<'a, u64, D>, Error> {
         #[cfg(feature = "log")]
         begin!(self, "[{}]: seq<uint64>?", tag);
 
@@ -200,7 +198,7 @@ where
     }
 }
 
-impl<D> DecodeSeq<i64> for Decoder<D>
+impl<D> DecodeSeq<i64, D> for Decoder<D>
 where
     D: Digest,
 {
@@ -208,7 +206,7 @@ where
         &mut self,
         tag: Tag,
         input: &mut &'a [u8],
-    ) -> Result<sequence::Iter<'a, i64>, Error> {
+    ) -> Result<sequence::Iter<'a, i64, D>, Error> {
         #[cfg(feature = "log")]
         begin!(self, "[{}]: seq<sint64>?", tag);
 

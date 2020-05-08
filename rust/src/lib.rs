@@ -23,6 +23,7 @@ pub mod encoder;
 pub mod error;
 pub mod field;
 pub mod message;
+mod verihash;
 
 // Re-export the `digest` crate
 pub use digest;
