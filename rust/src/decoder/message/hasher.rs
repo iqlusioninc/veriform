@@ -13,7 +13,7 @@
 
 use crate::{
     decoder::Event,
-    error::Kind,
+    error::{self, Error},
     field::{self, Tag, WireType},
     verihash,
 };
@@ -45,13 +45,13 @@ where
     }
 
     /// Hash an incoming event
-    pub fn hash_event(&mut self, event: &Event<'_>) -> Result<(), Kind> {
+    pub fn hash_event(&mut self, event: &Event<'_>) -> Result<(), Error> {
         if let Some(state) = self.state.take() {
             let new_state = state.transition(event, &mut self.verihash)?;
             self.state = Some(new_state);
             Ok(())
         } else {
-            Err(Kind::Failed)
+            Err(error::Kind::Failed.into())
         }
     }
 
@@ -60,7 +60,7 @@ where
         &mut self,
         tag: Tag,
         digest: &GenericArray<u8, D::OutputSize>,
-    ) -> Result<(), Kind> {
+    ) -> Result<(), Error> {
         match self.state {
             Some(State::Message { remaining }) if remaining == 0 => {
                 self.verihash.tag(tag);
@@ -68,16 +68,16 @@ where
                 self.state = Some(State::Initial);
                 Ok(())
             }
-            _ => Err(Kind::Hashing),
+            _ => Err(error::Kind::Hashing.into()),
         }
     }
 
     /// Finish computing digest
-    pub fn finish(self) -> Result<GenericArray<u8, D::OutputSize>, Kind> {
+    pub fn finish(self) -> Result<GenericArray<u8, D::OutputSize>, Error> {
         if self.state == Some(State::Initial) {
             Ok(self.verihash.finish())
         } else {
-            Err(Kind::Hashing)
+            Err(error::Kind::Hashing.into())
         }
     }
 }
@@ -136,7 +136,7 @@ impl State {
         self,
         event: &Event<'_>,
         verihash: &mut verihash::Hasher<D>,
-    ) -> Result<Self, Kind> {
+    ) -> Result<Self, Error> {
         match event {
             Event::FieldHeader(header) => self.handle_field_header(header),
             Event::LengthDelimiter { wire_type, length } => {
@@ -157,11 +157,11 @@ impl State {
     }
 
     /// Handle an incoming field header
-    fn handle_field_header(self, header: &field::Header) -> Result<Self, Kind> {
+    fn handle_field_header(self, header: &field::Header) -> Result<Self, Error> {
         if self == State::Initial {
             Ok(State::Header(*header))
         } else {
-            Err(Kind::Hashing)
+            Err(error::Kind::Hashing.into())
         }
     }
 
@@ -171,10 +171,10 @@ impl State {
         wire_type: WireType,
         length: usize,
         verihash: &mut verihash::Hasher<D>,
-    ) -> Result<Self, Kind> {
+    ) -> Result<Self, Error> {
         if let State::Header(header) = self {
             if wire_type != header.wire_type {
-                return Err(Kind::Hashing);
+                return Err(error::Kind::Hashing.into());
             }
 
             let new_state = match wire_type {
@@ -189,7 +189,7 @@ impl State {
 
             Ok(new_state)
         } else {
-            Err(Kind::Hashing)
+            Err(error::Kind::Hashing.into())
         }
     }
 
@@ -198,7 +198,7 @@ impl State {
         self,
         value: &Event<'_>,
         verihash: &mut verihash::Hasher<D>,
-    ) -> Result<Self, Kind> {
+    ) -> Result<Self, Error> {
         if let State::Header(header) = self {
             match value {
                 Event::Bool(value) => verihash.tagged_boolean(header.tag, *value),
@@ -207,7 +207,7 @@ impl State {
                 _ => unreachable!(),
             }
         } else {
-            return Err(Kind::Hashing);
+            return Err(error::Kind::Hashing.into());
         }
 
         Ok(State::Initial)
@@ -220,12 +220,12 @@ impl State {
         bytes: &[u8],
         new_remaining: usize,
         verihash: &mut verihash::Hasher<D>,
-    ) -> Result<Self, Kind> {
+    ) -> Result<Self, Error> {
         // TODO(tarcieri): DRY this out
         let new_state = match self {
             State::Bytes { remaining } => {
                 if wire_type != WireType::Bytes || remaining - bytes.len() != new_remaining {
-                    return Err(Kind::Hashing);
+                    return Err(error::Kind::Hashing.into());
                 }
 
                 if new_remaining == 0 {
@@ -240,7 +240,7 @@ impl State {
                 // TODO(tarcieri): use `unicode-normalization`?
 
                 if wire_type != WireType::String || remaining - bytes.len() != new_remaining {
-                    return Err(Kind::Hashing);
+                    return Err(error::Kind::Hashing.into());
                 }
 
                 if new_remaining == 0 {
@@ -253,7 +253,7 @@ impl State {
             }
             State::Message { remaining } => {
                 if wire_type != WireType::Message || remaining - bytes.len() != new_remaining {
-                    return Err(Kind::Hashing);
+                    return Err(error::Kind::Hashing.into());
                 }
 
                 return Ok(State::Message {
@@ -265,7 +265,7 @@ impl State {
                 remaining,
             } => {
                 if wire_type != WireType::Sequence || remaining - bytes.len() != new_remaining {
-                    return Err(Kind::Hashing);
+                    return Err(error::Kind::Hashing.into());
                 } else if new_remaining == 0 {
                     return Ok(State::Initial);
                 } else {
@@ -276,7 +276,7 @@ impl State {
                 }
             }
             _ => {
-                return Err(Kind::Hashing);
+                return Err(error::Kind::Hashing.into());
             }
         };
 
@@ -285,10 +285,10 @@ impl State {
     }
 
     /// Handle an incoming sequence header
-    fn handle_sequence_header(self, wire_type: WireType, length: usize) -> Result<Self, Kind> {
+    fn handle_sequence_header(self, wire_type: WireType, length: usize) -> Result<Self, Error> {
         if let State::Header(header) = self {
             if header.wire_type != WireType::Sequence {
-                return Err(Kind::Hashing);
+                return Err(error::Kind::Hashing.into());
             }
 
             Ok(State::Sequence {
@@ -296,7 +296,7 @@ impl State {
                 remaining: length,
             })
         } else {
-            Err(Kind::Hashing)
+            Err(error::Kind::Hashing.into())
         }
     }
 }

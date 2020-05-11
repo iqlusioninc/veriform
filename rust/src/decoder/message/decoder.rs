@@ -24,6 +24,9 @@ pub struct Decoder<D: Digest> {
 
     /// Verihash message hasher
     hasher: Option<Hasher<D>>,
+
+    /// Cached output digest
+    cached_digest: Option<GenericArray<u8, D::OutputSize>>,
 }
 
 impl<D> Decoder<D>
@@ -32,7 +35,13 @@ where
 {
     /// Create a new decoder in an initial state
     pub fn new() -> Self {
-        Self::default()
+        Self {
+            state: Some(State::default()),
+            last_tag: None,
+            position: 0,
+            hasher: Some(Hasher::new()), // TODO(tarcieri): support for disabling hasher
+            cached_digest: None,
+        }
     }
 
     /// Get the tag (i.e. ID) of the last decoded field header
@@ -95,26 +104,6 @@ where
         Ok(())
     }
 
-    /// Hash a digest of a nested message within this message
-    pub fn hash_message_digest(
-        &mut self,
-        tag: Tag,
-        digest: &GenericArray<u8, D::OutputSize>,
-    ) -> Result<(), Error> {
-        if let Some(hasher) = &mut self.hasher {
-            hasher.hash_message_digest(tag, digest)?;
-        }
-
-        Ok(())
-    }
-
-    /// Finish producing a digest of a message, if we're configured to hash.
-    ///
-    /// Panics if the hasher is in a bad state.
-    pub fn finish_digest(self) -> Option<GenericArray<u8, D::OutputSize>> {
-        self.hasher.map(|hasher| hasher.finish().unwrap())
-    }
-
     /// Decode a length delimiter, expecting the given wire type
     fn decode_length_delimiter(
         &mut self,
@@ -138,6 +127,49 @@ where
             .into()),
         }
     }
+
+    /// Hash a digest of a nested message within this message
+    pub fn hash_message_digest(
+        &mut self,
+        tag: Tag,
+        digest: &GenericArray<u8, D::OutputSize>,
+    ) -> Result<(), Error> {
+        if let Some(hasher) = &mut self.hasher {
+            hasher.hash_message_digest(tag, digest)?;
+        }
+
+        Ok(())
+    }
+
+    /// Compute a digest of the message we're decoding.
+    ///
+    /// This method is invoked from proc macro-generated code in order to
+    /// store the digests of (potentially inner) messages at deserialization
+    /// time.
+    ///
+    /// The `finish_digest` method below (which consumes the decoder) is used
+    /// by the decoder itself to compute a Merkle tree over the messages.
+    pub fn compute_digest(&mut self) -> Result<Option<GenericArray<u8, D::OutputSize>>, Error> {
+        // Use cached digest if available
+        if let Some(digest) = self.cached_digest.clone() {
+            return Ok(Some(digest));
+        }
+
+        // Compute final digest using the hasher
+        if let Some(hasher) = self.hasher.take() {
+            // Make sure we're not in the middle of parsing a field
+            // TODO(tarcieri): make sure we haven't partially consumed the header!
+            if let Some(State::Header(_)) = self.state.take() {
+                let digest = Some(hasher.finish()?);
+                self.cached_digest = digest.clone();
+                Ok(digest)
+            } else {
+                Err(error::Kind::Hashing.into())
+            }
+        } else {
+            Ok(None)
+        }
+    }
 }
 
 impl<D> Default for Decoder<D>
@@ -145,12 +177,7 @@ where
     D: Digest,
 {
     fn default() -> Self {
-        Self {
-            state: Some(State::default()),
-            last_tag: None,
-            position: 0,
-            hasher: Some(Hasher::new()), // TODO(tarcieri): support for disabling hasher
-        }
+        Self::new()
     }
 }
 
@@ -224,6 +251,7 @@ where
             .field("position", &self.position)
             .field("state", &self.state)
             .field("hasher", &self.hasher)
+            .field("cached_digest", &self.cached_digest)
             .finish()
     }
 }
