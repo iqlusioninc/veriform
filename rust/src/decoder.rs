@@ -67,7 +67,7 @@ where
     /// Panics if the decoder's stack underflows.
     // TODO(tarcieri): panic-free higher-level API, possibly RAII-based?
     pub fn pop(&mut self) -> Option<GenericArray<u8, D::OutputSize>> {
-        self.stack.pop().unwrap().finish_digest()
+        self.stack.pop().unwrap().compute_digest().unwrap()
     }
 
     /// Peek at the message decoder on the top of the stack
@@ -80,6 +80,22 @@ where
     // TODO(tarcieri): remove this implementation detail from public API
     pub fn depth(&self) -> usize {
         self.stack.len()
+    }
+
+    /// Fill the provided slice with the digest of the message if it fits
+    // TODO(tarcieri): find a better way to handle generic digest sizes
+    pub fn fill_digest(&mut self, output: &mut [u8]) -> Result<(), Error> {
+        let digest = self
+            .peek()
+            .compute_digest()?
+            .ok_or_else(|| error::Kind::Hashing)?;
+
+        if digest.len() != output.len() {
+            return Err(error::Kind::Hashing)?;
+        }
+
+        output.copy_from_slice(&digest);
+        Ok(())
     }
 }
 
