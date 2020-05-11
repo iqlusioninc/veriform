@@ -3,7 +3,7 @@
 use super::state::State;
 use crate::{
     decoder::{vint64, Event},
-    error::Kind,
+    error::{self, Error},
     field::{Header, Tag},
 };
 
@@ -18,14 +18,14 @@ impl Decoder {
         mut self,
         input: &mut &'a [u8],
         last_tag: Option<Tag>,
-    ) -> Result<(State, Option<Event<'a>>), Kind> {
+    ) -> Result<(State, Option<Event<'a>>), Error> {
         if let Some(value) = self.0.decode(input)? {
             let header = Header::from(value);
 
             // Ensure field ordering is monotonically increasing
             if let Some(tag) = last_tag {
                 if header.tag <= tag {
-                    return Err(Kind::Order { tag: header.tag });
+                    return Err(error::Kind::Order { tag: header.tag }.into());
                 }
             }
 

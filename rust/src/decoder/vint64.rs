@@ -2,7 +2,7 @@
 
 pub(crate) use vint64::signed::zigzag;
 
-use crate::error::Kind;
+use crate::error::{self, Error};
 
 /// Decoder for `vint64` values
 #[derive(Clone, Debug, Default)]
@@ -24,7 +24,7 @@ impl Decoder {
     }
 
     /// Decode a `vint64` from the incoming data
-    pub fn decode(&mut self, input: &mut &[u8]) -> Result<Option<u64>, Kind> {
+    pub fn decode(&mut self, input: &mut &[u8]) -> Result<Option<u64>, Error> {
         if let Some(length) = self.length {
             self.fill_buffer(length, input);
             return self.maybe_decode(length);
@@ -55,7 +55,7 @@ impl Decoder {
     }
 
     /// Attempt to decode the internal buffer if we've read its full contents
-    fn maybe_decode(&self, length: usize) -> Result<Option<u64>, Kind> {
+    fn maybe_decode(&self, length: usize) -> Result<Option<u64>, Error> {
         if self.pos < length {
             return Ok(None);
         }
@@ -63,6 +63,6 @@ impl Decoder {
         let mut buffer = &self.buffer[..length];
         vint64::decode(&mut buffer)
             .map(Some)
-            .map_err(|_| Kind::VInt64)
+            .map_err(|_| error::Kind::VInt64.into())
     }
 }

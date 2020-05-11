@@ -5,7 +5,7 @@ use crate::{
         vint64::{self, zigzag},
         Event,
     },
-    error::Kind,
+    error::{self, Error},
     field::WireType,
     message::Element,
 };
@@ -38,7 +38,7 @@ impl State {
         &mut self,
         wire_type: WireType,
         input: &mut &'a [u8],
-    ) -> Result<Option<Event<'a>>, Kind> {
+    ) -> Result<Option<Event<'a>>, Error> {
         let event = match self {
             State::Value(decoder) => {
                 if let Some(value) = decoder.decode(input)? {
@@ -51,10 +51,11 @@ impl State {
                         },
                         WireType::False | WireType::True => {
                             // TODO(tarcieri): support boolean sequences?
-                            return Err(Kind::Decode {
+                            return Err(error::Kind::Decode {
                                 element: Element::Value,
                                 wire_type,
-                            });
+                            }
+                            .into());
                         }
                         wire_type => {
                             debug_assert!(
