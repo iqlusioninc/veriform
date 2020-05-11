@@ -1,7 +1,7 @@
 //! Decoder for the bodies of variable-length field values
 
 use super::state::State;
-use crate::{decoder::Event, error::Kind, field::WireType};
+use crate::{decoder::Event, error::Error, field::WireType};
 
 /// Decoder for the bodies of variable-length field values
 #[derive(Debug)]
@@ -32,7 +32,7 @@ impl Decoder {
 
     /// Process the given input data, advancing the slice for the amount of
     /// data processed, and returning the new state.
-    pub fn decode<'a>(self, input: &mut &'a [u8]) -> Result<(State, Option<Event<'a>>), Kind> {
+    pub fn decode<'a>(self, input: &mut &'a [u8]) -> Result<(State, Option<Event<'a>>), Error> {
         if input.is_empty() {
             return Ok((self.into(), None));
         }

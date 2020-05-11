@@ -1,6 +1,6 @@
 //! Veriform wire types
 
-pub use crate::error::Kind;
+pub use crate::error::{self, Error};
 use core::convert::TryFrom;
 
 /// Wire type identifiers for Veriform types
@@ -54,9 +54,9 @@ impl WireType {
 }
 
 impl TryFrom<u64> for WireType {
-    type Error = Kind;
+    type Error = Error;
 
-    fn try_from(encoded: u64) -> Result<Self, Kind> {
+    fn try_from(encoded: u64) -> Result<Self, Error> {
         match encoded {
             0 => Ok(WireType::False),
             1 => Ok(WireType::True),
@@ -66,7 +66,7 @@ impl TryFrom<u64> for WireType {
             5 => Ok(WireType::String),
             6 => Ok(WireType::Message),
             7 => Ok(WireType::Sequence),
-            _ => Err(Kind::InvalidWireType),
+            _ => Err(error::Kind::InvalidWireType.into()),
         }
     }
 }
