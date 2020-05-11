@@ -39,39 +39,12 @@ impl State {
         wire_type: WireType,
         input: &mut &'a [u8],
     ) -> Result<Option<Event<'a>>, Error> {
-        let event = match self {
+        match self {
             State::Value(decoder) => {
                 if let Some(value) = decoder.decode(input)? {
-                    match wire_type {
-                        WireType::UInt64 => Event::UInt64(value),
-                        WireType::SInt64 => Event::SInt64(zigzag::decode(value)),
-                        WireType::Sequence => Event::SequenceHeader {
-                            wire_type: WireType::from_unmasked(value),
-                            length: (value >> 4) as usize,
-                        },
-                        WireType::False | WireType::True => {
-                            // TODO(tarcieri): support boolean sequences?
-                            return Err(error::Kind::Decode {
-                                element: Element::Value,
-                                wire_type,
-                            }
-                            .into());
-                        }
-                        wire_type => {
-                            debug_assert!(
-                                wire_type.is_dynamically_sized(),
-                                "not a dynamically sized wire type: {:?}",
-                                wire_type
-                            );
-
-                            Event::LengthDelimiter {
-                                wire_type,
-                                length: value as usize,
-                            }
-                        }
-                    }
+                    decode_value(wire_type, value).map(Some)
                 } else {
-                    return Ok(None);
+                    Ok(None)
                 }
             }
             State::Body {
@@ -79,26 +52,61 @@ impl State {
                 remaining,
             } => {
                 if input.is_empty() {
-                    return Ok(None);
-                }
-
-                let chunk_size = if input.len() >= *remaining {
-                    *remaining
+                    Ok(None)
                 } else {
-                    input.len()
-                };
-
-                let bytes = &input[..chunk_size];
-                *input = &input[chunk_size..];
-
-                Event::ValueChunk {
-                    wire_type: *wire_type,
-                    bytes,
-                    remaining: remaining.checked_sub(chunk_size).unwrap(),
+                    Ok(Some(decode_body(wire_type, input, *remaining)))
                 }
             }
-        };
+        }
+    }
+}
 
-        Ok(Some(event))
+/// Decode a `vint64` value (either length delimiter or uint64/sint64 value)
+fn decode_value<'a>(wire_type: WireType, value: u64) -> Result<Event<'a>, Error> {
+    Ok(match wire_type {
+        WireType::UInt64 => Event::UInt64(value),
+        WireType::SInt64 => Event::SInt64(zigzag::decode(value)),
+        WireType::Sequence => Event::SequenceHeader {
+            wire_type: WireType::from_unmasked(value),
+            length: (value >> 4) as usize,
+        },
+        WireType::False | WireType::True => {
+            // TODO(tarcieri): support boolean sequences?
+            return Err(error::Kind::Decode {
+                element: Element::Value,
+                wire_type,
+            }
+            .into());
+        }
+        wire_type => {
+            debug_assert!(
+                wire_type.is_dynamically_sized(),
+                "not a dynamically sized wire type: {:?}",
+                wire_type
+            );
+
+            Event::LengthDelimiter {
+                wire_type,
+                length: value as usize,
+            }
+        }
+    })
+}
+
+/// Decode the body of a variable-length value
+fn decode_body<'a>(wire_type: &mut WireType, input: &mut &'a [u8], remaining: usize) -> Event<'a> {
+    let chunk_size = if input.len() >= remaining {
+        remaining
+    } else {
+        input.len()
+    };
+
+    let bytes = &input[..chunk_size];
+    *input = &input[chunk_size..];
+
+    Event::ValueChunk {
+        wire_type: *wire_type,
+        bytes,
+        remaining: remaining.checked_sub(chunk_size).unwrap(),
     }
 }
