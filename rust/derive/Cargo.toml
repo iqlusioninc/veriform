@@ -1,0 +1,24 @@
+[package]
+name        = "veriform_derive"
+description = "Custom derive for the Veriform verifiable data serialization format"
+version     = "0.0.0"
+license     = "Apache-2.0"
+authors     = ["Tony Arcieri <tony@iqlusion.io>"]
+homepage    = "https://github.com/iqlusioninc/veriform/"
+repository  = "https://github.com/iqlusioninc/veriform/tree/develop/rust/derive/"
+edition     = "2018"
+categories  = ["authentication", "cryptography", "encoding"]
+keywords    = ["hashing", "merkle", "protobufs", "security", "serialization"]
+
+[lib]
+proc-macro = true
+
+[dependencies]
+darling = "0.10"
+proc-macro2 = "1"
+quote = "1"
+syn = "1"
+synstructure = "0.12"
+
+[package.metadata.docs.rs]
+rustdoc-args = ["--document-private-items"] # Document all modules

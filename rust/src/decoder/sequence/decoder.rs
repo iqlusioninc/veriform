@@ -154,7 +154,7 @@ where
     }
 }
 
-#[cfg(test)]
+#[cfg(all(test, features = "sha2"))]
 mod tests {
     use super::{Decodable, Decoder, WireType};
     use sha2::Sha256;

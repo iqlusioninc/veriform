@@ -18,26 +18,22 @@ jobs:
           - thumbv7em-none-eabihf
           - wasm32-unknown-unknown
         toolchain:
-          - 1.40.0
+          - 1.40.0 # MSRV
           - stable
     steps:
       - name: Checkout sources
         uses: actions/checkout@v1
 
-      - name: Cache cargo registry
-        uses: actions/cache@v1
+      # Cache Cargo artifacts
+      - uses: actions/cache@v1
         with:
           path: ~/.cargo/registry
           key: ${{ runner.os }}-cargo-registry-${{ hashFiles('Cargo.lock') }}
-
-      - name: Cache cargo index
-        uses: actions/cache@v1
+      - uses: actions/cache@v1
         with:
           path: ~/.cargo/git
           key: ${{ runner.os }}-cargo-index-${{ hashFiles('Cargo.lock') }}
-
-      - name: Cache cargo build
-        uses: actions/cache@v1
+      - uses: actions/cache@v1
         with:
           path: target
           key: ${{ runner.os }}-rust-${{ matrix.toolchain }}-${{ matrix.target }}-cargo-build-target-${{ hashFiles('Cargo.lock') }}
@@ -45,11 +41,10 @@ jobs:
       - name: Install toolchain
         uses: actions-rs/toolchain@v1
         with:
+          profile: minimal
           toolchain: ${{ matrix.toolchain }}
+          target: ${{ matrix.target }}
           override: true
-
-      - name: Install target
-        run: rustup target add ${{ matrix.target }}
 
       - name: Run cargo build --target ${{ matrix.target }}
         working-directory: rust
@@ -64,14 +59,12 @@ jobs:
       - name: Checkout sources
         uses: actions/checkout@v1
 
-      - name: Cache cargo registry
-        uses: actions/cache@v1
+      # Cache Cargo artifacts
+      - uses: actions/cache@v1
         with:
           path: ~/.cargo/registry
           key: ${{ runner.os }}-cargo-registry-${{ hashFiles('Cargo.lock') }}
-
-      - name: Cache cargo index
-        uses: actions/cache@v1
+      - uses: actions/cache@v1
         with:
           path: ~/.cargo/git
           key: ${{ runner.os }}-cargo-index-${{ hashFiles('Cargo.lock') }}
@@ -79,6 +72,7 @@ jobs:
       - name: Install stable toolchain
         uses: actions-rs/toolchain@v1
         with:
+          profile: minimal
           toolchain: stable
           override: true
 
@@ -94,14 +88,12 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v2
 
-      - name: Cache cargo registry
-        uses: actions/cache@v1
+      # Cache Cargo artifacts
+      - uses: actions/cache@v1
         with:
           path: ~/.cargo/registry
           key: ${{ runner.os }}-cargo-registry-${{ hashFiles('Cargo.lock') }}
-
-      - name: Cache cargo index
-        uses: actions/cache@v1
+      - uses: actions/cache@v1
         with:
           path: ~/.cargo/git
           key: ${{ runner.os }}-cargo-index-${{ hashFiles('Cargo.lock') }}
@@ -109,6 +101,7 @@ jobs:
       - name: Install stable toolchain
         uses: actions-rs/toolchain@v1
         with:
+          profile: minimal
           toolchain: stable
           override: true
 
@@ -138,30 +131,26 @@ jobs:
           - macos-latest
           - windows-latest
         toolchain:
-          - 1.40.0
+          - 1.40.0 # MSRV
           - stable
     runs-on: ${{ matrix.platform }}
     steps:
       - name: Checkout sources
         uses: actions/checkout@v1
 
-      - name: Cache cargo registry
-        uses: actions/cache@v1
+      # Cache Cargo artifacts
+      - uses: actions/cache@v1
         with:
           path: ~/.cargo/registry
           key: ${{ runner.os }}-cargo-registry-${{ hashFiles('Cargo.lock') }}
-
-      - name: Cache cargo index
-        uses: actions/cache@v1
+      - uses: actions/cache@v1
         with:
           path: ~/.cargo/git
           key: ${{ runner.os }}-cargo-index-${{ hashFiles('Cargo.lock') }}
-
-      - name: Cache cargo build
-        uses: actions/cache@v1
+      - uses: actions/cache@v1
         with:
           path: target
-          key: ${{ runner.os }}-rust-${{ matrix.toolchain }}-cargo-build-target-${{ hashFiles('Cargo.lock') }}
+          key: ${{ runner.os }}-rust-${{ matrix.toolchain }}-${{ matrix.target }}-cargo-build-target-${{ hashFiles('Cargo.lock') }}
 
       - name: Install ${{ matrix.toolchain }} toolchain
         uses: actions-rs/toolchain@v1
@@ -169,12 +158,12 @@ jobs:
           toolchain: ${{ matrix.toolchain }}
           override: true
 
-      - name: Run cargo test --no-default-features --features=sha2
+      - name: Run cargo test --no-default-features --features=sha2,veriform_derive
         env:
           CARGO_INCREMENTAL: 0
           RUSTFLAGS: -D warnings
         working-directory: rust
-        run: cargo test --no-default-features --features=sha2 --release
+        run: cargo test --no-default-features --features=sha2,veriform_derive --release
 
       - name: Run cargo test --release
         uses: actions-rs/cargo@v1
@@ -195,11 +184,9 @@ jobs:
       - name: Install stable toolchain
         uses: actions-rs/toolchain@v1
         with:
-          toolchain: stable
-          override: true
-
-      - name: Install rustfmt
-        run: rustup component add rustfmt
+          profile: minimal
+          toolchain: 1.40.0 # MSRV
+          components: rustfmt
 
       - name: Run cargo fmt
         uses: actions-rs/cargo@v1
@@ -217,11 +204,9 @@ jobs:
       - name: Install stable toolchain
         uses: actions-rs/toolchain@v1
         with:
-          toolchain: stable
-          override: true
-
-      - name: Install clippy
-        run: rustup component add clippy
+          profile: minimal
+          toolchain: 1.40.0 # MSRV
+          components: clippy
 
       - name: Run cargo clippy
         uses: actions-rs/cargo@v1

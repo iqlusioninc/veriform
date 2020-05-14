@@ -1,6 +1,9 @@
 //! Veriform wire types
 
-pub use crate::error::{self, Error};
+pub use crate::{
+    error::{self, Error},
+    message::Element,
+};
 use core::convert::TryFrom;
 
 /// Wire type identifiers for Veriform types
@@ -50,6 +53,17 @@ impl WireType {
     /// Convert a [`WireType`] to a byte representation
     pub const fn to_u8(self) -> u8 {
         self as u8
+    }
+
+    /// Create a decoding error for this given wire type.
+    ///
+    /// This method is primarily intended to be used by `veriform_derive`.
+    pub fn decoding_error(self) -> Error {
+        error::Kind::Decode {
+            element: Element::Value,
+            wire_type: self,
+        }
+        .into()
     }
 }
 
