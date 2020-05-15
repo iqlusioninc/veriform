@@ -26,6 +26,9 @@ pub mod field;
 pub mod message;
 mod verihash;
 
+#[cfg(feature = "veriform_derive")]
+pub mod derive_helpers;
+
 // Re-export the `digest` crate
 pub use digest;
 
@@ -38,3 +41,7 @@ pub use crate::{encoder::Encoder, error::Error, message::Message};
 #[cfg(feature = "sha2")]
 #[cfg_attr(docsrs, doc(cfg(feature = "sha2")))]
 pub type Decoder = crate::decoder::Decoder<sha2::Sha256>;
+
+#[cfg(feature = "veriform_derive")]
+#[cfg_attr(docsrs, doc(cfg(feature = "veriform_derive")))]
+pub use veriform_derive::Message;

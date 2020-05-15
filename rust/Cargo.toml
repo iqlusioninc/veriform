@@ -19,10 +19,11 @@ log = { version = "0.4", optional = true }
 sha2 = { version = "0.8", optional = true, default-features = false }
 tai64 = { version = "3", optional = true, default-features = false }
 uuid = { version = "0.8", optional = true, default-features = false }
+veriform_derive = { version = "0", optional = true, path = "derive" }
 vint64 = { version = "1", path = "vint64" }
 
 [features]
-default = ["builtins-std", "sha2"]
+default = ["builtins-std", "sha2", "veriform_derive"]
 alloc = []
 builtins = ["tai64", "uuid"]
 builtins-std = ["std", "tai64/std", "uuid/std"]
