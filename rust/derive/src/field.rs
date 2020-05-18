@@ -88,6 +88,7 @@ impl WireType {
             "bytes" => WireType::Bytes,
             "string" => WireType::String,
             "message" => WireType::Message,
+            "sequence" => WireType::Sequence,
             other => panic!("invalid wire type: {}", other),
         }
     }

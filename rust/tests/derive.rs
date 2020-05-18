@@ -1,6 +1,9 @@
 //! Integration tests for `veriform_derive`
 
-use heapless::{consts::U1024, Vec};
+use heapless::{
+    consts::{U1024, U8},
+    Vec,
+};
 use veriform::{Decoder, Message};
 
 /// Buffer type.
@@ -51,13 +54,23 @@ pub struct ExampleStruct {
 
     #[field(tag = 1, wire_type = "sint64", critical = true)]
     pub sint64_field: i64,
+
+    #[field(tag = 2, wire_type = "sequence", critical = true, max = 8)]
+    pub msg_sequence_field: heapless::Vec<ExampleEnum, U8>,
 }
 
 impl Default for ExampleStruct {
     fn default() -> Self {
+        let mut msg_sequence_field = heapless::Vec::new();
+
+        for _ in 0..3 {
+            msg_sequence_field.push(ExampleEnum::default()).unwrap();
+        }
+
         Self {
             uint64_field: 42,
             sint64_field: -42,
+            msg_sequence_field,
         }
     }
 }

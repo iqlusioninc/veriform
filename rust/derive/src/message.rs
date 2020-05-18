@@ -210,7 +210,9 @@ fn derive_struct(s: Structure<'_>, data: &DataStruct) -> TokenStream {
             {
                 #[allow(unused_imports)]
                 use veriform::decoder::Decode;
+
                 #decode_body
+
                 Ok(Self { #inst_body })
             }
 
@@ -251,7 +253,14 @@ fn derive_struct_decode_match_arm(name: &Ident, attrs: &field::Attrs) -> TokenSt
                     let #name = decoder.decode(#tag, &mut input)?;
                 }
             } else if wire_type.is_sequence() {
-                todo!();
+                // TODO(tarcieri): hoist more of this into a `derive_helper` function?
+                quote! {
+                    let #name = veriform::derive_helpers::decode_message_seq(
+                        decoder,
+                        #tag,
+                        &mut input
+                    )?;
+                }
             } else {
                 unreachable!();
             }
@@ -271,7 +280,10 @@ fn encode_field(binding: &Ident, attrs: &field::Attrs) -> TokenStream {
         WireType::Bytes => quote! { encoder.bytes(#tag, #critical, #binding)? },
         WireType::String => quote! { encoder.string(#tag, #critical, #binding)? },
         WireType::Message => quote! { encoder.message(#tag, #critical, #binding)? },
-        WireType::Sequence => todo!(),
+        WireType::Sequence => quote! {
+            // TODO(tarcieri): support other types of sequences besides messages
+            veriform::derive_helpers::encode_message_seq(&mut encoder, #tag, #critical, #binding)?;
+        },
     }
 }
 
@@ -286,6 +298,12 @@ fn encoded_len_for_field(binding: &Ident, attrs: &field::Attrs) -> TokenStream {
         WireType::Bytes => quote! { veriform::field::length::bytes(#tag, #binding) },
         WireType::String => quote! { veriform::field::length::string(#tag, #binding) },
         WireType::Message => quote! { veriform::field::length::message(#tag, #binding) },
-        WireType::Sequence => todo!(),
+        WireType::Sequence => quote! {
+            // TODO(tarcieri): support other types of sequences besides messages
+            veriform::field::length::message_seq(
+                #tag,
+                #binding.iter().map(|elem| elem as &dyn veriform::Message)
+            )
+        },
     }
 }
