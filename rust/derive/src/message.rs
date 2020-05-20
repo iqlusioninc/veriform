@@ -114,7 +114,7 @@ impl DeriveEnum {
             WireType::Message => quote! {
                 decoder
                     .peek()
-                    .decode_message(&mut input)?
+                    .decode_message(&mut input)
                     .and_then(|bytes| veriform::Message::decode(decoder, bytes))
                     .map(Self::#name)
                     .map_err(|_| veriform::field::WireType::Message.decoding_error())?
