@@ -13,9 +13,9 @@ use synstructure::Structure;
 /// Custom derive for `Message`
 pub(crate) fn derive(s: Structure<'_>) -> TokenStream {
     match &s.ast().data {
-        syn::Data::Enum(data) => DeriveEnum::new().derive(s, data),
-        syn::Data::Struct(data) => DeriveStruct::new().derive(s, data),
-        other => panic!("can't derive Message on: {:?}", other),
+        syn::Data::Enum(data) => DeriveEnum::derive(s, data),
+        syn::Data::Struct(data) => DeriveStruct::derive(s, data),
+        other => panic!("can't derive `Message` on: {:?}", other),
     }
 }
 
@@ -32,90 +32,38 @@ struct DeriveEnum {
 }
 
 impl DeriveEnum {
-    /// Create a new [`DeriveStruct`]
-    pub fn new() -> Self {
-        Self {
+    /// Derive `Message` on an enum
+    // TODO(tarcieri): higher-level abstractions/implementation?
+    pub fn derive(s: Structure<'_>, data: &DataEnum) -> TokenStream {
+        assert_eq!(
+            s.variants().len(),
+            data.variants.len(),
+            "enum variant count mismatch"
+        );
+
+        let mut state = Self {
             decode_body: TokenStream::new(),
             encode_body: TokenStream::new(),
             encoded_len_body: TokenStream::new(),
-        }
-    }
-
-    /// Derive `Message` on an enum
-    // TODO(tarcieri): hoist as much of this code out of the proc macro as possible
-    fn derive(mut self, s: Structure<'_>, data: &DataEnum) -> TokenStream {
-        if s.variants().len() != data.variants.len() {
-            panic!(
-                "unexpected number of variants ({} vs {})",
-                s.variants().len(),
-                data.variants.len()
-            );
-        }
+        };
 
         for (variant_info, variant) in s.variants().iter().zip(&data.variants) {
             let attrs = field::Attrs::from_variant(variant).unwrap_or_else(|e| {
                 panic!("error parsing field attributes: {}", e);
             });
 
-            self.derive_decode_match_arm(&variant.ident, &attrs);
+            state.derive_decode_match_arm(&variant.ident, &attrs);
 
             variant_info
                 .each(|bi| encode_field(&bi.binding, &attrs))
-                .to_tokens(&mut self.encode_body);
+                .to_tokens(&mut state.encode_body);
 
             variant_info
                 .each(|bi| encoded_len_for_field(&bi.binding, &attrs))
-                .to_tokens(&mut self.encoded_len_body)
+                .to_tokens(&mut state.encoded_len_body)
         }
 
-        let decode_body = self.decode_body;
-        let encode_body = self.encode_body;
-        let encoded_len_body = self.encoded_len_body;
-
-        // TODO(tarcieri): ensure input is empty when message is finished decoding
-        s.gen_impl(quote! {
-            gen impl Message for @Self {
-                fn decode<D>(
-                    decoder: &mut veriform::decoder::Decoder<D>,
-                    mut input: &[u8]
-                ) -> Result<Self, veriform::Error>
-                where
-                    D: veriform::digest::Digest,
-                {
-                    #[allow(unused_imports)]
-                    use veriform::decoder::Decodable;
-                    #[allow(unused_imports)]
-                    use core::convert::TryInto;
-
-                    let msg = match decoder.peek().decode_header(&mut input)?.tag {
-                        #decode_body
-                        tag => return Err(veriform::derive_helpers::unknown_tag(tag))
-                    };
-
-                    veriform::derive_helpers::check_input_consumed(input)?;
-                    Ok(msg)
-                }
-
-                fn encode<'a>(
-                    &self,
-                    buffer: &'a mut [u8]
-                ) -> Result<&'a [u8], veriform::Error> {
-                    let mut encoder = veriform::Encoder::new(buffer);
-
-                    match self {
-                        #encode_body
-                    }
-
-                    Ok(encoder.finish())
-                }
-
-                fn encoded_len(&self) -> usize {
-                    match self {
-                        #encoded_len_body
-                    }
-                }
-            }
-        })
+        state.finish(s)
     }
 
     /// Derive a match arm of an enum `decode` method
@@ -167,7 +115,6 @@ impl DeriveEnum {
                 decoder
                     .peek()
                     .decode_message(&mut input)?
-                    .try_into()
                     .and_then(|bytes| veriform::Message::decode(decoder, bytes))
                     .map(Self::#name)
                     .map_err(|_| veriform::field::WireType::Message.decoding_error())?
@@ -180,6 +127,57 @@ impl DeriveEnum {
         };
 
         match_arm.to_tokens(&mut self.decode_body);
+    }
+
+    /// Finish deriving an enum
+    fn finish(self, s: Structure<'_>) -> TokenStream {
+        let decode_body = self.decode_body;
+        let encode_body = self.encode_body;
+        let encoded_len_body = self.encoded_len_body;
+
+        s.gen_impl(quote! {
+            gen impl Message for @Self {
+                fn decode<D>(
+                    decoder: &mut veriform::decoder::Decoder<D>,
+                    mut input: &[u8]
+                ) -> Result<Self, veriform::Error>
+                where
+                    D: veriform::digest::Digest,
+                {
+                    #[allow(unused_imports)]
+                    use veriform::decoder::Decodable;
+                    #[allow(unused_imports)]
+                    use core::convert::TryInto;
+
+                    let msg = match decoder.peek().decode_header(&mut input)?.tag {
+                        #decode_body
+                        tag => return Err(veriform::derive_helpers::unknown_tag(tag))
+                    };
+
+                    veriform::derive_helpers::check_input_consumed(input)?;
+                    Ok(msg)
+                }
+
+                fn encode<'a>(
+                    &self,
+                    buffer: &'a mut [u8]
+                ) -> Result<&'a [u8], veriform::Error> {
+                    let mut encoder = veriform::Encoder::new(buffer);
+
+                    match self {
+                        #encode_body
+                    }
+
+                    Ok(encoder.finish())
+                }
+
+                fn encoded_len(&self) -> usize {
+                    match self {
+                        #encoded_len_body
+                    }
+                }
+            }
+        })
     }
 }
 
@@ -199,21 +197,17 @@ struct DeriveStruct {
 }
 
 impl DeriveStruct {
-    /// Create a new [`DeriveStruct`]
-    pub fn new() -> Self {
-        Self {
+    pub fn derive(s: Structure<'_>, data: &DataStruct) -> TokenStream {
+        assert_eq!(s.variants().len(), 1, "expected one variant");
+
+        let mut state = Self {
             decode_body: TokenStream::new(),
             inst_body: TokenStream::new(),
             encode_body: TokenStream::new(),
             encoded_len_body: quote!(0),
-        }
-    }
+        };
 
-    /// Derive `Message` on a struct
-    fn derive(mut self, s: Structure<'_>, data: &DataStruct) -> TokenStream {
-        assert_eq!(s.variants().len(), 1);
         let variant = &s.variants()[0];
-        let pattern = variant.pat();
         let bindings = &variant.bindings();
 
         if bindings.len() != data.fields.len() {
@@ -225,55 +219,25 @@ impl DeriveStruct {
         }
 
         for (binding_info, field) in bindings.iter().zip(&data.fields) {
-            match parse_attr_ident(field).to_string().as_ref() {
-                "field" => self.derive_field(field, &binding_info.binding),
-                "digest" => self.derive_digest(field),
-                other => panic!("unknown attribute: {}", other),
+            for attr in &field.attrs {
+                let attr_segments = &attr.path.segments;
+
+                // ignore namespaced attributes
+                if attr_segments.len() != 1 {
+                    continue;
+                }
+
+                let attr_name = &attr_segments[0].ident.to_string();
+
+                match attr_name.as_ref() {
+                    "field" => state.derive_field(field, &binding_info.binding),
+                    "digest" => state.derive_digest(field),
+                    _ => (), // ignore other attributes
+                }
             }
         }
 
-        let decode_body = self.decode_body;
-        let inst_body = self.inst_body;
-        let encode_body = self.encode_body;
-        let encoded_len_body = self.encoded_len_body;
-
-        s.gen_impl(quote! {
-            gen impl Message for @Self {
-                fn decode<D>(
-                    decoder: &mut veriform::decoder::Decoder<D>,
-                    mut input: &[u8]
-                ) -> Result<Self, veriform::Error>
-                where
-                    D: veriform::digest::Digest,
-                {
-                    #[allow(unused_imports)]
-                    use veriform::decoder::Decode;
-
-                    #decode_body
-
-                    Ok(Self { #inst_body })
-                }
-
-                fn encode<'a>(
-                    &self,
-                    buffer: &'a mut [u8]
-                ) -> Result<&'a [u8], veriform::Error> {
-                    let mut encoder = veriform::Encoder::new(buffer);
-
-                    match self {
-                        #pattern => { #encode_body }
-                    }
-
-                    Ok(encoder.finish())
-                }
-
-                fn encoded_len(&self) -> usize {
-                    match self {
-                        #pattern => { #encoded_len_body }
-                    }
-                }
-            }
-        })
+        state.finish(&s, variant.pat())
     }
 
     /// Derive handling for a particular `#[field(...)]`
@@ -355,11 +319,51 @@ impl DeriveStruct {
         let inst_field = quote!(#name: Some(#name),);
         inst_field.to_tokens(&mut self.inst_body);
     }
-}
 
-impl Default for DeriveStruct {
-    fn default() -> Self {
-        Self::new()
+    /// Finish deriving a struct
+    fn finish(self, s: &Structure<'_>, pattern: TokenStream) -> TokenStream {
+        let decode_body = self.decode_body;
+        let inst_body = self.inst_body;
+        let encode_body = self.encode_body;
+        let encoded_len_body = self.encoded_len_body;
+
+        s.gen_impl(quote! {
+            gen impl Message for @Self {
+                fn decode<D>(
+                    decoder: &mut veriform::decoder::Decoder<D>,
+                    mut input: &[u8]
+                ) -> Result<Self, veriform::Error>
+                where
+                    D: veriform::digest::Digest,
+                {
+                    #[allow(unused_imports)]
+                    use veriform::decoder::Decode;
+
+                    #decode_body
+
+                    Ok(Self { #inst_body })
+                }
+
+                fn encode<'a>(
+                    &self,
+                    buffer: &'a mut [u8]
+                ) -> Result<&'a [u8], veriform::Error> {
+                    let mut encoder = veriform::Encoder::new(buffer);
+
+                    match self {
+                        #pattern => { #encode_body }
+                    }
+
+                    Ok(encoder.finish())
+                }
+
+                fn encoded_len(&self) -> usize {
+                    match self {
+                        #pattern => { #encoded_len_body }
+                    }
+                }
+            }
+        })
     }
 }
 
@@ -369,17 +373,6 @@ fn parse_field_name(field: &Field) -> &Ident {
         .ident
         .as_ref()
         .unwrap_or_else(|| panic!("no name on struct field (e.g. tuple structs unsupported)"))
-}
-
-/// Parse an attribute `Ident` i.e. `#[myattributeident(...)]`
-fn parse_attr_ident(field: &Field) -> &Ident {
-    assert_eq!(field.attrs.len(), 1);
-
-    let attr = &field.attrs[0];
-    let attr_segments = &attr.path.segments;
-
-    assert_eq!(attr_segments.len(), 1);
-    &attr_segments[0].ident
 }
 
 /// Encode a field of a message
