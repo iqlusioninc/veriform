@@ -1,4 +1,6 @@
 coverage:
+  ignore:
+    - "rust/derive/src/*.rs"
   status:
     project:
       default:
@@ -6,5 +8,3 @@ coverage:
         threshold: null
     patch: false
     changes: false
-ignore:
-    - "rust/derive/src/*.rs"
