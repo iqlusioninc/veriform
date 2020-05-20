@@ -42,6 +42,11 @@ pub use crate::{encoder::Encoder, error::Error, message::Message};
 #[cfg_attr(docsrs, doc(cfg(feature = "sha2")))]
 pub type Decoder = crate::decoder::Decoder<sha2::Sha256>;
 
+/// SHA-256 digests
+#[cfg(feature = "sha2")]
+#[cfg_attr(docsrs, doc(cfg(feature = "sha2")))]
+pub type Sha256Digest = [u8; 32];
+
 #[cfg(feature = "veriform_derive")]
 #[cfg_attr(docsrs, doc(cfg(feature = "veriform_derive")))]
 pub use veriform_derive::Message;

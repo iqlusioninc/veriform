@@ -59,7 +59,7 @@ pub struct ExampleStruct {
     pub msg_sequence_field: heapless::Vec<ExampleEnum, U8>,
 
     #[digest(alg = "sha256")]
-    pub digest: [u8; 32],
+    pub digest: Option<veriform::Sha256Digest>,
 }
 
 impl Default for ExampleStruct {
@@ -74,17 +74,14 @@ impl Default for ExampleStruct {
             uint64_field: 42,
             sint64_field: -42,
             msg_sequence_field,
-            digest: [
-                70, 253, 164, 73, 9, 251, 53, 54, 186, 12, 131, 51, 211, 21, 167, 39, 94, 115, 121,
-                247, 36, 223, 116, 164, 36, 154, 124, 156, 42, 115, 221, 197,
-            ],
+            digest: None,
         }
     }
 }
 
 #[test]
 fn struct_round_trip() {
-    let example = ExampleStruct::default();
+    let mut example = ExampleStruct::default();
 
     let mut encoded_buf = new_buffer();
     let encoded_len = example.encode(&mut encoded_buf).unwrap().len();
@@ -92,6 +89,13 @@ fn struct_round_trip() {
 
     let mut decoder = Decoder::new();
     let decoded = ExampleStruct::decode(&mut decoder, &encoded_buf).unwrap();
+
+    // Expected digest
+    // TODO(tarcieri): actually stabilize these!
+    example.digest = Some([
+        70, 253, 164, 73, 9, 251, 53, 54, 186, 12, 131, 51, 211, 21, 167, 39, 94, 115, 121, 247,
+        36, 223, 116, 164, 36, 154, 124, 156, 42, 115, 221, 197,
+    ]);
 
     assert_eq!(example, decoded);
 }
