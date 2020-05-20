@@ -346,13 +346,13 @@ impl DeriveStruct {
     /// Derive computing a SHA-256 digest of a message
     fn derive_sha256_digest(&mut self, name: &Ident) {
         let fill_digest = quote! {
-            let mut #name = [0u8; 32];
+            let mut #name = veriform::Sha256Digest::default();
             decoder.fill_digest(&mut #name)?;
         };
 
         fill_digest.to_tokens(&mut self.decode_body);
 
-        let inst_field = quote!(#name,);
+        let inst_field = quote!(#name: Some(#name),);
         inst_field.to_tokens(&mut self.inst_body);
     }
 }
