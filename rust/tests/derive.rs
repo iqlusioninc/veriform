@@ -57,6 +57,9 @@ pub struct ExampleStruct {
 
     #[field(tag = 2, wire_type = "sequence", critical = true, max = 8)]
     pub msg_sequence_field: heapless::Vec<ExampleEnum, U8>,
+
+    #[digest(alg = "sha256")]
+    pub digest: [u8; 32],
 }
 
 impl Default for ExampleStruct {
@@ -71,6 +74,10 @@ impl Default for ExampleStruct {
             uint64_field: 42,
             sint64_field: -42,
             msg_sequence_field,
+            digest: [
+                70, 253, 164, 73, 9, 251, 53, 54, 186, 12, 131, 51, 211, 21, 167, 39, 94, 115, 121,
+                247, 36, 223, 116, 164, 36, 154, 124, 156, 42, 115, 221, 197,
+            ],
         }
     }
 }

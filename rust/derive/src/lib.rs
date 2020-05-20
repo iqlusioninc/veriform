@@ -13,13 +13,14 @@
 #![forbid(unsafe_code)]
 #![warn(rust_2018_idioms)]
 
+mod digest;
 mod field;
 mod message;
 
 use synstructure::decl_derive;
 
 decl_derive!(
-    [Message, attributes(field)] =>
+    [Message, attributes(digest, field)] =>
     /// Derive the `Message` trait for an enum or struct
     message::derive
 );
