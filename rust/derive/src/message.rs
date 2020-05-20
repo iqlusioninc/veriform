@@ -115,7 +115,12 @@ impl DeriveEnum {
                 decoder
                     .peek()
                     .decode_message(&mut input)
-                    .and_then(|bytes| veriform::Message::decode(decoder, bytes))
+                    .and_then(|bytes| {
+                        decoder.push()?;
+                        let result = veriform::Message::decode(decoder, bytes);
+                        decoder.pop();
+                        result
+                    })
                     .map(Self::#name)
                     .map_err(|_| veriform::field::WireType::Message.decoding_error())?
             },
