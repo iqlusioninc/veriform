@@ -36,7 +36,10 @@ impl Error {
     // TODO(tarcieri): remove `#[allow(dead_code)]` attrs once this method is used
     #[allow(dead_code)]
     pub(crate) fn extend_position(self, pos: usize) -> Self {
-        let new_position = self.position.map(|old_pos| old_pos + pos).unwrap_or(pos);
+        let new_position = self
+            .position
+            .map(|old_pos| old_pos.checked_add(pos).unwrap())
+            .unwrap_or(pos);
 
         Self {
             kind: self.kind,

@@ -5,7 +5,7 @@ use proc_macro2::TokenStream;
 use quote::quote;
 use syn::Ident;
 
-/// Parsed `#[field(...)]` attribute fields
+/// Parsed `#[field(...)]` attribute
 #[derive(Debug, FromField, FromVariant)]
 #[darling(attributes(field))]
 pub(crate) struct Attrs {
@@ -51,7 +51,6 @@ impl Attrs {
 
 /// Wire type identifiers for Veriform types
 #[derive(Copy, Clone, Debug)]
-#[allow(dead_code)] // TODO(tarcieri): remove this!!!
 pub(crate) enum WireType {
     /// Boolean values - these are actually modeled as two different wire type
     /// identifiers (0 and 1) but consolidated for the purposes of this macro
