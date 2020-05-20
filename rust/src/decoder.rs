@@ -21,9 +21,10 @@ pub use self::{
 use crate::{
     error::{self, Error},
     field::{Tag, WireType},
+    verihash::DigestOutput,
     Message,
 };
-use digest::{generic_array::GenericArray, Digest};
+use digest::Digest;
 use heapless::consts::U16;
 
 /// Veriform decoder
@@ -66,7 +67,7 @@ where
     ///
     /// Panics if the decoder's stack underflows.
     // TODO(tarcieri): panic-free higher-level API, possibly RAII-based?
-    pub fn pop(&mut self) -> Option<GenericArray<u8, D::OutputSize>> {
+    pub fn pop(&mut self) -> Option<DigestOutput<D>> {
         self.stack.pop().unwrap().compute_digest().unwrap()
     }
 

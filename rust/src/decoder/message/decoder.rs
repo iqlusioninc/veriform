@@ -6,9 +6,10 @@ use crate::{
     error::{self, Error},
     field::{Header, Tag, WireType},
     message::Element,
+    verihash::DigestOutput,
 };
 use core::fmt::{self, Debug};
-use digest::{generic_array::GenericArray, Digest};
+use digest::Digest;
 
 /// Veriform message decoder: streaming zero-copy pull parser which emits
 /// events based on incoming data.
@@ -26,7 +27,7 @@ pub struct Decoder<D: Digest> {
     hasher: Option<Hasher<D>>,
 
     /// Cached output digest
-    cached_digest: Option<GenericArray<u8, D::OutputSize>>,
+    cached_digest: Option<DigestOutput<D>>,
 }
 
 impl<D> Decoder<D>
@@ -129,11 +130,7 @@ where
     }
 
     /// Hash a digest of a nested message within this message
-    pub fn hash_message_digest(
-        &mut self,
-        tag: Tag,
-        digest: &GenericArray<u8, D::OutputSize>,
-    ) -> Result<(), Error> {
+    pub fn hash_message_digest(&mut self, tag: Tag, digest: &DigestOutput<D>) -> Result<(), Error> {
         if let Some(hasher) = &mut self.hasher {
             hasher.hash_message_digest(tag, digest)?;
         }
@@ -149,7 +146,7 @@ where
     ///
     /// The `finish_digest` method below (which consumes the decoder) is used
     /// by the decoder itself to compute a Merkle tree over the messages.
-    pub fn compute_digest(&mut self) -> Result<Option<GenericArray<u8, D::OutputSize>>, Error> {
+    pub fn compute_digest(&mut self) -> Result<Option<DigestOutput<D>>, Error> {
         // Use cached digest if available
         if let Some(digest) = self.cached_digest.clone() {
             return Ok(Some(digest));

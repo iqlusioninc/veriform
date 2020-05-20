@@ -15,10 +15,10 @@ use crate::{
     decoder::Event,
     error::{self, Error},
     field::{self, Tag, WireType},
-    verihash,
+    verihash::{self, DigestOutput},
 };
 use core::fmt::{self, Debug};
-use digest::{generic_array::GenericArray, Digest};
+use digest::Digest;
 
 /// Verihash message hasher.
 ///
@@ -56,11 +56,7 @@ where
     }
 
     /// Hash a digest of a nested message within this message
-    pub fn hash_message_digest(
-        &mut self,
-        tag: Tag,
-        digest: &GenericArray<u8, D::OutputSize>,
-    ) -> Result<(), Error> {
+    pub fn hash_message_digest(&mut self, tag: Tag, digest: &DigestOutput<D>) -> Result<(), Error> {
         match self.state {
             Some(State::Message { remaining }) if remaining == 0 => {
                 self.verihash.tag(tag);
@@ -73,7 +69,7 @@ where
     }
 
     /// Finish computing digest
-    pub fn finish(self) -> Result<GenericArray<u8, D::OutputSize>, Error> {
+    pub fn finish(self) -> Result<DigestOutput<D>, Error> {
         if self.state == Some(State::Initial) {
             Ok(self.verihash.finish())
         } else {

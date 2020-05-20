@@ -5,6 +5,9 @@
 use crate::field::{Tag, WireType};
 use digest::{generic_array::GenericArray, Digest};
 
+/// Output of a given digest algorithm
+pub type DigestOutput<D> = GenericArray<u8, <D as Digest>::OutputSize>;
+
 /// Verihash prefix used by tags (unsigned integer)
 // TODO(tarcieri): support string tags?
 const TAG_PREFIX: u8 = WireType::UInt64.to_u8();
@@ -83,7 +86,7 @@ where
     }
 
     /// Finish computing the digest, returning the output value
-    pub fn finish(self) -> GenericArray<u8, D::OutputSize> {
+    pub fn finish(self) -> DigestOutput<D> {
         self.0.result()
     }
 }
