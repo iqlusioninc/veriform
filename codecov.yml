@@ -6,3 +6,5 @@ coverage:
         threshold: null
     patch: false
     changes: false
+ignore:
+    - "rust/derive/src/*.rs"
