@@ -19,9 +19,15 @@ pub fn new_buffer() -> Buffer {
 }
 
 #[derive(Message, Debug, Eq, PartialEq)]
+pub struct EmptyStruct {}
+
+#[derive(Message, Debug, Eq, PartialEq)]
 pub enum ExampleEnum {
     #[field(tag = 0, wire_type = "bytes", size = 32)]
     BytesVariant([u8; 32]),
+
+    #[field(tag = 1, wire_type = "message")]
+    MessageVariant(EmptyStruct),
 }
 
 impl Default for ExampleEnum {
