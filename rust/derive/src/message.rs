@@ -187,6 +187,7 @@ impl DeriveEnum {
 }
 
 /// Derive `Message` on a struct
+// TODO(tarcieri): make sure tags are in the right order and digest is the last field
 struct DeriveStruct {
     /// Body of `Message::decode()` in-progress for a struct
     decode_body: TokenStream,

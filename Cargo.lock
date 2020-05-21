@@ -973,7 +973,7 @@ checksum = "9fde2f6a4bea1d6e007c4ad38c6839fa71cbb63b6dbf5b595aa38dc9b1093c11"
 
 [[package]]
 name = "veriform"
-version = "0.0.1"
+version = "0.1.0"
 dependencies = [
  "digest",
  "displaydoc",
@@ -988,7 +988,7 @@ dependencies = [
 
 [[package]]
 name = "veriform_derive"
-version = "0.0.0"
+version = "0.1.0"
 dependencies = [
  "darling",
  "proc-macro2",
