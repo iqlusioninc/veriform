@@ -3,10 +3,32 @@
 //!
 //! This crate provides a `no_std`-friendly implementation of the format
 //! with a zero-copy pull parser.
+//!
+//! For more information on Veriform, see the work-in-progress specification:
+//! <https://github.com/iqlusioninc/veriform/blob/develop/spec/draft-veriform-spec.md>
+//!
+//! # Usage
+//!
+//! The main API for encoding and decoding Veriform messages is the
+//! [`Message`] trait. When the `veriform_derive` feature of this crate
+//! is enabled, custom derive is available for this trait for both structs
+//! and enums.
+//!
+//! See the documentation for the `Message` proc macro for more information.
+//!
+//! # Built-in Types
+//!
+//! Veriform has a small "standard library" of so-called "built-in types" which
+//! are serialized using message syntax, but in a consistent way which allows
+//! different programming language environments to use the best-available
+//! native representation for these types.
+//!
+//! - `Timestamp`: date/time as represented in International Atomic Time (TAI)
+//! - `Uuid`: universally unique identifier
 
 #![no_std]
 #![cfg_attr(docsrs, feature(doc_cfg))]
-#![doc(html_root_url = "https://docs.rs/veriform/0.0.1")]
+#![doc(html_root_url = "https://docs.rs/veriform/0.1.0")]
 #![forbid(unsafe_code)]
 #![warn(missing_docs, rust_2018_idioms, unused_qualifications)]
 
