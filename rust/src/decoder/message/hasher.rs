@@ -250,8 +250,6 @@ impl State {
                 }
             }
             State::String { remaining } => {
-                // TODO(tarcieri): use `unicode-normalization`?
-
                 if wire_type != WireType::String || remaining - bytes.len() != new_remaining {
                     return Err(error::Kind::Hashing.into());
                 }

@@ -4,6 +4,7 @@ use crate::{
     error::{self, Error},
     field::{Header, Tag, WireType},
     message::Message,
+    string,
 };
 
 /// Veriform encoder
@@ -101,6 +102,7 @@ impl<'a> Encoder<'a> {
 
     /// Write a field containing a string
     pub fn string(&mut self, tag: Tag, critical: bool, string: &str) -> Result<(), Error> {
+        string::ensure_canonical(string)?;
         self.write_header(tag, critical, WireType::String)?;
         self.write_value(string.as_bytes())
     }

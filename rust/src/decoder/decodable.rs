@@ -6,6 +6,7 @@ use crate::{
     error::{self, Error},
     field::WireType,
     message::Element,
+    string,
 };
 use core::str;
 
@@ -54,12 +55,12 @@ pub trait Decodable {
     /// Decode an expected `string` field, returning an error for anything else
     fn decode_string<'a>(&mut self, input: &mut &'a [u8]) -> Result<&'a str, Error> {
         let bytes = self.decode_dynamically_sized_value(WireType::String, input)?;
-        str::from_utf8(bytes).map_err(|e| {
-            error::Kind::Utf8 {
-                valid_up_to: e.valid_up_to(),
-            }
-            .into()
-        })
+
+        let s = str::from_utf8(bytes).map_err(|e| error::Kind::Utf8 {
+            valid_up_to: e.valid_up_to(),
+        })?;
+
+        string::ensure_canonical(s)
     }
 
     /// Decode an expected `message` field, returning an error for anything else
