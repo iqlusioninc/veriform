@@ -133,6 +133,9 @@ pub enum Kind {
         wanted: WireType,
     },
 
+    /// string contains non-normalized Unicode
+    UnicodeNormalization,
+
     /// malformed UTF-8 encountered at byte: {valid_up_to:?}
     Utf8 {
         /// byte at which UTF-8 encoding failed

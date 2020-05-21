@@ -24,6 +24,7 @@ pub mod encoder;
 pub mod error;
 pub mod field;
 pub mod message;
+mod string;
 mod verihash;
 
 #[cfg(feature = "veriform_derive")]
