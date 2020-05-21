@@ -6,6 +6,7 @@ use crate::{
     error::{self, Error},
     field::WireType,
     message::Element,
+    verihash::DigestOutput,
 };
 use digest::Digest;
 
@@ -38,7 +39,7 @@ where
             length,
             remaining: length,
             state: State::default(),
-            hasher: Some(Hasher::new()), // TODO(tarcieri): support for disabling hasher
+            hasher: Some(Hasher::new(wire_type)), // TODO(tarcieri): support for disabling hasher
         }
     }
 
@@ -78,6 +79,20 @@ where
             }
             other => unreachable!("unexpected event: {:?}", other),
         };
+    }
+
+    /// Hash a digest of a nested message within this sequence
+    pub fn hash_message_digest(&mut self, digest: &DigestOutput<D>) -> Result<(), Error> {
+        if let Some(hasher) = &mut self.hasher {
+            hasher.hash_message_digest(digest)?;
+        }
+
+        Ok(())
+    }
+
+    /// Compute a Verihash digest of the sequence we're decoding.
+    pub fn compute_digest(self) -> Result<Option<DigestOutput<D>>, Error> {
+        self.hasher.map(|hasher| hasher.finish()).transpose()
     }
 }
 

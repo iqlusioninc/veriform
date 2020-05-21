@@ -68,6 +68,23 @@ where
         }
     }
 
+    /// Hash a digest of a sequence within this message
+    pub fn hash_sequence_digest(
+        &mut self,
+        tag: Tag,
+        digest: &DigestOutput<D>,
+    ) -> Result<(), Error> {
+        match self.state {
+            Some(State::Sequence { remaining, .. }) if remaining == 0 => {
+                self.verihash.tag(tag);
+                self.verihash.fixed_size_value(WireType::Sequence, digest);
+                self.state = Some(State::Initial);
+                Ok(())
+            }
+            _ => Err(error::Kind::Hashing.into()),
+        }
+    }
+
     /// Finish computing digest
     pub fn finish(self) -> Result<DigestOutput<D>, Error> {
         if self.state == Some(State::Initial) {
@@ -262,8 +279,6 @@ impl State {
             } => {
                 if wire_type != WireType::Sequence || remaining - bytes.len() != new_remaining {
                     return Err(error::Kind::Hashing.into());
-                } else if new_remaining == 0 {
-                    return Ok(State::Initial);
                 } else {
                     return Ok(State::Sequence {
                         wire_type: value_type,

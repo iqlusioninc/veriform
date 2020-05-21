@@ -31,17 +31,10 @@ use heapless::consts::U16;
 pub struct Decoder<D: Digest> {
     /// Stack of message decoders (max nesting depth 16)
     stack: heapless::Vec<message::Decoder<D>, U16>,
-}
 
-impl<D> Default for Decoder<D>
-where
-    D: Digest,
-{
-    fn default() -> Self {
-        let mut stack = heapless::Vec::new();
-        stack.push(message::Decoder::new()).unwrap();
-        Decoder { stack }
-    }
+    /// Sequence decoder if we're presently decoding a sequence
+    // TODO(tarcieri): support nested sequences?
+    seq_decoder: Option<sequence::Decoder<D>>,
 }
 
 impl<D> Decoder<D>
@@ -50,7 +43,12 @@ where
 {
     /// Initialize decoder
     pub fn new() -> Self {
-        Self::default()
+        let mut stack = heapless::Vec::new();
+        stack.push(message::Decoder::new()).unwrap();
+        Decoder {
+            stack,
+            seq_decoder: None,
+        }
     }
 
     /// Push a new message decoder down onto the stack
@@ -65,22 +63,46 @@ where
     ///
     /// Returns a digest of the nested message if message hashing is enabled.
     ///
-    /// Panics if the decoder's stack underflows.
+    /// Panics if the decoder stack underflows.
     // TODO(tarcieri): panic-free higher-level API, possibly RAII-based?
     pub fn pop(&mut self) -> Option<DigestOutput<D>> {
         self.stack.pop().unwrap().compute_digest().unwrap()
     }
 
     /// Peek at the message decoder on the top of the stack
-    // TODO(tarcieri): remove this implementation detail from public API
+    // TODO(tarcieri): remove this implementation detail from public API (used for enums)
     pub fn peek(&mut self) -> &mut message::Decoder<D> {
         self.stack.last_mut().unwrap()
     }
 
     /// Get the depth of the pushdown stack
-    // TODO(tarcieri): remove this implementation detail from public API
+    // TODO(tarcieri): remove this implementation detail from public API (used for enums)
     pub fn depth(&self) -> usize {
         self.stack.len()
+    }
+
+    /// Push a sequence decoder
+    // TODO(tarcieri): support nested sequences?
+    fn push_seq(&mut self, wire_type: WireType, length: usize) -> Result<(), Error> {
+        if self.seq_decoder.is_none() {
+            self.seq_decoder = Some(sequence::Decoder::new(wire_type, length));
+            Ok(())
+        } else {
+            Err(error::Kind::NestedSequence.into())
+        }
+    }
+
+    /// Pop the sequence decoder.
+    ///
+    /// Panics if the decoder stack underflows.
+    // TODO(tarcieri): panic-free higher-level API, possibly RAII-based?
+    pub fn pop_seq(&mut self) -> Option<DigestOutput<D>> {
+        self.seq_decoder.take().unwrap().compute_digest().unwrap()
+    }
+
+    /// Peek at the sequence decoder.
+    pub fn peek_seq(&mut self) -> &mut sequence::Decoder<D> {
+        self.seq_decoder.as_mut().unwrap()
     }
 
     /// Fill the provided slice with the digest of the message if it fits
@@ -97,6 +119,15 @@ where
 
         output.copy_from_slice(&digest);
         Ok(())
+    }
+}
+
+impl<D> Default for Decoder<D>
+where
+    D: Digest,
+{
+    fn default() -> Self {
+        Self::new()
     }
 }
 
@@ -180,19 +211,19 @@ where
     D: Digest,
     M: Message,
 {
-    fn decode_seq<'a>(
-        &mut self,
+    fn decode_seq<'a, 'b>(
+        &'a mut self,
         tag: Tag,
-        input: &mut &'a [u8],
-    ) -> Result<sequence::Iter<'a, M, D>, Error> {
+        input: &mut &'b [u8],
+    ) -> Result<sequence::Iter<'a, 'b, M, D>, Error> {
         #[cfg(feature = "log")]
         begin!(self, "[{}]: seq<msg>?", tag);
 
         self.peek().expect_header(input, tag, WireType::Sequence)?;
         let seq_bytes = self.peek().decode_sequence(WireType::Message, input)?;
-        let decoder = sequence::Decoder::new(WireType::Message, seq_bytes.len());
+        self.push_seq(WireType::Message, seq_bytes.len())?;
 
-        Ok(sequence::Iter::new(decoder, seq_bytes))
+        Ok(sequence::Iter::new(self, tag, seq_bytes))
     }
 }
 
@@ -200,19 +231,19 @@ impl<D> DecodeSeq<u64, D> for Decoder<D>
 where
     D: Digest,
 {
-    fn decode_seq<'a>(
-        &mut self,
+    fn decode_seq<'a, 'b>(
+        &'a mut self,
         tag: Tag,
-        input: &mut &'a [u8],
-    ) -> Result<sequence::Iter<'a, u64, D>, Error> {
+        input: &mut &'b [u8],
+    ) -> Result<sequence::Iter<'a, 'b, u64, D>, Error> {
         #[cfg(feature = "log")]
         begin!(self, "[{}]: seq<uint64>?", tag);
 
         self.peek().expect_header(input, tag, WireType::Sequence)?;
         let seq_bytes = self.peek().decode_sequence(WireType::UInt64, input)?;
-        let decoder = sequence::Decoder::new(WireType::UInt64, seq_bytes.len());
+        self.push_seq(WireType::UInt64, seq_bytes.len())?;
 
-        Ok(sequence::Iter::new(decoder, seq_bytes))
+        Ok(sequence::Iter::new(self, tag, seq_bytes))
     }
 }
 
@@ -220,19 +251,19 @@ impl<D> DecodeSeq<i64, D> for Decoder<D>
 where
     D: Digest,
 {
-    fn decode_seq<'a>(
-        &mut self,
+    fn decode_seq<'a, 'b>(
+        &'a mut self,
         tag: Tag,
-        input: &mut &'a [u8],
-    ) -> Result<sequence::Iter<'a, i64, D>, Error> {
+        input: &mut &'b [u8],
+    ) -> Result<sequence::Iter<'a, 'b, i64, D>, Error> {
         #[cfg(feature = "log")]
         begin!(self, "[{}]: seq<sint64>?", tag);
 
         self.peek().expect_header(input, tag, WireType::Sequence)?;
         let seq_bytes = self.peek().decode_sequence(WireType::SInt64, input)?;
-        let decoder = sequence::Decoder::new(WireType::SInt64, seq_bytes.len());
+        self.push_seq(WireType::SInt64, seq_bytes.len())?;
 
-        Ok(sequence::Iter::new(decoder, seq_bytes))
+        Ok(sequence::Iter::new(self, tag, seq_bytes))
     }
 }
 

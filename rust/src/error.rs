@@ -103,6 +103,9 @@ pub enum Kind {
     /// maximum message nesting depth exceeded
     NestingDepth,
 
+    /// nested sequences not presently allowed
+    NestedSequence,
+
     /// field {tag:?} is out-of-order
     Order {
         /// tag of the out-of-order field
