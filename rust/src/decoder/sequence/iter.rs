@@ -1,38 +1,51 @@
 //! Sequence iterator
 
-use super::Decoder;
-use crate::{decoder::Decodable, Error, Message};
+use crate::{
+    decoder::{sequence, Decodable, Decoder},
+    field::Tag,
+    Error, Message,
+};
 use core::marker::PhantomData;
 use digest::Digest;
 
 /// Sequence iterator: iterates over a sequence of values in a Veriform
 /// message, decoding each one.
-pub struct Iter<'a, T, D: Digest> {
+pub struct Iter<'a, 'b, T, D: Digest> {
     /// Sequence decoder
-    decoder: Decoder<D>,
+    decoder: &'a mut Decoder<D>,
+
+    /// Tag for the field this sequence is contained in
+    // TODO(tarcieri): support nested sequences?
+    tag: Tag,
 
     /// Input data
-    data: &'a [u8],
+    data: &'b [u8],
 
     /// Type to decode
     decodable: PhantomData<T>,
 }
 
-impl<'a, T, D> Iter<'a, T, D>
+impl<'a, 'b, T, D> Iter<'a, 'b, T, D>
 where
     D: Digest,
 {
     /// Create a new sequence iterator from a sequence decoder
-    pub(crate) fn new(decoder: Decoder<D>, data: &'a [u8]) -> Self {
+    pub(crate) fn new(decoder: &'a mut Decoder<D>, tag: Tag, data: &'b [u8]) -> Self {
         Self {
             decoder,
+            tag,
             data,
             decodable: PhantomData,
         }
     }
+
+    /// Borrow the sequence decoder
+    fn seq_decoder(&mut self) -> &mut sequence::Decoder<D> {
+        self.decoder.peek_seq()
+    }
 }
 
-impl<'a, T, D> Iterator for Iter<'a, T, D>
+impl<'a, 'b, T, D> Iterator for Iter<'a, 'b, T, D>
 where
     T: Message,
     D: Digest,
@@ -40,52 +53,72 @@ where
     type Item = Result<T, Error>;
 
     fn next(&mut self) -> Option<Result<T, Error>> {
-        if self.decoder.remaining() == 0 {
+        if self.seq_decoder().remaining() == 0 {
             return None;
         }
 
-        let mut input = &self.data[self.decoder.position()..];
-
-        // TODO(tarcieri): reuse decoder!
-        let mut decoder: crate::decoder::Decoder<D> = crate::decoder::Decoder::new();
+        let mut input = &self.data[self.seq_decoder().position()..];
 
         let result = self
-            .decoder
+            .seq_decoder()
             .decode_message(&mut input)
-            .and_then(|msg_bytes| T::decode(&mut decoder, msg_bytes));
+            .and_then(|msg_bytes| {
+                self.decoder.push()?;
+                let msg = T::decode(&mut self.decoder, msg_bytes)?;
+
+                if let Some(digest) = self.decoder.pop() {
+                    self.seq_decoder().hash_message_digest(&digest)?;
+                }
+
+                Ok(msg)
+            });
 
         Some(result)
     }
 }
 
-impl<'a, D> Iterator for Iter<'a, u64, D>
+impl<'a, 'b, D> Iterator for Iter<'a, 'b, u64, D>
 where
     D: Digest,
 {
     type Item = Result<u64, Error>;
 
     fn next(&mut self) -> Option<Result<u64, Error>> {
-        if self.decoder.remaining() == 0 {
+        if self.seq_decoder().remaining() == 0 {
             return None;
         }
 
-        let mut input = &self.data[self.decoder.position()..];
-        Some(self.decoder.decode_uint64(&mut input))
+        let mut input = &self.data[self.seq_decoder().position()..];
+        Some(self.seq_decoder().decode_uint64(&mut input))
     }
 }
 
-impl<'a, D> Iterator for Iter<'a, i64, D>
+impl<'a, 'b, D> Iterator for Iter<'a, 'b, i64, D>
 where
     D: Digest,
 {
     type Item = Result<i64, Error>;
 
     fn next(&mut self) -> Option<Result<i64, Error>> {
-        if self.decoder.remaining() == 0 {
+        if self.seq_decoder().remaining() == 0 {
             return None;
         }
 
-        let mut input = &self.data[self.decoder.position()..];
-        Some(self.decoder.decode_sint64(&mut input))
+        let mut input = &self.data[self.seq_decoder().position()..];
+        Some(self.seq_decoder().decode_sint64(&mut input))
+    }
+}
+
+impl<'a, 'b, T, D> Drop for Iter<'a, 'b, T, D>
+where
+    D: Digest,
+{
+    fn drop(&mut self) {
+        if let Some(digest) = self.decoder.pop_seq() {
+            self.decoder
+                .peek()
+                .hash_sequence_digest(self.tag, &digest)
+                .unwrap();
+        }
     }
 }

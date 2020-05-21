@@ -33,7 +33,7 @@ where
     D: Digest,
 {
     let mut result = heapless::Vec::new();
-    let seq_iter: sequence::Iter<'_, T, D> = decoder.decode_seq(tag, input)?;
+    let seq_iter: sequence::Iter<'_, '_, T, D> = decoder.decode_seq(tag, input)?;
 
     for elem in seq_iter {
         result.push(elem?).map_err(|_| error::Kind::Decode {

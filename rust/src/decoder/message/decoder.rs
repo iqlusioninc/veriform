@@ -138,14 +138,24 @@ where
         Ok(())
     }
 
-    /// Compute a digest of the message we're decoding.
+    /// Hash a digest of a sequence within this message
+    pub fn hash_sequence_digest(
+        &mut self,
+        tag: Tag,
+        digest: &DigestOutput<D>,
+    ) -> Result<(), Error> {
+        if let Some(hasher) = &mut self.hasher {
+            hasher.hash_sequence_digest(tag, digest)?;
+        }
+
+        Ok(())
+    }
+
+    /// Compute a Verihash digest of the message we're decoding.
     ///
     /// This method is invoked from proc macro-generated code in order to
     /// store the digests of (potentially inner) messages at deserialization
     /// time.
-    ///
-    /// The `finish_digest` method below (which consumes the decoder) is used
-    /// by the decoder itself to compute a Merkle tree over the messages.
     pub fn compute_digest(&mut self) -> Result<Option<DigestOutput<D>>, Error> {
         // Use cached digest if available
         if let Some(digest) = self.cached_digest.clone() {

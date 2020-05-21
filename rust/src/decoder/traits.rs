@@ -32,9 +32,9 @@ where
     D: Digest,
 {
     /// Try to decode a sequence of values of type `T`
-    fn decode_seq<'a>(
-        &mut self,
+    fn decode_seq<'a, 'b>(
+        &'a mut self,
         tag: Tag,
-        input: &mut &'a [u8],
-    ) -> Result<sequence::Iter<'a, T, D>, Error>;
+        input: &mut &'b [u8],
+    ) -> Result<sequence::Iter<'a, 'b, T, D>, Error>;
 }

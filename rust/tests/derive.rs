@@ -97,10 +97,9 @@ fn struct_round_trip() {
     let decoded = ExampleStruct::decode(&mut decoder, &encoded_buf).unwrap();
 
     // Expected digest
-    // TODO(tarcieri): actually stabilize these!
     example.digest = Some([
-        70, 253, 164, 73, 9, 251, 53, 54, 186, 12, 131, 51, 211, 21, 167, 39, 94, 115, 121, 247,
-        36, 223, 116, 164, 36, 154, 124, 156, 42, 115, 221, 197,
+        184, 86, 174, 227, 32, 40, 78, 107, 138, 228, 168, 208, 186, 189, 128, 164, 210, 15, 126,
+        220, 90, 4, 255, 19, 230, 230, 211, 218, 188, 104, 230, 87,
     ]);
 
     assert_eq!(example, decoded);

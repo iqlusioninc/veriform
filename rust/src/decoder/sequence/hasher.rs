@@ -10,7 +10,7 @@ use crate::{
     decoder::Event,
     error::{self, Error},
     field::WireType,
-    verihash,
+    verihash::{self, DigestOutput},
 };
 use core::fmt::{self, Debug};
 use digest::Digest;
@@ -32,9 +32,14 @@ where
     D: Digest,
 {
     /// Create a new [`Hasher`]
-    pub fn new() -> Self {
+    pub fn new(wire_type: WireType) -> Self {
+        let mut verihash = verihash::Hasher::new();
+
+        // Domain separate sequence hashes by their contained wire type
+        verihash.input(&[wire_type.to_u8()]);
+
         Self {
-            verihash: verihash::Hasher::new(),
+            verihash,
             state: Some(State::default()),
         }
     }
@@ -49,14 +54,26 @@ where
             Err(error::Kind::Failed.into())
         }
     }
-}
 
-impl<D> Default for Hasher<D>
-where
-    D: Digest,
-{
-    fn default() -> Self {
-        Self::new()
+    /// Hash a digest of a nested message within this message
+    pub fn hash_message_digest(&mut self, digest: &DigestOutput<D>) -> Result<(), Error> {
+        match self.state {
+            Some(State::Message { remaining }) if remaining == 0 => {
+                self.verihash.input(digest);
+                self.state = Some(State::Initial);
+                Ok(())
+            }
+            _ => Err(error::Kind::Hashing.into()),
+        }
+    }
+
+    /// Finish computing digest
+    pub fn finish(self) -> Result<DigestOutput<D>, Error> {
+        if self.state == Some(State::Initial) {
+            Ok(self.verihash.finish())
+        } else {
+            Err(error::Kind::Hashing.into())
+        }
     }
 }
 
@@ -180,7 +197,6 @@ impl State {
             }
             State::String { remaining } => {
                 // TODO(tarcieri): use `unicode-normalization`?
-
                 if wire_type != WireType::String || remaining - bytes.len() != new_remaining {
                     return Err(error::Kind::Hashing.into());
                 }
@@ -194,18 +210,18 @@ impl State {
                 }
             }
             State::Message { remaining } => {
+                // We don't actually handle message hashing here, instead
+                // computing a Verihash digest of a message in `sequence::Iter`
+                // then invoking the `hash_message_digest` method above.
+                //
+                // This code just handles length bookkeeping.
                 if wire_type != WireType::Message || remaining - bytes.len() != new_remaining {
                     return Err(error::Kind::Hashing.into());
                 }
 
-                // TODO(tarcieri): handle nested message digests in sequences
-                if new_remaining == 0 {
-                    return Ok(State::Initial);
-                } else {
-                    return Ok(State::Message {
-                        remaining: new_remaining,
-                    });
-                }
+                return Ok(State::Message {
+                    remaining: new_remaining,
+                });
             }
             _ => return Err(error::Kind::Hashing.into()),
         };
