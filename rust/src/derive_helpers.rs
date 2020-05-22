@@ -90,9 +90,9 @@ pub fn unknown_tag(tag: Tag) -> Error {
 }
 
 /// Fallible version of the `Extend` trait used for consuming Veriform
-/// sequences but with potential `max` limits (e.g. `heapless::Vec` size)
+/// sequences but with potential max limits (e.g. `heapless::Vec` size)
 pub trait TryExtend<A> {
-    /// Try to extend this type using the given iterator, returnin an error if
+    /// Try to extend this type using the given iterator, returning an error if
     /// capacity in the underlying buffer is exceeded
     fn try_extend<T>(&mut self, iter: T) -> Result<(), ()>
     where
