@@ -5,14 +5,35 @@ use proc_macro2::TokenStream;
 use quote::quote;
 use syn::Ident;
 
-/// Parsed `#[field(...)]` attribute
+/// Parsed `#[field(...)]` attribute.
+///
+/// When deriving the [`Message`] trait, every enum variant or field of a
+/// struct MUST be tagged as a `field`.
+///
+/// # Example
+///
+/// ```ignore
+/// #[derive(Message, Debug, Eq, PartialEq)]
+/// pub struct ExampleMessageA {
+///     #[field(tag = 0, wire_type = "uint64", critical = true)]
+///     pub uint64_field: u64,
+///
+///     #[field(tag = 1, wire_type = "sint64")]
+///     pub sint64_field: i64,
+///
+///     #[field(tag = 2, wire_type = "sequence", critical = true, max = 8)]
+///     pub msg_sequence_field: Vec<ExampleMessageB>,
+/// }
+/// ```
+///
+/// [`Message`]: https://docs.rs/veriform/latest/veriform/derive.Message.html
 #[derive(Debug, FromField, FromVariant)]
 #[darling(attributes(field))]
 pub(crate) struct Attrs {
     /// Tag which identifies the field
     tag: u64,
 
-    /// Wire type of the field
+    /// Wire type of the field. See [`WireType`] for the available type names.
     wire_type: Ident,
 
     /// Is this field critical?
@@ -52,26 +73,27 @@ impl Attrs {
 /// Wire type identifiers for Veriform types
 #[derive(Copy, Clone, Debug, Eq, PartialEq)]
 pub(crate) enum WireType {
-    /// Boolean values - these are actually modeled as two different wire type
-    /// identifiers (0 and 1) but consolidated for the purposes of this macro
+    /// `bool`: boolean values - these are actually modeled as two different
+    /// wire type identifiers (0 and 1) but consolidated for the purposes of
+    /// this macro
     Bool,
 
-    /// 64-bit unsigned integer
+    /// `uint64`: 64-bit unsigned integer
     UInt64,
 
-    /// 64-bit (zigzag) signed integer
+    /// `sint64`: 64-bit (zigzag) signed integer
     SInt64,
 
-    /// Binary data
+    /// `bytes`: binary data
     Bytes,
 
-    /// Unicode string
+    /// `string`: Unicode string
     String,
 
-    /// Nested Veriform message
+    /// `message`: nested Veriform message
     Message,
 
-    /// Sequences
+    /// `sequence`: sequences of other types (a.k.a. lists, arrays)
     Sequence,
 }
 

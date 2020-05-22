@@ -14,8 +14,6 @@
 //! is enabled, custom derive is available for this trait for both structs
 //! and enums.
 //!
-//! See the documentation for the `Message` proc macro for more information.
-//!
 //! # Built-in Types
 //!
 //! Veriform has a small "standard library" of so-called "built-in types" which
@@ -23,14 +21,22 @@
 //! different programming language environments to use the best-available
 //! native representation for these types.
 //!
-//! - `Timestamp`: date/time as represented in International Atomic Time (TAI)
-//! - `Uuid`: universally unique identifier
+//! - [`Timestamp`]: date/time as represented in International Atomic Time (TAI)
+//! - [`Uuid`]: universally unique identifier
+//!
+//! [`Timestamp`]: https://docs.rs/veriform/latest/veriform/builtins/struct.Timestamp.html
+//! [`Uuid`]: https://docs.rs/veriform/latest/veriform/builtins/struct.Uuid.html
 
 #![no_std]
 #![cfg_attr(docsrs, feature(doc_cfg))]
 #![doc(html_root_url = "https://docs.rs/veriform/0.1.0")]
 #![forbid(unsafe_code)]
-#![warn(missing_docs, rust_2018_idioms, unused_qualifications)]
+#![warn(
+    missing_docs,
+    rust_2018_idioms,
+    unused_qualifications,
+    intra_doc_link_resolution_failure
+)]
 
 #[cfg(feature = "alloc")]
 #[macro_use]

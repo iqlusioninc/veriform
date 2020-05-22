@@ -11,23 +11,15 @@ use digest::Digest;
 #[cfg(feature = "alloc")]
 use alloc::vec::Vec;
 
-/// Elements of a message (used for errors)
-#[derive(Copy, Clone, Debug, Eq, PartialEq)]
-pub enum Element {
-    /// Length delimiters for dynamically sized fields
-    LengthDelimiter,
-
-    /// Headers of sequences
-    SequenceHeader,
-
-    /// Tags identify the types of fields
-    Tag,
-
-    /// Field values (i.e. inside the body of a field value)
-    Value,
-}
-
-/// Veriform messages
+/// Veriform messages.
+///
+/// This trait provides the primary API for encoding/decoding messages as
+/// Veriform.
+///
+/// It's not intended to be implemented directly, but instead derived using
+/// the [`veriform::Message`] procedural macro.
+///
+/// [`veriform::Message`]: https://docs.rs/veriform/latest/veriform/derive.Message.html
 pub trait Message {
     /// Decode a Veriform message contained in the provided slice using the
     /// given [`Decoder`].
@@ -51,4 +43,20 @@ pub trait Message {
         self.encode(&mut encoded)?;
         Ok(encoded)
     }
+}
+
+/// Elements of a message (used for errors)
+#[derive(Copy, Clone, Debug, Eq, PartialEq)]
+pub enum Element {
+    /// Length delimiters for dynamically sized fields
+    LengthDelimiter,
+
+    /// Headers of sequences
+    SequenceHeader,
+
+    /// Tags identify the types of fields
+    Tag,
+
+    /// Field values (i.e. inside the body of a field value)
+    Value,
 }
