@@ -29,7 +29,7 @@
 
 #![no_std]
 #![cfg_attr(docsrs, feature(doc_cfg))]
-#![doc(html_root_url = "https://docs.rs/veriform/0.1.0")]
+#![doc(html_root_url = "https://docs.rs/veriform/0.2.0")]
 #![forbid(unsafe_code)]
 #![warn(
     missing_docs,
