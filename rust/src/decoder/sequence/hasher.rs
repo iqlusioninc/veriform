@@ -19,7 +19,7 @@ use digest::Digest;
 ///
 /// This type computes a hash-based transcript of how a message was
 /// decoded, driven by incoming decoding events.
-pub struct Hasher<D: Digest> {
+pub(super) struct Hasher<D: Digest> {
     /// Verihash hasher
     verihash: verihash::Hasher<D>,
 

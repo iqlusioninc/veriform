@@ -5,7 +5,7 @@ use crate::{
     decoder::{DecodeSeq, Decoder},
     encoder::Encoder,
     error::{self, Error},
-    field::{Tag, WireType},
+    field::{self, Tag, WireType},
     message::{Element, Message},
 };
 use digest::Digest;
@@ -72,6 +72,12 @@ where
         body_len,
         seq.iter().map(|elem| elem as &dyn Message),
     )
+}
+
+/// Decode tag (which identifies an enum variant)
+pub fn decode_tag(mut input: &[u8]) -> Result<Tag, Error> {
+    let header = vint64::decode(&mut input)?;
+    Ok(field::Header::from(header).tag)
 }
 
 /// Unknown tag in enum

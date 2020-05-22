@@ -12,11 +12,9 @@ mod vint64;
 #[macro_use]
 mod trace;
 
-pub use self::{
-    decodable::Decodable,
-    event::Event,
-    traits::{Decode, DecodeRef, DecodeSeq},
-};
+pub use self::traits::{Decode, DecodeRef, DecodeSeq};
+
+pub(crate) use self::{decodable::Decodable, event::Event};
 
 use crate::{
     error::{self, Error},
@@ -51,9 +49,30 @@ where
         }
     }
 
+    /// Fill the provided slice with the digest of the message if it fits
+    // TODO(tarcieri): find a better way to handle generic digest sizes
+    pub fn fill_digest(&mut self, output: &mut [u8]) -> Result<(), Error> {
+        let digest = self
+            .peek()
+            .compute_digest()?
+            .ok_or_else(|| error::Kind::Hashing)?;
+
+        if digest.len() != output.len() {
+            return Err(error::Kind::Hashing)?;
+        }
+
+        output.copy_from_slice(&digest);
+        Ok(())
+    }
+
+    /// Get the depth of the pushdown stack
+    #[cfg(feature = "log")]
+    pub(crate) fn depth(&self) -> usize {
+        self.stack.len()
+    }
+
     /// Push a new message decoder down onto the stack
-    // TODO(tarcieri): higher-level API (more like `::decode_message`)
-    pub fn push(&mut self) -> Result<(), Error> {
+    fn push(&mut self) -> Result<(), Error> {
         self.stack
             .push(message::Decoder::new())
             .map_err(|_| error::Kind::NestingDepth.into())
@@ -65,20 +84,13 @@ where
     ///
     /// Panics if the decoder stack underflows.
     // TODO(tarcieri): panic-free higher-level API, possibly RAII-based?
-    pub fn pop(&mut self) -> Option<DigestOutput<D>> {
+    fn pop(&mut self) -> Option<DigestOutput<D>> {
         self.stack.pop().unwrap().compute_digest().unwrap()
     }
 
     /// Peek at the message decoder on the top of the stack
-    // TODO(tarcieri): remove this implementation detail from public API (used for enums)
-    pub fn peek(&mut self) -> &mut message::Decoder<D> {
+    fn peek(&mut self) -> &mut message::Decoder<D> {
         self.stack.last_mut().unwrap()
-    }
-
-    /// Get the depth of the pushdown stack
-    // TODO(tarcieri): remove this implementation detail from public API (used for enums)
-    pub fn depth(&self) -> usize {
-        self.stack.len()
     }
 
     /// Push a sequence decoder
@@ -96,29 +108,13 @@ where
     ///
     /// Panics if the decoder stack underflows.
     // TODO(tarcieri): panic-free higher-level API, possibly RAII-based?
-    pub fn pop_seq(&mut self) -> Option<DigestOutput<D>> {
+    fn pop_seq(&mut self) -> Option<DigestOutput<D>> {
         self.seq_decoder.take().unwrap().compute_digest().unwrap()
     }
 
     /// Peek at the sequence decoder.
-    pub fn peek_seq(&mut self) -> &mut sequence::Decoder<D> {
+    fn peek_seq(&mut self) -> &mut sequence::Decoder<D> {
         self.seq_decoder.as_mut().unwrap()
-    }
-
-    /// Fill the provided slice with the digest of the message if it fits
-    // TODO(tarcieri): find a better way to handle generic digest sizes
-    pub fn fill_digest(&mut self, output: &mut [u8]) -> Result<(), Error> {
-        let digest = self
-            .peek()
-            .compute_digest()?
-            .ok_or_else(|| error::Kind::Hashing)?;
-
-        if digest.len() != output.len() {
-            return Err(error::Kind::Hashing)?;
-        }
-
-        output.copy_from_slice(&digest);
-        Ok(())
     }
 }
 

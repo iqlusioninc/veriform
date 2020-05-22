@@ -69,62 +69,23 @@ impl DeriveEnum {
     /// Derive a match arm of an enum `decode` method
     fn derive_decode_match_arm(&mut self, name: &Ident, attrs: &field::Attrs) {
         let tag = attrs.tag();
+        let wire_type = attrs.wire_type();
 
-        let decode_variant = match attrs.wire_type() {
-            WireType::Bool => quote! {
-                decoder
-                    .peek()
-                    .decode_bool(&mut input)?
+        let decode_variant = if wire_type.is_ref_type() {
+            let ty = wire_type.rust_type().unwrap();
+            quote! {
+                let field: #ty = decoder.decode_ref(#tag, &mut input)?;
+                field
                     .try_into()
                     .map(Self::#name)
-                    .map_err(|_| veriform::field::WireType::True.decoding_error())?
-            },
-            WireType::UInt64 => quote! {
-                decoder
-                    .peek()
-                    .decode_uint64(&mut input)?
-                    .try_into()
-                    .map(Self::#name)
-                    .map_err(|_| veriform::field::WireType::UInt64.decoding_error())?
-            },
-            WireType::SInt64 => quote! {
-                decoder
-                    .peek()
-                    .decode_sint64(&mut input)?
-                    .try_into()
-                    .map(Self::#name)
-                    .map_err(|_| veriform::field::WireType::SInt64.decoding_error())?
-            },
-            WireType::Bytes => quote! {
-                decoder
-                    .peek()
-                    .decode_bytes(&mut input)?
-                    .try_into()
-                    .map(Self::#name)
-                    .map_err(|_| veriform::field::WireType::Bytes.decoding_error())?
-            },
-            WireType::String => quote! {
-                decoder
-                    .peek()
-                    .decode_string(&mut input)?
-                    .try_into()
-                    .map(Self::#name)
-                    .map_err(|_| veriform::field::WireType::String.decoding_error())?
-            },
-            WireType::Message => quote! {
-                decoder
-                    .peek()
-                    .decode_message(&mut input)
-                    .and_then(|bytes| {
-                        decoder.push()?;
-                        let result = veriform::Message::decode(decoder, bytes);
-                        decoder.pop();
-                        result
-                    })
-                    .map(Self::#name)
-                    .map_err(|_| veriform::field::WireType::Message.decoding_error())?
-            },
-            WireType::Sequence => todo!(),
+                    .map_err(|_| veriform::field::WireType::Bytes.decoding_error())
+            }
+        } else if wire_type.is_sequence() {
+            todo!();
+        } else {
+            quote! {
+                decoder.decode(#tag, &mut input).map(Self::#name)
+            }
         };
 
         let match_arm = quote! {
@@ -150,14 +111,14 @@ impl DeriveEnum {
                     D: veriform::digest::Digest,
                 {
                     #[allow(unused_imports)]
-                    use veriform::decoder::Decodable;
-                    #[allow(unused_imports)]
                     use core::convert::TryInto;
+                    #[allow(unused_imports)]
+                    use veriform::decoder::{Decode, DecodeRef};
 
-                    let msg = match decoder.peek().decode_header(&mut input)?.tag {
+                    let msg = match veriform::derive_helpers::decode_tag(input)? {
                         #decode_body
-                        tag => return Err(veriform::derive_helpers::unknown_tag(tag))
-                    };
+                        tag => Err(veriform::derive_helpers::unknown_tag(tag))
+                    }?;
 
                     veriform::derive_helpers::check_input_consumed(input)?;
                     Ok(msg)
@@ -274,14 +235,16 @@ impl DeriveStruct {
         let wire_type = attrs.wire_type();
 
         match wire_type.rust_type() {
-            Some(ty) => quote! {
-                let #name: #ty = decoder.decode(#tag, &mut input)?;
-            },
+            Some(ty) => {
+                if wire_type.is_ref_type() {
+                    quote! { let #name: #ty = decoder.decode_ref(#tag, &mut input)?; }
+                } else {
+                    quote! { let #name: #ty = decoder.decode(#tag, &mut input)?; }
+                }
+            }
             None => {
                 if wire_type.is_message() {
-                    quote! {
-                        let #name = decoder.decode(#tag, &mut input)?;
-                    }
+                    quote! { let #name = decoder.decode(#tag, &mut input)?; }
                 } else if wire_type.is_sequence() {
                     // TODO(tarcieri): hoist more of this into a `derive_helper` function?
                     quote! {
@@ -343,7 +306,7 @@ impl DeriveStruct {
                     D: veriform::digest::Digest,
                 {
                     #[allow(unused_imports)]
-                    use veriform::decoder::Decode;
+                    use veriform::decoder::{Decode, DecodeRef};
 
                     #decode_body
 

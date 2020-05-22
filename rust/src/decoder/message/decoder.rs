@@ -13,7 +13,7 @@ use digest::Digest;
 
 /// Veriform message decoder: streaming zero-copy pull parser which emits
 /// events based on incoming data.
-pub struct Decoder<D: Digest> {
+pub(crate) struct Decoder<D: Digest> {
     /// Last field tag that was decoded (to ensure monotonicity)
     last_tag: Option<Tag>,
 
@@ -43,17 +43,6 @@ where
             hasher: Some(Hasher::new()), // TODO(tarcieri): support for disabling hasher
             cached_digest: None,
         }
-    }
-
-    /// Get the tag (i.e. ID) of the last decoded field header
-    pub fn last_tag(&self) -> Option<Tag> {
-        self.last_tag
-    }
-
-    /// Get the current position (i.e. number of bytes processed) in the
-    /// message being decoded
-    pub fn position(&self) -> usize {
-        self.position
     }
 
     /// Decode an expected field header, returning an error for anything else

@@ -4,7 +4,7 @@ use crate::field::{Header, WireType};
 
 /// Events emitted by Veriform's decoder
 #[derive(Clone, Debug, Eq, PartialEq)]
-pub enum Event<'a> {
+pub(crate) enum Event<'a> {
     /// Consumed field header with the given tag and wire type
     FieldHeader(Header),
 

@@ -50,7 +50,7 @@ impl Attrs {
 }
 
 /// Wire type identifiers for Veriform types
-#[derive(Copy, Clone, Debug)]
+#[derive(Copy, Clone, Debug, Eq, PartialEq)]
 pub(crate) enum WireType {
     /// Boolean values - these are actually modeled as two different wire type
     /// identifiers (0 and 1) but consolidated for the purposes of this macro
@@ -104,6 +104,11 @@ impl WireType {
         };
 
         Some(ty)
+    }
+
+    /// Is the underlying Rust type to decode a reference type?
+    pub fn is_ref_type(self) -> bool {
+        self == WireType::Bytes || self == WireType::String
     }
 
     /// Is this [`WireType`] a `Message`?

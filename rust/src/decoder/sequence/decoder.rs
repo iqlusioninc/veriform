@@ -11,7 +11,7 @@ use crate::{
 use digest::Digest;
 
 /// Sequence decoder
-pub struct Decoder<D: Digest> {
+pub(crate) struct Decoder<D: Digest> {
     /// Wire type contained in this sequence
     wire_type: WireType,
 
