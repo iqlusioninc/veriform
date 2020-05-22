@@ -11,7 +11,7 @@ use crate::{
 use core::str;
 
 /// Common functionality between the `message` and `sequence` decoders
-pub trait Decodable {
+pub(crate) trait Decodable {
     /// Process the given input data, advancing the slice for the amount of
     /// data processed, and returning any decoded events.
     fn decode<'a>(&mut self, input: &mut &'a [u8]) -> Result<Option<Event<'a>>, Error>;

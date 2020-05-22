@@ -60,6 +60,12 @@ impl Display for Error {
     }
 }
 
+impl From<vint64::Error> for Error {
+    fn from(_: vint64::Error) -> Error {
+        Kind::VInt64.into()
+    }
+}
+
 #[cfg(feature = "std")]
 impl std::error::Error for Error {}
 

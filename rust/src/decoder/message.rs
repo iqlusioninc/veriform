@@ -7,4 +7,4 @@ mod header;
 mod state;
 mod value;
 
-pub use self::decoder::Decoder;
+pub(crate) use self::decoder::Decoder;

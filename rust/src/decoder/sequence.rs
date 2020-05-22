@@ -5,4 +5,6 @@ mod hasher;
 mod iter;
 mod state;
 
-pub use self::{decoder::Decoder, iter::Iter};
+pub use self::iter::Iter;
+
+pub(crate) use self::decoder::Decoder;
