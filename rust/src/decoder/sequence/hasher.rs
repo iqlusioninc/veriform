@@ -36,7 +36,7 @@ where
         let mut verihash = verihash::Hasher::new();
 
         // Domain separate sequence hashes by their contained wire type
-        verihash.input(&[wire_type.to_u8()]);
+        verihash.update(&[wire_type.to_u8()]);
 
         Self {
             verihash,
@@ -59,7 +59,7 @@ where
     pub fn hash_message_digest(&mut self, digest: &DigestOutput<D>) -> Result<(), Error> {
         match self.state {
             Some(State::Message { remaining }) if remaining == 0 => {
-                self.verihash.input(digest);
+                self.verihash.update(digest);
                 self.state = Some(State::Initial);
                 Ok(())
             }
@@ -70,7 +70,7 @@ where
     /// Finish computing digest
     pub fn finish(self) -> Result<DigestOutput<D>, Error> {
         if self.state == Some(State::Initial) {
-            Ok(self.verihash.finish())
+            Ok(self.verihash.finalize())
         } else {
             Err(error::Kind::Hashing.into())
         }
@@ -225,7 +225,7 @@ impl State {
             _ => return Err(error::Kind::Hashing.into()),
         };
 
-        verihash.input(bytes);
+        verihash.update(bytes);
         Ok(new_state)
     }
 }

@@ -88,7 +88,7 @@ where
     /// Finish computing digest
     pub fn finish(self) -> Result<DigestOutput<D>, Error> {
         if self.state == Some(State::Initial) {
-            Ok(self.verihash.finish())
+            Ok(self.verihash.finalize())
         } else {
             Err(error::Kind::Hashing.into())
         }
@@ -289,7 +289,7 @@ impl State {
             }
         };
 
-        verihash.input(bytes);
+        verihash.update(bytes);
         Ok(new_state)
     }
 
