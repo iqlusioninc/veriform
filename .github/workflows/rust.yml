@@ -18,7 +18,7 @@ jobs:
           - thumbv7em-none-eabihf
           - wasm32-unknown-unknown
         toolchain:
-          - 1.40.0 # MSRV
+          - 1.41.0 # MSRV
           - stable
     steps:
       - name: Checkout sources
@@ -131,7 +131,7 @@ jobs:
           - macos-latest
           - windows-latest
         toolchain:
-          - 1.40.0 # MSRV
+          - 1.41.0 # MSRV
           - stable
     runs-on: ${{ matrix.platform }}
     steps:
@@ -185,7 +185,7 @@ jobs:
         uses: actions-rs/toolchain@v1
         with:
           profile: minimal
-          toolchain: 1.40.0 # MSRV
+          toolchain: 1.41.0 # MSRV
           components: rustfmt
 
       - name: Run cargo fmt
@@ -205,7 +205,7 @@ jobs:
         uses: actions-rs/toolchain@v1
         with:
           profile: minimal
-          toolchain: 1.40.0 # MSRV
+          toolchain: 1.41.0 # MSRV
           components: clippy
 
       - name: Run cargo clippy

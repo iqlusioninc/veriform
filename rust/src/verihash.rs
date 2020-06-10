@@ -64,30 +64,30 @@ where
     /// Hash a numerical tag
     // TODO(tarcieri): support string tags?
     pub fn tag(&mut self, tag: Tag) {
-        self.input(&[TAG_PREFIX]);
-        self.input(&tag.to_le_bytes());
+        self.update(&[TAG_PREFIX]);
+        self.update(&tag.to_le_bytes());
     }
 
     /// Hash a dynamically sized value
     pub fn dynamically_sized_value(&mut self, wire_type: WireType, length: usize) {
-        self.input(&[wire_type.to_u8()]);
-        self.input(&(length as u64).to_le_bytes());
+        self.update(&[wire_type.to_u8()]);
+        self.update(&(length as u64).to_le_bytes());
     }
 
     /// Hash an untagged value
     pub fn fixed_size_value(&mut self, wire_type: WireType, body: &[u8]) {
-        self.input(&[wire_type.to_u8()]);
-        self.input(body);
+        self.update(&[wire_type.to_u8()]);
+        self.update(body);
     }
 
-    /// Input data directly into the underlying hash function
-    pub fn input(&mut self, data: &[u8]) {
-        self.0.input(data);
+    /// Update data directly into the underlying hash function
+    pub fn update(&mut self, data: &[u8]) {
+        self.0.update(data);
     }
 
     /// Finish computing the digest, returning the output value
-    pub fn finish(self) -> DigestOutput<D> {
-        self.0.result()
+    pub fn finalize(self) -> DigestOutput<D> {
+        self.0.finalize()
     }
 }
 
