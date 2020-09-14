@@ -142,9 +142,9 @@ dependencies = [
 
 [[package]]
 name = "criterion-cycles-per-byte"
-version = "0.1.1"
+version = "0.1.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "555c41da9ee6a8c7190923f7c51c7d171ed8f496924c7435b9086b8f2637d4dd"
+checksum = "8d34485a578330c7a91ccf064674f3739a7aebbf3b9d7fd498a6d3e8f7473c96"
 dependencies = [
  "criterion",
 ]
