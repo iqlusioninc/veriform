@@ -142,9 +142,9 @@ dependencies = [
 
 [[package]]
 name = "criterion-cycles-per-byte"
-version = "0.1.1"
+version = "0.1.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "555c41da9ee6a8c7190923f7c51c7d171ed8f496924c7435b9086b8f2637d4dd"
+checksum = "8d34485a578330c7a91ccf064674f3739a7aebbf3b9d7fd498a6d3e8f7473c96"
 dependencies = [
  "criterion",
 ]
@@ -492,9 +492,9 @@ checksum = "237a5ed80e274dbc66f86bd59c1e25edc039660be53194b5fe0a482e0f2612ea"
 
 [[package]]
 name = "proc-macro2"
-version = "1.0.20"
+version = "1.0.24"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "175c513d55719db99da20232b06cda8bab6b83ec2d04e3283edf0213c37c1a29"
+checksum = "1e0704ee1a7e00d7bb417d0770ea303c1bccbabf0ef1667dae92b5967f5f8a71"
 dependencies = [
  "unicode-xid",
 ]
@@ -769,9 +769,9 @@ checksum = "6446ced80d6c486436db5c078dde11a9f73d42b57fb273121e160b84f63d894c"
 
 [[package]]
 name = "syn"
-version = "1.0.40"
+version = "1.0.42"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "963f7d3cc59b59b9325165add223142bbf1df27655d07789f109896d353d8350"
+checksum = "9c51d92969d209b54a98397e1b91c8ae82d8c87a7bb87df0b29aa2ad81454228"
 dependencies = [
  "proc-macro2",
  "quote",
