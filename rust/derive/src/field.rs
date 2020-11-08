@@ -40,6 +40,10 @@ pub(crate) struct Attrs {
     #[darling(default)]
     critical: bool,
 
+    /// Is this field optional?
+    #[darling(default)]
+    optional: bool,
+
     /// Size of a fixed-size field
     #[darling(default)]
     size: Option<usize>,

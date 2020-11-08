@@ -31,12 +31,7 @@
 #![cfg_attr(docsrs, feature(doc_cfg))]
 #![doc(html_root_url = "https://docs.rs/veriform/0.2.0")]
 #![forbid(unsafe_code)]
-#![warn(
-    missing_docs,
-    rust_2018_idioms,
-    unused_qualifications,
-    intra_doc_link_resolution_failure
-)]
+#![warn(missing_docs, rust_2018_idioms, unused_qualifications)]
 
 #[cfg(feature = "alloc")]
 #[macro_use]
