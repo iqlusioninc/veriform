@@ -187,6 +187,7 @@ jobs:
           profile: minimal
           toolchain: 1.41.0 # MSRV
           components: rustfmt
+          override: true
 
       - name: Run cargo fmt
         uses: actions-rs/cargo@v1
@@ -207,6 +208,7 @@ jobs:
           profile: minimal
           toolchain: 1.41.0 # MSRV
           components: clippy
+          override: true
 
       - name: Run cargo clippy
         uses: actions-rs/cargo@v1
