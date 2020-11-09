@@ -1,15 +1,15 @@
 [package]
 name        = "veriform"
-description = "Cryptographically verifiable data serialization format inspired by Protocol Buffers"
+description = "Cryptographically verifiable data serialization format"
 version     = "0.2.0"
 license     = "Apache-2.0"
 authors     = ["Tony Arcieri <tony@iqlusion.io>"]
 homepage    = "https://github.com/iqlusioninc/veriform/"
 repository  = "https://github.com/iqlusioninc/veriform/tree/develop/rust/"
-readme      = "README.md"
-edition     = "2018"
 categories  = ["authentication", "cryptography", "encoding"]
 keywords    = ["hashing", "merkle", "protobufs", "security", "serialization"]
+readme      = "README.md"
+edition     = "2018"
 
 [dependencies]
 digest = { version = "0.9", default-features = false }
