@@ -25,7 +25,7 @@ jobs:
           - 1.46.0 # MSRV
           - stable
         target:
-          - armv7-none-eabi
+          - armv7a-none-eabi
           - thumbv7em-none-eabi
           - wasm32-unknown-unknown
     steps:
