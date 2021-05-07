@@ -8,8 +8,7 @@ use crate::{
     field::{self, Tag, WireType},
     message::{Element, Message},
 };
-use digest::Digest;
-use heapless::ArrayLength;
+use digest::{generic_array::ArrayLength, Digest};
 
 /// Make sure input has been consumed
 pub fn check_input_consumed(input: &[u8]) -> Result<(), Error> {
@@ -99,10 +98,7 @@ pub trait TryExtend<A> {
         T: IntoIterator<Item = A>;
 }
 
-impl<T, N> TryExtend<T> for heapless::Vec<T, N>
-where
-    N: ArrayLength<T>,
-{
+impl<T, const N: usize> TryExtend<T> for heapless::Vec<T, N> {
     fn try_extend<I: IntoIterator<Item = T>>(&mut self, iter: I) -> Result<(), ()> {
         for elem in iter {
             self.push(elem).map_err(|_| ())?
