@@ -205,7 +205,7 @@ pub fn encode(value: u64) -> VInt64 {
 #[inline]
 pub fn decode(input: &mut &[u8]) -> Result<u64, Error> {
     let bytes = *input;
-    let length = decoded_len(*bytes.first().ok_or_else(|| Error::Truncated)?);
+    let length = decoded_len(*bytes.first().ok_or(Error::Truncated)?);
 
     if bytes.len() < length {
         return Err(Error::Truncated);

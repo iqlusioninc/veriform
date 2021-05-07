@@ -139,17 +139,11 @@ impl WireType {
 
     /// Is this [`WireType`] a `Message`?
     pub fn is_message(self) -> bool {
-        match self {
-            WireType::Message => true,
-            _ => false,
-        }
+        matches!(self, WireType::Message)
     }
 
     /// Is this [`WireType`] a `Sequence`?
     pub fn is_sequence(self) -> bool {
-        match self {
-            WireType::Sequence => true,
-            _ => false,
-        }
+        matches!(self, WireType::Sequence)
     }
 }

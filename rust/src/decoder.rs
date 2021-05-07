@@ -23,7 +23,6 @@ use crate::{
     Message,
 };
 use digest::Digest;
-use heapless::consts::U16;
 
 /// Veriform decoder.
 ///
@@ -33,7 +32,7 @@ use heapless::consts::U16;
 /// It's intended to be used in conjunction with the [`Message`] trait.
 pub struct Decoder<D: Digest> {
     /// Stack of message decoders (max nesting depth 16)
-    stack: heapless::Vec<message::Decoder<D>, U16>,
+    stack: heapless::Vec<message::Decoder<D>, 16>,
 
     /// Sequence decoder if we're presently decoding a sequence
     // TODO(tarcieri): support nested sequences?
