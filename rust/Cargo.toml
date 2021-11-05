@@ -17,7 +17,7 @@ displaydoc = { version = "0.2", default-features = false }
 heapless = "0.6"
 log = { version = "0.4", optional = true }
 sha2 = { version = "0.9", optional = true, default-features = false }
-tai64 = { version = "3", optional = true, default-features = false }
+tai64 = { version = "4", optional = true, default-features = false }
 uuid = { version = "0.8", optional = true, default-features = false }
 veriform_derive = { version = "0.2", optional = true, path = "derive" }
 vint64 = { version = "1", path = "vint64" }
