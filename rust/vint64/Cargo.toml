@@ -15,7 +15,7 @@ categories  = ["no-std", "parser-implementations"]
 keywords    = ["encoding", "integer", "leb128", "varint", "vlq"]
 
 [dev-dependencies]
-criterion = "0.3"
+criterion = "0.4"
 criterion-cycles-per-byte = "0.1"
 proptest = "1.0"
 
